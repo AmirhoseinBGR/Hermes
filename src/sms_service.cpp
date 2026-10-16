@@ -413,7 +413,12 @@ void SmsService::on_final(const AtResult& res)
         return;
     case SmsStep::SetStorage:
         session_.storage_ready = true;
-        goto_step(SmsStep::SetStorage);
+        if (target_index_ >= 0)
+            goto_step(SmsStep::ReadMessage);
+        else if (!recipient_.valid())
+            goto_step(SmsStep::ListUnread);
+        else
+            goto_step(SmsStep::SendHeader);
         return;
     case SmsStep::SendHeader:
         if (!prompt_seen_) fail(AtStatus::Error, -1);

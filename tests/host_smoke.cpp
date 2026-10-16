@@ -324,18 +324,41 @@ int main()
     assert(modem.queue_size() == 0);
     printf("Stale job successfully purged by watchdog!\n");
 
-    // Test Watchdog: Consecutive timeouts hardware power cycle
+    // Test Watchdog: Consecutive timeouts → AT+CFUN=1,1 (not PWRKEY first)
     printf("Testing Watchdog Consecutive Timeouts...\n");
     modem.resume_queue();
-    uint32_t initial_pulses = pwr.pulse_count;
-    for (int i = 0; i < 3; ++i)
+    modem.housekeeping().enabled              = false;
+    modem.maintenance().policy().health_check = false;
+    uart.clear_tx();
+    modem.begin();
+    advance(50, 1);
+    uart.inject("OK\r\n");
+    advance(50, 2);
+    uart.clear_tx();
+    advance(100, 2);
+    uart.inject("\r\n+CREG: 0,1\r\n\r\nOK\r\n");
+    advance(50, 2);
+    for (int i = 0; i < 15; ++i)
     {
-        uart.clear_tx();
-        modem.send_sms("09121112233", "fail");
-        advance(11000, 2); // Cause send timeout
+        advance(40, 1);
+        uart.inject("OK\r\n");
+        advance(40, 1);
     }
+    assert(modem.ready());
+    const uint32_t initial_pulses = pwr.pulse_count;
+    uart.clear_tx();
+    for (int i = 0; i < 3; ++i)
+        modem.send_sms("09121112233", "fail");
+    for (int i = 0; i < 40 && !tx_has("AT+CFUN=1,1"); ++i)
+        advance(1000, 1);
+    assert(tx_has("AT+CFUN=1,1"));
+    assert(modem.state() == ModemState::SoftRebooting || modem.state() == ModemState::Booting);
+    assert(pwr.pulse_count == initial_pulses); // PWRKEY is the fallback, not the first move
+    // CFUN unanswered: after boot-guard + 3 silent AT probes, PWRKEY fires.
+    for (int i = 0; i < 80 && pwr.pulse_count == initial_pulses; ++i)
+        advance(500, 1);
     assert(pwr.pulse_count > initial_pulses);
-    printf("Watchdog triggered hardware power cycle on consecutive timeouts!\n");
+    printf("Hang ladder: AT+CFUN=1,1 then PWRKEY fallback!\n");
 
     // ---- non-blocking PWRKEY pulse (regression: console 'K' used to freeze) ----
     printf("Testing non-blocking PWRKEY pulse & boot guard...\n");

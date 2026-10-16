@@ -95,6 +95,7 @@ void Modem::prepare_boot(bool arm_guard, bool note_watchdog)
     module_up_            = false;
     module_up_since_      = 0;
     if (pwrkey_asserted_) release_pwrkey(); // never leave the pin pulled
+    status_                = ModemStatus{};
     pwrkey_pulse_ms_       = GSM_PWRKEY_PULSE_MS;
     boot_guard_active_     = arm_guard;
     boot_guard_since_      = clock_.millis();
@@ -113,6 +114,7 @@ void Modem::soft_reboot()
 void Modem::start_soft_reboot()
 {
     kLog.warn("Software reboot: AT+CFUN=1,1");
+    at_.write_escape(); // unstick a CMGS prompt so the module will hear CFUN
     watchdog_.on_reset_started(clock_.millis());
     session_.invalidate();
     module_up_          = false;
@@ -618,6 +620,8 @@ bool Modem::start_job(Job& job)
 
 void Modem::finish_job(const AtResult& res)
 {
+    if (current_.kind == JobKind::None) return;
+
     current_.result = res;
     if (current_.kind == JobKind::SmsSend)
         current_.reference = sms_.send_report().reference;
@@ -628,7 +632,8 @@ void Modem::finish_job(const AtResult& res)
     {
         ++consecutive_timeouts_;
         kLog.warn("Job timed out (consecutive timeouts: %u)", consecutive_timeouts_);
-        if (consecutive_timeouts_ >= GSM_CONSECUTIVE_TIMEOUTS_RESET) { check_watchdog(); }
+        // Recovery runs from tick() → check_watchdog(). Calling it here re-enters
+        // finish_job (stop_all) and can clobber a CFUN/PWRKEY reboot with Ready.
     }
     else if (res.ok()) { consecutive_timeouts_ = 0; }
 
@@ -653,6 +658,21 @@ void Modem::finish_job(const AtResult& res)
     on_job_(current_);
     current_.clear();
     current_cb_.clear();
+
+    switch (state_)
+    {
+    case ModemState::SoftRebooting:
+    case ModemState::PowerPulsing:
+    case ModemState::Booting:
+    case ModemState::WaitingRegistration:
+    case ModemState::Configuring:
+    case ModemState::Off:
+    case ModemState::Fault:
+    case ModemState::SimMissing:
+        return; // never yank the FSM out of reboot / boot
+    default:
+        break;
+    }
     if (call_.in_call())
         enter(ModemState::InCall);
     else if (call_.ringing())
@@ -789,12 +809,9 @@ void Modem::on_final(const AtResult& res)
 {
     at_issued_ = false;
 
-    if (res.status == AtStatus::Timeout)
-    {
-        ++consecutive_timeouts_;
-        kLog.warn("Command timed out (consecutive: %u)", consecutive_timeouts_);
-    }
-    else if (res.ok()) { consecutive_timeouts_ = 0; }
+    // Probe/boot timeouts are not the empty-SMS hang; Booting already retries
+    // PWRKEY. Job timeouts are counted in finish_job().
+    if (res.ok()) consecutive_timeouts_ = 0;
 
     if (state_ == ModemState::SoftRebooting)
     {
@@ -821,7 +838,6 @@ void Modem::on_final(const AtResult& res)
             {
                 if (power_ && pwrkey_pulse_count_ < 2)
                 {
-                    ++pwrkey_pulse_count_;
                     at_probe_count_ = 0;
                     enter(ModemState::PowerPulsing);
                 }
@@ -970,18 +986,15 @@ void Modem::check_watchdog()
         flush_cancelled();
     }
 
-    // 2. Consecutive timeouts recovery
+    // 2. Consecutive timeouts: AT+CFUN=1,1 first (unsticks M08R empty-SMS).
+    //    PWRKEY is the fallback if CFUN cannot bring AT back (Booting, 3 probes).
     if (consecutive_timeouts_ >= GSM_CONSECUTIVE_TIMEOUTS_RESET)
     {
-        kLog.error("Watchdog: %u consecutive AT timeouts! Initiating hardware recovery...",
+        if (state_ == ModemState::SoftRebooting || state_ == ModemState::PowerPulsing) return;
+        kLog.error("Watchdog: %u consecutive AT timeouts! AT+CFUN=1,1 hang recovery...",
                    consecutive_timeouts_);
         consecutive_timeouts_ = 0;
-        stop_all(false);
-        if (power_) { power_cycle(); }
-        else
-        {
-            soft_reboot();
-        }
+        full_restart(/*hardware*/ false, /*keep_jobs*/ true);
         return;
     }
 
@@ -1063,7 +1076,10 @@ void Modem::tick()
 
     case ModemState::SoftRebooting:
         if (!at_issued_ && at_.idle())
+        {
+            kLog.warn("sending AT+CFUN=1,1");
             at_issued_ = at_.execute("AT+CFUN=1,1", GSM_CFUN_RESET_TIMEOUT_MS, this);
+        }
         return;
 
     case ModemState::Booting:
