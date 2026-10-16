@@ -24,7 +24,8 @@
 
 ### چرخه حیات: `begin()` / `reset()` / `power_cycle()` / `full_restart(...)`
 - `begin()` — صفر کردن شمارنده‌های بازیابی، ثبت زمان در watchdog (`on_reset_started`)، ورود به `Booting`.
-- `reset()` — `at_.abort()` + `stop_all(false)` + `begin()` (نرم، صف پاک می‌شود).
+- `reset()` — `at_.abort()` + `stop_all(false)` + `begin()` (فقط FSM، ماژول ریست نمی‌شود).
+- `soft_reboot()` — ریست نرم ماژول با `AT+CFUN=1,1`، سپس boot guard و پروب `AT`.
 - `power_cycle()` — پالس PWRKEY در صورت وجود `IPowerControl`، سپس `reset()`.
 - **`full_restart(bool hardware, bool keep_jobs)` (v0.4):** راه‌اندازی مجدد کامل با انتخاب سیاست صف:
 
@@ -94,7 +95,7 @@ if (limit && chars > limit) {
 
 ### `void Modem::finish_job(const AtResult&)` — سیاست تلاش مجدد
 - `SmsSend` شماره مرجع (`reference`) و `UssdQuery` پاسخ (`ussd_response`) را در job کپی می‌کند.
-- timeout پیاپی شمرده می‌شود؛ از `GSM_CONSECUTIVE_TIMEOUTS_RESET` (۳) بیشتر → `check_watchdog()` (بازیابی سخت‌افزاری).
+- timeout پیاپی شمرده می‌شود (فقط جاب، نه پروب بوت)؛ از `GSM_CONSECUTIVE_TIMEOUTS_RESET` (۳) بیشتر → در تیک بعدی `check_watchdog()` با `AT+CFUN=1,1` بازیابی می‌کند. `finish_job` دیگر `check_watchdog` را صدا نمی‌زند و وسط CFUN/PWRKEY به `Ready` برنمی‌گردد.
 - **سیاست‌های رد (`kErrSmsTooLong` / `kErrJobStalled`) و لغو (`Aborted`) هرگز retry نمی‌شوند.**
 - خطای retry‌پذیر تا `max_attempts` (برای SMS دو) دوباره به صف برمی‌گردد (`JobState::Queued`).
 - پس از نهایی‌شدن: `watchdog_.note_operation()` (تغذیه بودجه عملیات watchdog)، وضعیت نهایی `Succeeded/Cancelled/Failed`، فراخوانی callback و `on_job_`، و تعیین وضعیت FSM (`InCall`/`Ringing`/`Ready`).
@@ -112,7 +113,7 @@ if (limit && chars > limit) {
 | `SimRemoved` | `enter(SimMissing)` + callback بحرانی |
 | `NetworkReg` (کد 1/5) | `network_ready=true` و ورود به `Configuring` |
 | `Ussd` | `ussd_.notify_cusd(line)` |
-| `PowerDown` | باطل‌سازی جلسه + `enter(Off)` |
+| `PowerDown` | `handle_power_down()`: حین PWRKEY → پولس روشن‌کردن؛ بعد از `AT`/`RDY` → URC کهنه (نادیده)؛ در Ready → `power_cycle()`؛ بدون پین PWRKEY → `enter(Off)` |
 
 در پایان، هر URC به `user_urc_(ev)` هم داده می‌شود تا اپلیکیشن بتواند گوش کند.
 
@@ -142,7 +143,7 @@ if (limit && chars > limit) {
 
 ### `void Modem::check_watchdog()` — سگ نگهبان صنعتی
 1. **پاک‌سازی jobهای کهنه:** `purge_stale(now, GSM_JOB_MAX_AGE_MS=45s)`؛ jobهای معلق مانده بیش از ۴۵ ثانیه با callback لغو حذف می‌شوند.
-2. **بازیابی پس از timeout پیاپی (≥۳):** `stop_all` + `power_cycle()` (یا `reset()` بدون PWRKEY).
+2. **بازیابی پس از timeout پیاپی (≥۳):** `AT+CFUN=1,1` (با ESC قبلش). اگر پروب `AT` بعد از CFUN جواب نداد → پولس PWRKEY.
 3. **گیرکردگی در `Fault`/`SimMissing` بیش از `GSM_HARDWARE_REBOOT_TIMEOUT_MS` (۹۰s):** power-cycle کامل سخت‌افزاری.
 
 ### `void Modem::handle_sim_recovery()`
@@ -162,7 +163,7 @@ maintenance_service()         ← بازنشاننده‌های دوگانه wat
 ┌─ FSM ────────────────────────────────────────────────┐
 │ Off/Fault        → return                            │
 │ SimMissing       → handle_sim_recovery()             │
-│ Booting          → پروب "AT"                         │
+│ Booting          → اگر POWER DOWN دیده شد پولس روشن‌کردن؛ وگرنه پروب "AT" │
 │ PowerPulsing     → پالس PWRKEY → Booting             │
 │ WaitingRegistration → "AT+CREG?" هر 2s (timeout 45s) │
 │ Configuring      → اجرای جدول kBoot                  │

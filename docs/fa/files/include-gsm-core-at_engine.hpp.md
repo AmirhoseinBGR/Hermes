@@ -39,8 +39,9 @@ void     write_escape();  // 0x1B — abort prompt mode
 
 bool await_final(uint32_t timeout_ms, IAtObserver* observer);
 
-void abort();   // cancel current transaction -> on_final(Aborted)
-void tick();    // poll UART, feed LineReader, classify lines, enforce timeout
+void abort();      // cancel current transaction -> on_final(Aborted)
+void discard_rx(); // drain UART + reset line reader (power-cycle start)
+void tick();       // poll UART, feed LineReader, classify lines, enforce timeout
 
 void        set_trace(bool on);
 uint32_t    now();

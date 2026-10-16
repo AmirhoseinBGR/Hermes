@@ -46,7 +46,7 @@
 | `GSM_JOB_START_RETRIES` | 3 | دفعات تلاش برای شروع Job پیش از شکست |
 
 ### زمان‌بندی (میلی‌ثانیه)
-`GSM_AT_DEFAULT_TIMEOUT` (1000)، `GSM_AT_PROMPT_TIMEOUT` (5000)، `GSM_AT_CMGS_TIMEOUT` (10000)، `GSM_AT_USSD_TIMEOUT` (10000)، `GSM_AT_GUARD_TIME` (30)، `GSM_REGISTRATION_TIMEOUT` (45000)، `GSM_PWRKEY_PULSE_MS` (1200: حداقل پهنای پولس PWRKEY طبق دیتاشیت SIM800/M08)، `GSM_MODEM_BOOT_GUARD_MS` (2500: سکوت لازم بعد از رهاکردن PWRKEY پیش از پروب `AT`).
+`GSM_AT_DEFAULT_TIMEOUT` (1000)، `GSM_AT_PROMPT_TIMEOUT` (5000)، `GSM_AT_CMGS_TIMEOUT` (10000)، `GSM_AT_USSD_TIMEOUT` (10000)، `GSM_AT_GUARD_TIME` (30)، `GSM_REGISTRATION_TIMEOUT` (45000)، `GSM_PWRKEY_PULSE_MS` (1200: حداقل پهنای پولس PWRKEY طبق دیتاشیت SIM800/M08)، `GSM_MODEM_BOOT_GUARD_MS` (2500: سکوت لازم بعد از رهاکردن PWRKEY پیش از پروب `AT`)، `GSM_POWERDOWN_IGNORE_MS` (4000: نادیده‌گرفتن `NORMAL POWER DOWN` تأخیری بعد از اینکه `AT`/`RDY` ثابت کرد ماژول روشن است).
 
 ### نظارت بر تماس (ویژگی v0.4)
 ```cpp
@@ -69,6 +69,7 @@
 - `GSM_CONSECUTIVE_TIMEOUTS_RESET` (3) — تعداد timeout پیاپی پیش از ورود به بازیابی
 - `GSM_SIM_RETRY_INTERVAL_MS` (10000) — فاصلهٔ پروب مجدد SIM
 - `GSM_CFUN_CYCLE_INTERVAL_MS` (25000) — فاصلهٔ چرخهٔ CFUN=0/1
+- `GSM_CFUN_RESET_TIMEOUT_MS` (8000) — مهلت `AT+CFUN=1,1` (ریست نرم ماژول)
 - `GSM_HARDWARE_REBOOT_TIMEOUT_MS` (90000) — پس از ۹۰ ثانیه گیرکردن، power cycle کامل
 
 ### بازنشانی‌های تعمیراتی / نگهبان دوگانه (ویژگی v0.4)

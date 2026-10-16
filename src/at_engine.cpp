@@ -16,7 +16,9 @@ bool AtEngine::execute(const AtRequest& req, IAtObserver* observer)
     timeout_       = req.timeout_ms;
     started_       = clock_.millis();
     sent_.clear();
-    reader_.reset();
+    // Do NOT reset the line reader here. A PWRKEY cycle can leave
+    // "NORMAL POWER DOWN" (or RDY) mid-line; wiping it makes the URC either
+    // vanish or reassemble later, after AT has already succeeded.
 
     if (req.command)
     {
@@ -63,9 +65,17 @@ uint16_t AtEngine::write_raw(const char* text)
 
 void AtEngine::abort()
 {
+    // Always ESC: M08R empty-SMS hang lives in the payload phase where
+    // expect_prompt_ is already false, so a prompt-only ESC never fired.
+    write_escape();
     if (!busy()) return;
-    if (expect_prompt_) write_escape();
     finish(AtStatus::Aborted, -1);
+}
+
+void AtEngine::discard_rx()
+{
+    uart_.drain_rx();
+    reader_.reset();
 }
 
 bool AtEngine::classify_final(const char* line, AtStatus& status, int16_t& code) const
@@ -194,7 +204,7 @@ void AtEngine::tick()
     {
         kLog.warn("timeout after %lums: %s", static_cast<unsigned long>(timeout_),
                   sent_.empty() ? "(payload phase)" : sent_.c_str());
-        if (expect_prompt_) write_escape();
+        write_escape(); // leave CMGS '>' even during the payload/wait-ack phase
         finish(AtStatus::Timeout, -1);
     }
 }

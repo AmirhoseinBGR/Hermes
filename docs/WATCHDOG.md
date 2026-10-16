@@ -32,7 +32,7 @@
 auto& wd = modem.maintenance();
 wd.policy().periodic_ms = 30 * 60 * 1000; // هر ۳۰ دقیقه
 wd.policy().ops_period  = 200;            // هر ۲۰۰ عملیات
-wd.policy().use_power_cycle = true;       // ریست سخت‌افزاری با PWRKEY (در صورت وجود)
+wd.policy().use_power_cycle = false;      // پیش‌فرض: ریست نرم با AT+CFUN=1,1 (true = PWRKEY)
 wd.policy().health_check    = true;       // بررسی سلامت بعد از هر ریست
 wd.policy().enabled         = true;
 ```
@@ -86,10 +86,10 @@ tick() هر تیک:
   watchdog.tick(now)                ──▶ آیا بودجه‌ای تمام شده؟
         │ بله
         ▼
-  فرصت امن؟ (بدون تماس/جاب)  ──▶ بله ──▶ full_restart(hardware?, keep_jobs=true)
+  فرصت امن؟ (بدون تماس/جاب)  ──▶ بله ──▶ AT+CFUN=1,1 (یا PWRKEY اگر use_power_cycle)
         │ خیر                              │
         ▼                                  ▼
-  صبر تا grace_ms                 بوت مجدد → Ready
+  صبر تا grace_ms                 boot guard → پروب AT → Ready
   سپس اجباری                             │
                                           ▼
                                  شروع بررسی سلامت (4 پروب)
@@ -102,7 +102,7 @@ tick() هر تیک:
 
 | قابلیت | واچ‌داگ صنعتی قبلی | ریست‌کننده‌های v0.4 |
 |---|---|---|
-| تایم‌اوت‌های متوالی AT | ✔ (`GSM_CONSECUTIVE_TIMEOUTS_RESET`) | ✔ (همان قبلی) |
+| تایم‌اوت‌های متوالی AT | ✔ (`GSM_CONSECUTIVE_TIMEOUTS_RESET` → `AT+CFUN=1,1`، سپس PWRKEY اگر `AT` مرده باشد) | ✔ (همان قبلی) |
 | گیر کردن در Fault/SimMissing | ✔ (`GSM_HARDWARE_REBOOT_TIMEOUT_MS`) | ✔ (همان قبلی) |
 | ریست دوره‌ای زمانی | ✘ | ✔ پیش‌فرض ۱ ساعت |
 | ریست بعد از N عملیات | ✘ | ✔ پیش‌فرض ۵۰ |

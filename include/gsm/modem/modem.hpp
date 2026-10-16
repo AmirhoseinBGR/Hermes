@@ -17,6 +17,7 @@ enum class ModemState : uint8_t
     Off = 0,
     Booting,             // Sending AT probes
     PowerPulsing,        // Pulsing PWRKEY pin if no AT response
+    SoftRebooting,       // AT+CFUN=1,1 software module reset
     WaitingRegistration, // Waiting for network registration (+CREG=1 or 5)
     Configuring,         // Applying bootstrap commands
     Ready,               // Idle, housekeeping active
@@ -50,6 +51,10 @@ class Modem final : public IAtObserver
     void tick();
     void reset();
     void power_cycle();
+    // Non-blocking software reboot: send AT+CFUN=1,1, wait out the boot guard,
+    // then probe AT. Used by maintenance when use_power_cycle is false, and by
+    // console 'R'. Does not pulse PWRKEY.
+    void soft_reboot();
 
     // Hardware power control helpers.
     // The PWRKEY pulse is *non-blocking*: the state machine drives the pin
@@ -136,11 +141,18 @@ class Modem final : public IAtObserver
     void release_pwrkey();
     bool boot_guard_elapsed() const;
 
+    // NORMAL POWER DOWN / POWERED DOWN: real off vs stale URC after power-on
+    void handle_power_down();
+    void mark_module_up();
+    bool module_recently_up() const;
+
     // Call / queue interplay and maintenance helpers
     static bool is_call_job(JobKind kind);
     void        preempt_for_call();
     void        maintenance_service();
     void        full_restart(bool hardware, bool keep_jobs);
+    void        prepare_boot(bool arm_guard, bool note_watchdog);
+    void        start_soft_reboot();
 
     hal::IUart&         uart_;
     hal::IClock&        clock_;
@@ -195,6 +207,11 @@ class Modem final : public IAtObserver
     bool     boot_guard_active_ = false;
     uint32_t boot_guard_since_  = 0;
     uint32_t pwrkey_pulse_ms_   = GSM_PWRKEY_PULSE_MS;
+
+    // POWER DOWN URC bookkeeping (toggle PWRKEY: off-URC can arrive after on)
+    bool     saw_power_down_  = false;
+    bool     module_up_       = false;
+    uint32_t module_up_since_ = 0;
 };
 
 } // namespace gsm

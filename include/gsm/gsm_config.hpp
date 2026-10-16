@@ -71,6 +71,9 @@
 #ifndef GSM_MODEM_BOOT_GUARD_MS
 #define GSM_MODEM_BOOT_GUARD_MS 2500 // silence after a PWRKEY pulse before AT probing
 #endif
+#ifndef GSM_POWERDOWN_IGNORE_MS
+#define GSM_POWERDOWN_IGNORE_MS 4000 // ignore late NORMAL POWER DOWN after AT/RDY proved on
+#endif
 
 // --- call supervision --------------------------------------------------------
 #ifndef GSM_CALL_ANSWER_TIMEOUT_MS
@@ -95,6 +98,9 @@
 #endif
 #ifndef GSM_CFUN_CYCLE_INTERVAL_MS
 #define GSM_CFUN_CYCLE_INTERVAL_MS 25000 // if SIM still missing, cycle CFUN=0 then CFUN=1
+#endif
+#ifndef GSM_CFUN_RESET_TIMEOUT_MS
+#define GSM_CFUN_RESET_TIMEOUT_MS 8000 // AT+CFUN=1,1 may reset before OK is sent
 #endif
 #ifndef GSM_HARDWARE_REBOOT_TIMEOUT_MS
 #define GSM_HARDWARE_REBOOT_TIMEOUT_MS                                                             \

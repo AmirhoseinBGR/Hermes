@@ -324,18 +324,41 @@ int main()
     assert(modem.queue_size() == 0);
     printf("Stale job successfully purged by watchdog!\n");
 
-    // Test Watchdog: Consecutive timeouts hardware power cycle
+    // Test Watchdog: Consecutive timeouts → AT+CFUN=1,1 (not PWRKEY first)
     printf("Testing Watchdog Consecutive Timeouts...\n");
     modem.resume_queue();
-    uint32_t initial_pulses = pwr.pulse_count;
-    for (int i = 0; i < 3; ++i)
+    modem.housekeeping().enabled              = false;
+    modem.maintenance().policy().health_check = false;
+    uart.clear_tx();
+    modem.begin();
+    advance(50, 1);
+    uart.inject("OK\r\n");
+    advance(50, 2);
+    uart.clear_tx();
+    advance(100, 2);
+    uart.inject("\r\n+CREG: 0,1\r\n\r\nOK\r\n");
+    advance(50, 2);
+    for (int i = 0; i < 15; ++i)
     {
-        uart.clear_tx();
-        modem.send_sms("09121112233", "fail");
-        advance(11000, 2); // Cause send timeout
+        advance(40, 1);
+        uart.inject("OK\r\n");
+        advance(40, 1);
     }
+    assert(modem.ready());
+    const uint32_t initial_pulses = pwr.pulse_count;
+    uart.clear_tx();
+    for (int i = 0; i < 3; ++i)
+        modem.send_sms("09121112233", "fail");
+    for (int i = 0; i < 40 && !tx_has("AT+CFUN=1,1"); ++i)
+        advance(1000, 1);
+    assert(tx_has("AT+CFUN=1,1"));
+    assert(modem.state() == ModemState::SoftRebooting || modem.state() == ModemState::Booting);
+    assert(pwr.pulse_count == initial_pulses); // PWRKEY is the fallback, not the first move
+    // CFUN unanswered: after boot-guard + 3 silent AT probes, PWRKEY fires.
+    for (int i = 0; i < 80 && pwr.pulse_count == initial_pulses; ++i)
+        advance(500, 1);
     assert(pwr.pulse_count > initial_pulses);
-    printf("Watchdog triggered hardware power cycle on consecutive timeouts!\n");
+    printf("Hang ladder: AT+CFUN=1,1 then PWRKEY fallback!\n");
 
     // ---- non-blocking PWRKEY pulse (regression: console 'K' used to freeze) ----
     printf("Testing non-blocking PWRKEY pulse & boot guard...\n");
@@ -381,6 +404,74 @@ int main()
     assert(modem.ready());
     printf("PWRKEY pulse is non-blocking and the modem recovers to Ready!\n");
 
+    // ---- delayed NORMAL POWER DOWN after AT must not kill a live module ----
+    printf("Testing stale POWER DOWN after the module answered AT...\n");
+    modem.housekeeping().enabled              = false;
+    modem.maintenance().policy().health_check = false;
+    uart.inject("\r\nNORMAL POWER DOWN\r\n");
+    advance(50, 2);
+    assert(modem.state() != ModemState::Off);
+    assert(modem.ready());
+    printf("Stale POWER DOWN ignored while the module is up!\n");
+
+    // ---- unexpected POWER DOWN after the ignore window recovers via PWRKEY ----
+    printf("Testing unexpected POWER DOWN recovery...\n");
+    advance(GSM_POWERDOWN_IGNORE_MS + 100, 1);
+    uart.inject("\r\nPOWERED DOWN\r\n");
+    advance(50, 2);
+    assert(modem.state() != ModemState::Off);
+    assert(modem.state() == ModemState::PowerPulsing || modem.state() == ModemState::Booting);
+    printf("Unexpected POWER DOWN starts a hardware recovery cycle!\n");
+
+    // ---- POWER DOWN during boot guard means we turned it OFF: pulse again ----
+    printf("Testing POWER DOWN during PWRKEY cycle (off -> on)...\n");
+    const uint32_t pulses_off_on = pwr.pulse_count;
+    uart.clear_tx();
+    modem.power_cycle();
+    modem.tick();
+    assert(modem.pwrkey_asserted());
+    advance(1300, 1); // released, Booting
+    assert(modem.state() == ModemState::Booting);
+    uart.inject("\r\nNORMAL POWER DOWN\r\n");
+    advance(40, 2);
+    assert(modem.state() != ModemState::Off);
+    for (int i = 0; i < 400 && pwr.pulse_count < pulses_off_on + 2; ++i)
+        advance(200, 1);
+    assert(pwr.pulse_count >= pulses_off_on + 2); // off-pulse then on-pulse
+    assert(modem.state() != ModemState::Off);
+    for (int i = 0; i < 100 && pwr.level; ++i)
+        advance(100, 1);
+    uart.clear_tx();
+    for (int i = 0; i < 200 && !tx_has("AT"); ++i)
+        advance(100, 1);
+    assert(tx_has("AT"));
+    uart.inject("OK\r\n");
+    advance(50, 2);
+    assert(modem.state() == ModemState::WaitingRegistration);
+    uart.inject("\r\nNORMAL POWER DOWN\r\n"); // late leftover from the off-pulse
+    advance(50, 2);
+    assert(modem.state() != ModemState::Off);
+    assert(modem.state() == ModemState::WaitingRegistration);
+    printf("POWER DOWN during cycle triggered the ON pulse; late URC ignored!\n");
+
+    // ---- a POWER DOWN split across the AT probe must not be dropped ----
+    printf("Testing POWER DOWN split across the AT probe...\n");
+    const uint32_t pulses_split = pwr.pulse_count;
+    uart.clear_tx();
+    modem.power_cycle();
+    modem.tick();
+    advance(1300, 1); // released, boot guard running
+    advance(2000, 1); // still inside GSM_MODEM_BOOT_GUARD_MS
+    uart.inject("NORMAL POWER DO"); // no newline yet
+    advance(700, 1);                // guard elapsed, AT is issued; reader must keep the fragment
+    uart.inject("WN\r\n");
+    advance(40, 2);
+    assert(modem.state() != ModemState::Off);
+    for (int i = 0; i < 400 && pwr.pulse_count < pulses_split + 2; ++i)
+        advance(200, 1);
+    assert(pwr.pulse_count >= pulses_split + 2);
+    printf("Split POWER DOWN was not dropped by the AT probe!\n");
+
     // ---- a module switched OFF by the pulse must be switched back ON ----
     printf("Testing PWRKEY retry while the module stays silent...\n");
     const uint32_t pulses_before = pwr.pulse_count;
@@ -400,6 +491,29 @@ int main()
     assert(modem.state() == ModemState::WaitingRegistration || modem.ready());
     assert(!pwr.level); // the PWRKEY line is never left asserted
     printf("Silent-module PWRKEY retry works (off -> on)!\n");
+
+    // ---- software reboot via AT+CFUN=1,1 (not PWRKEY) ----
+    printf("Testing software reboot AT+CFUN=1,1...\n");
+    modem.housekeeping().enabled              = false;
+    modem.maintenance().policy().health_check = false;
+    modem.maintenance().policy().use_power_cycle = false;
+    uart.clear_tx();
+    modem.soft_reboot();
+    assert(modem.state() == ModemState::SoftRebooting);
+    advance(50, 2);
+    assert(tx_has("AT+CFUN=1,1"));
+    uart.inject("OK\r\n");
+    advance(50, 2);
+    assert(modem.state() == ModemState::Booting);
+    uart.clear_tx();
+    advance(2000, 1); // still inside boot guard
+    assert(!tx_has("AT"));
+    advance(700, 1);
+    assert(tx_has("AT"));
+    uart.inject("OK\r\n");
+    advance(50, 2);
+    assert(modem.state() == ModemState::WaitingRegistration);
+    printf("Software reboot AT+CFUN=1,1 works!\n");
 
     printf("ALL TESTS PASSED!\n");
     return 0;

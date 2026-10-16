@@ -53,7 +53,7 @@ struct ResetPolicy
     uint32_t periodic_ms        = GSM_PERIODIC_RESET_MS;   // 3600000, 0 = off
     uint16_t ops_period         = GSM_OPS_RESET_COUNT;     // 50, 0 = off
     uint32_t grace_ms           = GSM_WATCHDOG_GRACE_MS;   // 10000
-    bool     use_power_cycle    = true;   // prefer power cycle over soft reset
+    bool     use_power_cycle    = false;  // false: AT+CFUN=1,1; true: PWRKEY
     bool     health_check       = true;   // verify after reset
 };
 ```

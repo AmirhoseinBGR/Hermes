@@ -13,6 +13,7 @@ enum class ModemState : uint8_t
     Off = 0,
     Booting,             // Sending AT probes
     PowerPulsing,        // Pulsing PWRKEY pin if no AT response
+    SoftRebooting,       // AT+CFUN=1,1 software module reset
     WaitingRegistration, // Waiting for network registration (+CREG=1 or 5)
     Configuring,         // Applying bootstrap commands
     Ready,               // Idle, housekeeping active
@@ -51,6 +52,7 @@ void begin();        // start boot sequence
 void tick();         // MUST be called in the main loop
 void reset();        // soft restart of the library state machine
 void power_cycle();  // full hardware power cycle (needs IPowerControl)
+void soft_reboot();  // AT+CFUN=1,1 then boot guard + AT probe
 
 bool has_power_control() const;
 void pulse_pwrkey(uint32_t pulse_ms = GSM_PWRKEY_PULSE_MS);
@@ -61,6 +63,7 @@ uint32_t pwrkey_pulse_ms() const;
 پولس PWRKEY **غیرمسدودکننده** است: `power_cycle()`/`pulse_pwrkey()` فقط وضعیت را به `PowerPulsing` می‌برند و `tick()` ترتیب
 `assert` → نگه داشتن به مدت `pwrkey_pulse_ms` → `release` → انتظار `GSM_MODEM_BOOT_GUARD_MS` → پروب `AT` را اجرا می‌کند.
 هیچ‌کدام از این توابع بلاک نمی‌کنند و هرگز نباید از داخل وقفه صدا زده شوند.
+`NORMAL POWER DOWN` حین این دنباله به‌معنی خاموش‌شدن است (پولس بعدی برای روشن کردن)؛ بعد از `AT`/`RDY` موفق پیام کهنه است.
 
 APIهای Job (همگی `JobId` برمی‌گردانند؛ callback اختیاری):
 ```cpp
