@@ -71,8 +71,9 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <p>کنترل پین‌های تغذیه و ریست مودم با پشتیبانی از سطح فعال-پایین.</p>
 <ul>
 <li>سازنده: <code>Stm32PowerControl(GPIO_TypeDef<em> pwr_port, uint16_t pwr_pin, GPIO_TypeDef</em> rst_port = nullptr, uint16_t rst_pin = 0, bool active_low = true)</code></li>
-<li><code>void power_key(bool asserted)</code> — پین PWRKEY را ست/ریست می‌کند؛ اگر <code>asserted</code> باشد به اندازه‌ی <code>GSM_PWRKEY_PULSE_MS</code> صبر می‌کند (پالس روشن/خاموش).</li>
-<li><code>void reset(bool asserted)</code> — پین RESET را کنترل می‌کند؛ هنگام فعال‌سازی ۲۰۰ میلی‌ثانیه تأخیر می‌دهد.</li>
+<li><code>void power_key(bool asserted)</code> — فقط سطح پین PWRKEY را ست/ریست می‌کند (بدون هیچ تأخیری). زمان‌بندی پولس (<code>assert</code> → نگه داشتن → <code>release</code> → boot guard) در <code>Modem::tick()</code> انجام می‌شود.</li>
+<li><code>void reset(bool asserted)</code> — فقط پین RESET را همان لحظه کنترل می‌کند (بدون تأخیر).</li>
+<li>⚠️ عمداً هیچ <code>HAL_Delay</code> در این کلاس نیست: اگر این توابع از داخل وقفه صدا زده شوند (مثل دستور کنسول که از ISR یو‌آرت می‌آمد)، <code>HAL_Delay</code> روی تیک SysTick قفل می‌شود و کل دستگاه هنگ می‌کند. <code>power_key()</code> را هرگز از ISR صدا نزنید.</li>
 </ul>
 <h2>جریان کاری</h2>
 <ol>

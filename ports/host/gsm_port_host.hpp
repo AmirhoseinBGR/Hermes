@@ -54,9 +54,11 @@ class HostPowerControl final : public hal::IPowerControl
   public:
     void power_key(bool asserted) override
     {
+        level = asserted;
         if (asserted) ++pulse_count;
     }
     uint32_t pulse_count = 0;
+    bool     level       = false; // current PWRKEY line level
 };
 
 } // namespace gsm::port

@@ -86,6 +86,9 @@ void Modem::begin()
     last_cfun_cycle_      = 0;
     sim_recovery_phase_   = 0;
     start_failures_       = 0;
+    if (pwrkey_asserted_) release_pwrkey(); // never leave the pin pulled
+    pwrkey_pulse_ms_    = GSM_PWRKEY_PULSE_MS;
+    boot_guard_active_ = false; // a plain (re)start probes as soon as it can
     watchdog_.on_reset_started(clock_.millis());
     enter(ModemState::Booting);
     kLog.info("begin (%s)", traits_.name);
@@ -100,34 +103,62 @@ void Modem::reset()
 
 void Modem::power_cycle()
 {
-    if (power_)
-    {
-        kLog.warn("Hardware Power-Cycle: pulsing PWRKEY pin");
-        power_->power_key(true);
-        power_->power_key(false);
-    }
-    else
+    if (!power_)
     {
         kLog.warn("Software Power-Cycle (no PWRKEY pin available)");
+        reset();
+        return;
     }
-    stop_all(false);
-    reset();
+    kLog.warn("Hardware Power-Cycle: pulsing PWRKEY pin");
+    reset();                         // abort, drop queue state, enter Booting
+    pwrkey_pulse_count_ = 0;         // a manual cycle may pulse twice (off -> on)
+    at_probe_count_     = 0;
+    // tick() now drives: assert -> hold pwrkey_pulse_ms -> release -> boot guard.
+    enter(ModemState::PowerPulsing);
 }
 
 void Modem::pulse_pwrkey(uint32_t pulse_ms)
 {
-    if (power_)
-    {
-        kLog.info("Manual PWRKEY pulse (%lu ms)", static_cast<unsigned long>(pulse_ms));
-        power_->power_key(true);
-        power_->power_key(false);
-    }
-    else
+    if (!power_)
     {
         kLog.warn("Cannot pulse PWRKEY: no IPowerControl provided!");
+        return;
     }
-    stop_all(false);
+    kLog.info("Manual PWRKEY pulse (%lu ms)", static_cast<unsigned long>(pulse_ms));
     reset();
+    pwrkey_pulse_ms_    = pulse_ms ? pulse_ms : GSM_PWRKEY_PULSE_MS;
+    pwrkey_pulse_count_ = 0;
+    at_probe_count_     = 0;
+    enter(ModemState::PowerPulsing);
+}
+
+void Modem::start_pwrkey_pulse()
+{
+    if (!power_) return;
+    ++pwrkey_pulse_count_;
+    kLog.warn("pulsing PWRKEY (#%u, hold %lums)", pwrkey_pulse_count_,
+              static_cast<unsigned long>(pwrkey_pulse_ms_));
+    power_->power_key(true);
+    pwrkey_asserted_ = true;
+    pwrkey_since_    = clock_.millis();
+}
+
+void Modem::release_pwrkey()
+{
+    if (power_) power_->power_key(false);
+    pwrkey_asserted_   = false;
+    boot_guard_active_ = true;
+    boot_guard_since_  = clock_.millis();
+    kLog.info("PWRKEY released, boot guard %lums",
+              static_cast<unsigned long>(GSM_MODEM_BOOT_GUARD_MS));
+}
+
+bool Modem::boot_guard_elapsed() const
+{
+    // Only a real PWRKEY release arms the guard: a soft reset / software reboot
+    // keeps probing the (still running) module immediately as before.
+    return !boot_guard_active_ ||
+           hal::elapsed(clock_.millis(), boot_guard_since_, GSM_MODEM_BOOT_GUARD_MS);
 }
 
 bool Modem::is_call_job(JobKind kind)
@@ -165,9 +196,13 @@ void Modem::full_restart(bool hardware, bool keep_jobs)
     }
     if (hardware && power_)
     {
+        // Non-blocking: the FSM holds the pin and waits out the boot guard.
         kLog.warn("full hardware power-cycle: pulsing PWRKEY");
-        power_->power_key(true);
-        power_->power_key(false);
+        begin(); // begin() already released a stuck PWRKEY and armed the guard
+        pwrkey_pulse_count_ = 0;
+        at_probe_count_     = 0;
+        enter(ModemState::PowerPulsing);
+        return;
     }
     begin();
 }
@@ -198,6 +233,9 @@ void Modem::maintenance_service()
 void Modem::enter(ModemState s)
 {
     if (state_ == s) return;
+    // Safety: a PWRKEY pulse must never survive a state change (e.g. Fault),
+    // otherwise the module would be left powered off with the pin held low.
+    if (state_ == ModemState::PowerPulsing && pwrkey_asserted_) release_pwrkey();
     kLog.debug("%s -> %s", to_string(state_), to_string(s));
     state_       = s;
     state_since_ = clock_.millis();
@@ -209,9 +247,9 @@ const char* Modem::step() const
     switch (state_)
     {
     case ModemState::Booting:
-        return "probe-at";
+        return boot_guard_elapsed() ? "probe-at" : "boot-guard";
     case ModemState::PowerPulsing:
-        return "pwrkey";
+        return pwrkey_asserted_ ? "pwrkey-hold" : "pwrkey";
     case ModemState::WaitingRegistration:
         return "creg-wait";
     case ModemState::Configuring:
@@ -901,17 +939,28 @@ void Modem::tick()
         return;
 
     case ModemState::Booting:
-        if (!at_issued_ && at_.idle()) at_issued_ = at_.execute("AT", 1000, this);
+        // Wait out the boot guard before probing: right after a PWRKEY release
+        // the module is still booting (RDY / +CFUN: 1 / SIM Ready storm).
+        if (!at_issued_ && at_.idle() && boot_guard_elapsed())
+            at_issued_ = at_.execute("AT", 1000, this);
         return;
 
     case ModemState::PowerPulsing:
-        if (power_)
+        if (!power_)
         {
-            kLog.warn("pulsing PWRKEY (#%u)", pwrkey_pulse_count_);
-            power_->power_key(true);
-            power_->power_key(false);
+            enter(ModemState::Booting);
+            return;
         }
-        enter(ModemState::Booting);
+        if (!pwrkey_asserted_)
+        {
+            start_pwrkey_pulse();
+            return;
+        }
+        if (hal::elapsed(clock_.millis(), pwrkey_since_, pwrkey_pulse_ms_))
+        {
+            release_pwrkey();
+            enter(ModemState::Booting);
+        }
         return;
 
     case ModemState::WaitingRegistration:

@@ -40,7 +40,10 @@ class Console final : public IAtObserver
 
     void init(bool draw_menu = true);
     void tick();
-    void feed(uint8_t byte);                         // one byte of console input
+    // One byte of console input. Call it from the main loop only: a command may
+    // restart the modem (e.g. 'K' = PWRKEY hard reset) and must never run inside
+    // an interrupt. Buffer the UART bytes in the ISR and drain them in tick().
+    void feed(uint8_t byte);
     void feed_line(const char* line);                // one command line (no CR/LF needed)
     void exec_web(const char* line);                 // command from the web/serial bridge
     void status_line(char* dst, unsigned cap) const; // compact live status CSV

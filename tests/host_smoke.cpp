@@ -337,6 +337,70 @@ int main()
     assert(pwr.pulse_count > initial_pulses);
     printf("Watchdog triggered hardware power cycle on consecutive timeouts!\n");
 
+    // ---- non-blocking PWRKEY pulse (regression: console 'K' used to freeze) ----
+    printf("Testing non-blocking PWRKEY pulse & boot guard...\n");
+    uart.clear_tx();
+    modem.power_cycle();
+    // The call itself must return immediately: the FSM, not power_cycle(),
+    // drives the pin. A blocking pulse would already have finished here.
+    assert(!modem.pwrkey_asserted());
+    assert(modem.state() == ModemState::PowerPulsing);
+    modem.tick();
+    assert(modem.pwrkey_asserted()); // pin pulled on the first tick
+    assert(pwr.level);
+    assert(modem.step() != nullptr);
+    advance(500, 1);
+    assert(pwr.level); // still holding the pin low inside the pulse window
+    uart.clear_tx();
+    advance(800, 1); // 1300ms > GSM_PWRKEY_PULSE_MS
+    assert(!pwr.level); // released exactly after the pulse width
+    assert(!modem.pwrkey_asserted());
+    assert(modem.state() == ModemState::Booting);
+
+    // Boot guard: the module needs time to come up, no AT probe may be sent yet
+    uart.clear_tx();
+    advance(2000, 1); // 2000ms < GSM_MODEM_BOOT_GUARD_MS since the release
+    assert(!tx_has("AT"));
+    advance(700, 1); // now past the guard
+    assert(tx_has("AT"));
+    uart.inject("OK\r\n");
+    advance(50, 2);
+    assert(modem.state() == ModemState::WaitingRegistration);
+
+    // ... and the module reaches Ready again after the hardware power cycle
+    uart.clear_tx();
+    advance(100, 2);
+    uart.inject("\r\n+CREG: 0,1\r\n\r\nOK\r\n");
+    advance(50, 2);
+    for (int i = 0; i < 15; ++i)
+    {
+        advance(40, 1);
+        uart.inject("OK\r\n");
+        advance(40, 1);
+    }
+    assert(modem.ready());
+    printf("PWRKEY pulse is non-blocking and the modem recovers to Ready!\n");
+
+    // ---- a module switched OFF by the pulse must be switched back ON ----
+    printf("Testing PWRKEY retry while the module stays silent...\n");
+    const uint32_t pulses_before = pwr.pulse_count;
+    modem.power_cycle(); // simulated powered-off module: every AT probe times out
+    for (int i = 0; i < 400 && pwr.pulse_count < pulses_before + 2; ++i) advance(400, 1);
+    assert(pwr.pulse_count >= pulses_before + 2); // library pulsed again by itself
+
+    // the FSM always finishes the pulse: hold -> release -> boot guard
+    for (int i = 0; i < 100 && pwr.level; ++i) advance(100, 1);
+    assert(!pwr.level);
+
+    uart.clear_tx();
+    for (int i = 0; i < 200 && !tx_has("AT"); ++i) advance(100, 1);
+    assert(tx_has("AT"));
+    uart.inject("OK\r\n");
+    advance(50, 2);
+    assert(modem.state() == ModemState::WaitingRegistration || modem.ready());
+    assert(!pwr.level); // the PWRKEY line is never left asserted
+    printf("Silent-module PWRKEY retry works (off -> on)!\n");
+
     printf("ALL TESTS PASSED!\n");
     return 0;
 }

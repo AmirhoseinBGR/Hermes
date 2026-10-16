@@ -54,7 +54,13 @@ void power_cycle();  // full hardware power cycle (needs IPowerControl)
 
 bool has_power_control() const;
 void pulse_pwrkey(uint32_t pulse_ms = GSM_PWRKEY_PULSE_MS);
+bool pwrkey_asserted() const;  // پین همین حالا پایین نگه داشته شده است؟
+uint32_t pwrkey_pulse_ms() const;
 ```
+
+پولس PWRKEY **غیرمسدودکننده** است: `power_cycle()`/`pulse_pwrkey()` فقط وضعیت را به `PowerPulsing` می‌برند و `tick()` ترتیب
+`assert` → نگه داشتن به مدت `pwrkey_pulse_ms` → `release` → انتظار `GSM_MODEM_BOOT_GUARD_MS` → پروب `AT` را اجرا می‌کند.
+هیچ‌کدام از این توابع بلاک نمی‌کنند و هرگز نباید از داخل وقفه صدا زده شوند.
 
 APIهای Job (همگی `JobId` برمی‌گردانند؛ callback اختیاری):
 ```cpp

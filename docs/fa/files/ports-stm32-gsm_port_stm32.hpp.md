@@ -25,8 +25,9 @@
 - `class Stm32PowerControl final : public hal::IPowerControl`
   کنترل پین‌های تغذیه و ریست مودم با پشتیبانی از سطح فعال-پایین.
   - سازنده: `Stm32PowerControl(GPIO_TypeDef* pwr_port, uint16_t pwr_pin, GPIO_TypeDef* rst_port = nullptr, uint16_t rst_pin = 0, bool active_low = true)`
-  - `void power_key(bool asserted)` — پین PWRKEY را ست/ریست می‌کند؛ اگر `asserted` باشد به اندازه‌ی `GSM_PWRKEY_PULSE_MS` صبر می‌کند (پالس روشن/خاموش).
-  - `void reset(bool asserted)` — پین RESET را کنترل می‌کند؛ هنگام فعال‌سازی ۲۰۰ میلی‌ثانیه تأخیر می‌دهد.
+  - `void power_key(bool asserted)` — فقط سطح پین PWRKEY را ست/ریست می‌کند (بدون هیچ تأخیری). زمان‌بندی پولس (`assert` → نگه داشتن → `release` → boot guard) در `Modem::tick()` انجام می‌شود.
+  - `void reset(bool asserted)` — فقط پین RESET را همان لحظه کنترل می‌کند (بدون تأخیر).
+  - ⚠️ عمداً هیچ `HAL_Delay` در این کلاس نیست: اگر این توابع از داخل وقفه صدا زده شوند (مثل دستور کنسول که از ISR یو‌آرت می‌آمد)، `HAL_Delay` روی تیک SysTick قفل می‌شود و کل دستگاه هنگ می‌کند. `power_key()` را هرگز از ISR صدا نزنید.
 
 ## جریان کاری
 
