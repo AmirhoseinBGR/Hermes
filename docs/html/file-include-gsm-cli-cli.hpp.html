@@ -1,0 +1,134 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>include-gsm-cli-cli.hpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/cli/cli.hpp</h1>
+<h2>نقش فایل</h2>
+<p>کنسول تعاملی صنعتی کتابخانه (<code>cli::Console</code>) — همان چیزی که قبلاً در برنامهٔ کاربردی به‌نام <code>gsm_cli</code> وجود داشت و اکنون به یک قابلیت رسمی <strong>در هستهٔ کتابخانه</strong> تبدیل شده است. هر میزبانی (STM32، Arduino، تست میزبان) کافی است بایت‌های ورودی را به <code>feed()</code> بدهد و خروجی را به یک <code>TextSink</code> وصل کند تا همان منوی مدیریتی (وضعیت زنده، صف، نگهبان، دستورات SMS/تماس/USSD، حالت raw AT) را داشته باشد. فرمان‌ها از وب/پل سریال هم با <code>exec_web</code> قابل اجراست.</p>
+<h2>ساختارهای کلیدی</h2>
+<h3><code>struct TextSink</code></h3>
+<p>خروجی قابل حمل بایت‌محور (پورت سریال، کنسول وب، هارنس تست):</p>
+<pre><code class="lang-cpp">struct TextSink
+{
+    void (*write)(void* ud, const char* data, uint16_t len) = nullptr;
+    void* ud                                                = nullptr;
+
+    void put(const char* s) const;
+    void printf(const char* fmt, ...) const;   // __attribute__((format(printf, 2, 3)))
+};</code></pre>
+<h3><code>class Console final : public IAtObserver</code></h3>
+<pre><code class="lang-cpp">Console(Modem&amp; modem, hal::IClock&amp; clock);
+
+// output &amp; integration
+void set_output(const TextSink&amp; sink);
+void set_web_output(void (*out)(const char*, void*), void* ud);
+void install_log_mirror();        // route gsm::log records to the console (+web)
+void set_loop_rate_display(bool on);
+
+// lifecycle &amp; I/O
+void init(bool draw_menu = true); // register callbacks, draw the menu
+void tick();                      // periodic redraw / housekeeping
+void feed(uint8_t byte);          // one byte of console input
+void feed_line(const char* line); // one command line (no CR/LF needed)
+void exec_web(const char* line);  // command from the web/serial bridge
+void status_line(char* dst, unsigned cap) const; // compact live status CSV
+void redraw();
+
+// raw AT mode
+bool passthrough() const;
+void set_passthrough(bool on);
+
+// IAtObserver for the raw &quot;at&quot; command
+void on_line(const char* line, uint16_t len) override;
+void on_final(const AtResult&amp; res) override;</code></pre>
+<p>حالت‌های داخلی:</p>
+<pre><code class="lang-cpp">enum class Mode : uint8_t { Menu, LiveStatus, Passthrough };</code></pre>
+<p>بخش‌های خصوصی (نمایش و فرمان):</p>
+<ul>
+<li>rendering: <code>out</code>/<code>outf</code>، <code>web_event</code>/<code>web_out_chunk</code>، <code>ansi_bar</code>/<code>ansi_divider</code>/<code>ansi_clear</code>، <code>kv</code>، <code>draw_menu</code>/<code>draw_live_status</code>/<code>draw_queue</code>/<code>draw_status_bar</code>/<code>draw_watchdog</code>/<code>prompt</code>/<code>redraw_current</code></li>
+<li>command handling: <code>handle(char* line)</code>، <code>cycle_level()</code> (چرخش سطح لاگ)</li>
+<li>event thunks: <code>on_sms_thunk</code>، <code>on_call_thunk</code>، <code>on_call_ended_thunk</code>، <code>on_sim_thunk</code>، <code>on_job_thunk</code>، <code>on_health_thunk</code>، <code>log_thunk</code> — همگی static و متصل به <code>Modem</code> با <code>Delegate</code></li>
+</ul>
+<p>نحوهٔ استفاده (از کامنت خود هدر):</p>
+<pre><code class="lang-cpp">gsm::cli::Console console(modem, clock);
+console.set_output(sink);
+console.init();          // registers callbacks, draws the menu
+while (true) { console.tick(); ... console.feed(byte); }</code></pre>
+<p>مرجع فرمان‌ها: <code>docs/CLI.md</code> (فارسی) و <code>docs/html/cli.html</code>.</p>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">console byte stream (UART / USB / web)
+    |
+    v
+feed(byte) / feed_line() / exec_web()
+    |
+    v
+handle(line) --&gt; command dispatch (status, queue, sms, call, ussd, at, ...)
+    |                        |
+    |                        +--&gt; raw &quot;at&quot; cmd -&gt; AtEngine.execute(..., this)
+    |                                                 on_line/on_final echo
+    v
+rendering: Menu / LiveStatus / Passthrough  -&gt; TextSink (+ web mirror)
+    ^
+    |
+Modem callbacks (on_sms / on_call / on_call_ended / on_sim / on_job / on_health)
+    -&gt; event logs &amp; redraw          install_log_mirror() -&gt; log records here</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><strong>بدون heap</strong>: بافر خط ورودی <code>char line_[128]</code> و بافر وب <code>wline_[192]</code> روی object؛ هیچ <code>std::string</code>/<code>iostream</code> در کار نیست.</li>
+<li><code>Console</code> همزمان یک <code>IAtObserver</code> است (برای دستور raw <code>at</code>)؛ اجرای دستور با timeout ده‌ثانیه‌ای و نمایش وضعیت نهایی.</li>
+<li><strong>خروجی دوگانه</strong>: همهٔ خروجی‌ها به <code>TextSink</code> اصلی و در صورت تنظیم، به آینهٔ وب (<code>web_write_</code>) هم می‌روند — مناسب پنل تحت وب متصل به همان مودم.</li>
+<li><code>install_log_mirror</code> با <code>log::WriterSink</code> رکوردهای <code>gsm::log</code> را به کنسول می‌آورد؛ برای دیباگ میدانی بدون ابزار جانبی.</li>
+<li><code>status_line</code> یک CSV فشرده از وضعیت می‌دهد (برای اسکریپت/تله‌متری)؛ <code>draw_watchdog</code> وضعیت <code>MaintenanceWatchdog</code> (بودجه‌ها، resetها، health) را نشان می‌دهد.</li>
+<li><code>set_loop_rate_display</code> نرخ حلقهٔ اصلی را نمایش می‌دهد (ابزار پایش کارایی روی میکروکنترلر).</li>
+<li>ثبت callbackها در <code>init()</code> انجام می‌شود (callbackهای <code>Modem</code> را بازنویسی می‌کند)؛ اگر خودتان callback ثبت کرده‌اید، بعد از <code>init()</code> این کار را بکنید.</li>
+<li><code>Mode::Passthrough</code> بایت‌ها را مستقیم به موتور AT می‌فرستد (مشابه <code>tools::SerialBridge</code>).</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>modem/modem.hpp</code> — شیء تحت کنترل؛ همهٔ callbackها از همین‌جا وصل می‌شوند</li>
+<li><code>core/at_types.hpp</code> — <code>IAtObserver</code> برای دستور raw <code>at</code></li>
+<li><code>hal/hal.hpp</code> — <code>IClock</code> برای timestamp و نرخ حلقه</li>
+<li><code>log/log.hpp</code> — <code>install_log_mirror</code> و <code>WriterSink</code></li>
+<li><code>maintenance/watchdog.hpp</code> — <code>HealthReport</code> برای <code>draw_watchdog</code> و <code>on_health_thunk</code></li>
+<li><code>tools/serial_bridge.hpp</code> — جایگزین مینیمال برای حالت passthrough</li>
+<li><code>gsm_config.hpp</code> — اندازه‌های بافر و سطوح لاگ</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

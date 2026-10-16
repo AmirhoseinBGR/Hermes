@@ -1,0 +1,85 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>src-phone_number.cpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/phone_number.cpp</h1>
+<h2>نقش فایل</h2>
+<p>پیاده‌سازی <code>gsm::PhoneNumber</code>؛ نرمال‌سازی شماره تلفن به قالب E.164 (با پیشوند <code>+</code>). ورودی می‌تواند هر شکلی باشد: بین‌المللی (<code>+98912…</code>)، داخلی با صفر (<code>0912…</code>)، یا بدون صفر (<code>912…</code>)؛ خروجی همیشه یک رشته <code>+</code>دار معتبر است که مستقیماً در فرمان‌های <code>ATD</code> و <code>AT+CMGS</code> قابل استفاده است.</p>
+<h2>توابع و منطق کلیدی</h2>
+<h3><code>bool PhoneNumber::assign(const char<em> raw, const char</em> country_code = "+98")</code></h3>
+<p>مرحله ۱ — استخراج: کاراکترهای غیررقمی حذف می‌شوند؛ فقط یک <code>+</code> در ابتدای رشته پذیرفته می‌شود (پرچم <code>plus</code>). بافر <code>digits</code> با اندازه ثابت <code>GSM_SMS_NUMBER_BYTES</code> پر می‌شود؛ ورودی بدون هیچ رقم → <code>false</code>.</p>
+<pre><code class="lang-cpp">for (const char* p = raw; *p &amp;&amp; n + 1u &lt; sizeof(digits); ++p)
+{
+    if (*p == &#x27;+&#x27; &amp;&amp; n == 0) { plus = true; continue; }
+    if (*p &gt;= &#x27;0&#x27; &amp;&amp; *p &lt;= &#x27;9&#x27;) digits[n++] = *p;
+}</code></pre>
+<p>مرحله ۲ — نرمال‌سازی (کد کشور پیش‌فرض <code>+98</code> برای ایران):</p>
+<table><thead><tr><th>ورودی</th><th>خروجی</th></tr></thead><tbody>
+<tr><td>با <code>+</code> (بین‌المللی)</td><td><code>+</code> + ارقام استخراج‌شده</td></tr>
+<tr><td>بدون <code>+</code> ولی با پیشوند کد کشور (<code>98…</code>)</td><td><code>+</code> + ارقام (تشخیص با <code>memcmp</code> پیشوند)</td></tr>
+<tr><td>با صفر داخلی (<code>0912…</code>)</td><td><code>+98</code> + ارقام بدون صفر اول</td></tr>
+<tr><td>سایر (<code>912…</code>)</td><td><code>+98</code> + ارقام</td></tr>
+</tbody></table>
+<p>نتیجه نهایی با <code>valid()</code> (موجود و غیرخالی) سنجیده می‌شود.</p>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">&quot;09123456789&quot;  ──► digits=&quot;09123456789&quot; ──► شروع با &#x27;0&#x27; ──► &quot;+989123456789&quot;
+&quot;+989123456789&quot; ──► plus=true ──────────────────────────► &quot;+989123456789&quot;
+&quot;989123456789&quot; ──► بدون &#x27;+&#x27; ولی پیشوند &quot;98&quot; ───────────► &quot;+989123456789&quot;
+&quot;9123456789&quot;   ──► بدون &#x27;+/&#x27; بدون پیشوند/بدون صفر ─────► &quot;+989123456789&quot;
+&quot;abc&quot;          ──► هیچ رقمی ──► false (نامعتبر)</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><strong>کد کشور قابل‌تغییر:</strong> پارامتر دوم <code>assign</code> به‌صورت پیش‌فرض <code>"+98"</code> است؛ برای محصولات غیر ایرانی می‌توان کد دیگری داد (با یا بدون <code>+</code>).</li>
+<li><strong>کوتاه‌سازی بی‌صدا:</strong> اگر ارقام بیش از ظرفیت <code>GSM_SMS_NUMBER_BYTES</code> (۲۴) باشند، ارقام اضافی در حلقه نادیده گرفته می‌شوند؛ برای شماره‌های واقعی کافی است اما در دیباگ ورودی‌های مخرب به چشم می‌آید.</li>
+<li><strong>تشخیص پیشوند کشور:</strong> با <code>memcmp</code> روی ابتدای ارقام؛ برای شماره‌هایی که با کد کشور شروع شده‌اند ولی <code>+</code> ندارند (<code>98912…</code>) درست کار می‌کند. شماره‌های کوتاه‌تر از کد کشور (<code>98…</code>) به‌اشتباه ممکن است بین‌المللی تفسیر نشوند — الگوریتم عامدانه ساده است.</li>
+<li><strong>همیشه <code>+</code> در خروجی:</strong> <code>ATD+98912…;</code> و <code>AT+CMGS="+98912…"</code> با این قالب برای اکثر مودم‌ها (و شبکه ایران) معتبر است.</li>
+<li><strong>بدون heap:</strong> <code>value_</code> یک <code>static_string</code> عضو کلاس است؛ <code>printf</code> داخلی آن با ظرفیت ثابت کار می‌کند.</li>
+<li><strong><code>e164()</code></strong> (در هدر) اشاره‌گر به رشته نرمال‌شده برمی‌گرداند که <code>CallService</code> و <code>SmsService</code> مستقیم در فرمان‌ها <code>snprintf</code> می‌کنند.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>gsm/codec/phone_number.hpp</code> — تعریف کلاس، <code>assign</code>، <code>e164()</code>، <code>valid()</code>، <code>clear()</code>.</li>
+<li><code>src/call_service.cpp</code> — شماره طرف تماس (<code>peer_</code>)؛ شماره‌های دریافتی <code>+CLIP</code>/<code>+CLCC</code> (حتی UCS2) هم از همین فیلتر می‌گذرند.</li>
+<li><code>src/sms_service.cpp</code> — شماره گیرنده (<code>recipient_</code>) در <code>start_send</code>.</li>
+<li><code>src/modem.cpp</code> — <code>send_sms</code> و <code>dial</code> مقدار <code>job.number</code> را به <code>assign</code> می‌سپارند.</li>
+<li><code>include/gsm/gsm_config.hpp</code> — <code>GSM_SMS_NUMBER_BYTES</code> (اندازه بافر ارقام).</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

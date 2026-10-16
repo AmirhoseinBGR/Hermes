@@ -1,0 +1,92 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>نکات عملی</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>درس هایی که از لاگ های خودت گرفتیم (و در کد قفل شده اند)</h1>
+<h2>1. با <code>CSCS="UCS2"</code> شماره هم باید UCS2 باشد</h2>
+<pre><code>AT+CSCS=&quot;UCS2&quot;            OK
+AT+CMGS=&quot;+989037744527&quot;   +CMS ERROR: 3518   ← شماره ASCII
+AT+CMGS=&quot;002B0039...3237&quot; &gt;                  ← همان شماره، UCS2-hex</code></pre>
+<p>کد: <code>DeviceTraits::ucs2_recipient_required</code> + <code>codec::ascii_to_ucs2_hex()</code> در</p>
+<p><code>SmsStep::SendHeader</code>.</p>
+<h2>2. قبل از Ctrl+Z نباید CRLF بفرستی</h2>
+<pre><code>&quot;0633064406270645\r\n&quot; + 1A  → +CMS ERROR: 520
+&quot;0633064406270645&quot;    + 1A  → +CMGS: 3   OK</code></pre>
+<p>کد: <code>AtEngine::write_raw()</code> هرگز CRLF اضافه نمی کند؛ فقط <code>write_ctrl_z()</code>.</p>
+<h2>3. اگر در حالت prompt گیر کنی، ماژول تا ESC نخورد جواب نمی دهد</h2>
+<pre><code>AT+CMGS=&quot;...&quot;   &gt;
+&quot;0633...&quot;  (بدون 1A)
+at              +CME ERROR: 58</code></pre>
+<p>کد: <code>abort()</code> و هر خطای مرحله ی payload یک <code>0x1B</code> (ESC) می فرستد تا از data-entry</p>
+<p>بیرون بیاید.</p>
+<h2>4. ترتیب امن ارسال</h2>
+<p><code>AT+CMGF=1</code> → <code>AT+CSCS="UCS2"</code> → <code>AT+CSMP=...</code> → <code>AT+CPMS=...</code> → <code>AT+CMGS</code>.</p>
+<p>در لاگ تو با <code>AT+CSMP=17,71,0,25</code> و هم با <code>17,0,8,0</code> پیام رسید؛ چون عامل اصلی خرابی</p>
+<p>موارد ۱ و ۲ بود. پیش فرض SIM800 را روی همان <code>17,71,0,25</code> که خودت تست کردی گذاشتم و</p>
+<p>برای M08 روی <code>17,167,0,8</code> (استاندارد UCS2). هر دو در <code>DeviceTraits</code> قابل تغییرند:</p>
+<p>اگر روی سیم کارت/شبکه ی دیگری نتیجه فرق کرد، فقط همان یک رشته را عوض کن.</p>
+<h2>5. بنر بوت و URCها قابل اعتماد نیستند</h2>
+<p><code>DY</code> (نسخه ی بریده ی <code>RDY</code>)، <code>Call Ready</code>، <code>SMS Ready</code>، <code>+CPIN: READY</code> همه در</p>
+<p><code>UrcRouter</code> هندل می شوند؛ اما ماشین حالت منتظر آن ها نمی ماند و خودش با <code>AT</code> پروب می کند.</p>
+<h2>6. تماس</h2>
+<p><code>ATD09037744527;</code> (سمی کولن = صوتی) کار می کند؛ <code>AYD...</code> تایپی بود. قطع تماس در</p>
+<p>SIM800 با <code>ATH</code> و در M08 با <code>AT+CHUP</code> است → <code>DeviceTraits::hangup_cmd</code>.</p>
+<h2>7. echo</h2>
+<p>لاگ تو echo روشن دارد. <code>ATE0</code> در bootstrap خاموشش می کند و پارسر هم مقاوم است</p>
+<p>(خط برابر با فرمان ارسالی دور ریخته می شود).</p>
+<h2>۸. درس‌های M08R (v0.4)</h2>
+<h3>پایان تماس بی‌صدا</h3>
+<p>M08R ممکن است هیچ‌کدام از <code>NO CARRIER</code> / <code>BUSY</code> / <code>NO ANSWER</code> را هنگام رد یا بی‌جوابی</p>
+<p>تماس نفرستد. راه‌حل: پرس‌وجوی دوره‌ای <code>AT+CLCC</code> به‌عنوان منبع حقیقت</p>
+<p>(<code>DeviceTraits::clcc_authoritative = true</code> در <code>kQuectelM08R</code>) + تایمر قطع خودکار.</p>
+<h3>هنگ و ارسال پیام خالی</h3>
+<p>ارسال متن‌های بلند یا ارسال در میانه عملیات دیگر، ماژول را به حالت prompt/داده گیر</p>
+<p>می‌اندازد و گاهی پیام خالی می‌فرستد. راه‌حل‌ها (همه در کد):</p>
+<ul>
+<li>گارد سخت‌گیرانه طول پیام (<code>GSM_SMS_MAX_CHARS</code> پیش‌فرض ۶۰ کاراکتر)</li>
+<li>گیت تماس: هیچ ارسالی در حین تماس شروع نمی‌شود</li>
+<li>لغو امن با <code>ESC</code> (0x1B) اگر تماس ورودی وسط payload برسد</li>
+<li>ریست‌های دوره‌ای نگه‌بانی (<code>docs/WATCHDOG.md</code>)</li>
+</ul>
+<h3>قطع تماس</h3>
+<p>فرمان قطع M08R: <code>AT+CHUP</code>. اگر جواب ندهد، <code>ATH</code> به‌عنوان فرمان جایگزین ارسال می‌شود</p>
+<p>(<code>CallStep::HangupFallback</code>).</p></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

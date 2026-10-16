@@ -1,0 +1,65 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>بازیابی صنعتی</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>مستند قابلیت های صنعتی و بازیابی خودکار (Industrial Recovery &amp; Watchdog)</h1>
+<p>این بخش به منظور تضمین کارکرد پایدار ۲۴/۷ و شرایط واقعی محیط های صنعتی طراحی شده است:</p>
+<h2>۱. چرخه بازیابی خودکار سیم کارت با ریست لایه RF/SIM (CFUN Cycle)</h2>
+<p>در ماژول های کوئکتل (M08/M66) و SIM800، پس از خارج شدن و جا زدن مجدد سیم کارت، ماژول وضعیت جدید را در وقایع عادی تشخیص نداده و در پاسخ به <code>AT+CPIN?</code> خطای <code>+CME ERROR: SIM not inserted</code> می دهد تا زمانی که لایه ی بیس باند ریست شود:</p>
+<ul>
+<li>هنگامی که سیم کارت خارج شود، وضعیت به <code>SimMissing</code> می رود.</li>
+<li>ماشین حالت در فواصل مشخص (<code>GSM_SIM_RETRY_INTERVAL_MS = 10000ms</code>) دستور <code>AT+CPIN?</code> می زند.</li>
+<li>چنانچه سیم کارت هنوز شناسایی نشده باشد، در بازه های ۲۵ ثانیه ای (<code>GSM_CFUN_CYCLE_INTERVAL_MS</code>) خودکار دستور <code>AT+CFUN=0</code> (قطع لایه رادیویی/سیم) و سپس <code>AT+CFUN=1</code> را ارسال می کند. این دستور ماژول را مجبور به اسکن فیزیکی پین های سیم کارت کرده و وضعیت به <code>+CPIN: READY</code> تغییر می کند.</li>
+</ul>
+<h2>۲. واچ داگ صف و جلوگیری از انباشتگی وظایف (Queue Purge)</h2>
+<ul>
+<li>در شرایط قطع شبکه یا عدم پاسخ گویی موقت، تسک های معلق اگر بیش از ۴۵ ثانیه (<code>GSM_JOB_MAX_AGE_MS</code>) در صف منتظر اجرا بمانند، توسط متد <code>purge_stale()</code> خودکار کیل (Cancel) می شوند تا صف انباشته نشود و بعد از اتصال مجدد شبکه، سیستم با داده های قدیمی مسدود نگردد.</li>
+</ul>
+<h2>۳. ریست سخت افزاری خودکار با PWRKEY</h2>
+<ul>
+<li><strong>تشخیص هنگ ماژول</strong>: در صورتی که ۳ دستور متوالی (<code>GSM_CONSECUTIVE_TIMEOUTS_RESET = 3</code>) دچار تایم اوت شوند یا مودم به مدت ۹۰ ثانیه (<code>GSM_HARDWARE_REBOOT_TIMEOUT_MS</code>) در حالت Fault گیر کند، اگر پین PWRKEY متصل باشد (<code>IPowerControl</code>)، واچ داگ به طور خودکار پایه ی PWRKEY را پولس زده و سخت افزاری ماژول را ریبوت کامل می کند.</li>
+<li><strong>اختیاری بودن کنترل سخت افزاری</strong>: چنانچه در ساختار <code>Modem</code> پوینتر <code>power</code> مقدار <code>nullptr</code> داده شود، تمام این قابلیت ها به صورت نرم افزاری و بدون ایجاد خطا کار خواهند کرد.</li>
+</ul>
+<h2>۴. تفکیک معماری CLI</h2>
+<ul>
+<li>فایل های ماژول تعاملی در پوشه ی <code>user_code/cli.hpp</code> و <code>user_code/cli.cpp</code> به صورت یک کامپوننت مستقل قرار گرفتند و تابع های <code>AppInit()</code> و <code>AppRun()</code> در <code>examples/stm32_main.cpp</code> به ساده ترین شکل ممکن فقط CLI را فراخوانی می کنند. کلید <strong><code>K</code></strong> نیز به منو اضافه شد تا امکان ریست سخت افزاری با کلید پاور به صورت دستی فراهم باشد.</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

@@ -1,0 +1,107 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>tests-host_smoke.cpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/tests/host_smoke.cpp</h1>
+<h2>نقش فایل</h2>
+<p>تست دود (smoke test) میزبان برای کتابخانه‌ی GSM. این تست بدون سخت‌افزار واقعی و با استفاده از پُرت میزبان (<code>HostUart</code>/<code>HostClock</code>/<code>HostPowerControl</code>) تمام رفتارهای بحرانی هسته را به‌صورت قطعی (deterministic) راستی‌آزمایی می‌کند: کدک‌های UCS2، تشخیص اپراتور، ترتیب بوت، کد USSD تعادل، نگهبان سخت‌گیرانه‌ی طول پیامک، نظارت تماس با قطع خودکار، تشخیص URC پایان تماس از‌دست‌رفته، دروازه‌ی صف در برابر تماس، بودجه‌های دوگانه‌ی بازنشانی نگهداری، پروب‌های سلامت، بازیابی SIM، پاک‌سازی صف و واچ‌داگ سخت‌افزاری.</p>
+<h2>ساختارها/توابع کلیدی</h2>
+<p>نمونه‌های سراسری:</p>
+<ul>
+<li><code>static port::HostUart&lt;2048&gt; uart</code> — UART شبیه‌سازی‌شده (تزریق/بازرسی).</li>
+<li><code>static port::HostClock clock_</code> — زمان‌سنج مصنوعی (<code>now</code>).</li>
+<li><code>static port::HostPowerControl pwr</code> — شمارنده‌ی پالس تغذیه.</li>
+<li><code>static Modem modem(uart, clock_, kSim800, &amp;pwr)</code> — مودم SIM800 زیر تست.</li>
+</ul>
+<p>توابع کمکی:</p>
+<ul>
+<li><code>static void advance(uint32_t ms, uint8_t rounds = 4)</code></li>
+</ul>
+<p>زمان <code>clock_.now</code> را <code>ms</code> جلو می‌برد و <code>modem.tick()</code> را <code>rounds</code> بار صدا می‌زند (پیشرفت زمان کنترل‌شده).</p>
+<ul>
+<li><code>static bool tx_has(const char* needle)</code></li>
+</ul>
+<p>بررسی می‌کند آیا <code>needle</code> در بافر ارسالی (<code>uart.tx()</code>) وجود دارد (یعنی مودم چنین دستوری صادر کرده).</p>
+<ul>
+<li><code>int main()</code></li>
+</ul>
+<p>تمام سناریوها را به‌ترتیب اجرا و با <code>assert</code> راستی‌آزمایی می‌کند.</p>
+<h2>جریان کاری</h2>
+<p>تست‌ها در <code>main</code> به‌ترتیب:</p>
+<ol>
+<li><strong>کدک‌ها و تشخیص اپراتور:</strong> <code>codec::utf8_to_ucs2_hex("سلام")</code> → <code>"0633064406270645"</code>؛ <code>detect_operator</code> برای Irancell/MCI/RighTel؛ کدهای پیش‌فرض تعادل USSD (<code><em>141</em>1#</code>, <code><em>140</em>11#</code>, <code>*140#</code>).</li>
+<li><strong>ترتیب بوت:</strong> <code>modem.begin()</code> → پاسخ <code>AT</code> → <code>OK</code> → <code>WaitingRegistration</code> → تزریق <code>+CREG: 0,1</code> → پاسخ به فرمان‌های بوت‌استرپ تا <code>modem.ready()</code>.</li>
+<li><strong>پرس‌وجوی USSD:</strong> <code>modem.check_balance()</code> → <code>AT+CUSD=</code> → تزریق <code>+CUSD</code> → اتمام شغل (<code>JobKind::None</code>).</li>
+<li><strong>نگهبان سخت‌گیرانه‌ی طول پیامک:</strong> متن خیلی بلند → <code>kErrSmsTooLong</code> و <code>kInvalidJob</code> بدون <code>AT+CMGS</code>؛ محدودیت با <code>set_max_chars</code> قابل تنظیم؛ متن کوتاه قبول می‌شود.</li>
+<li><strong>نظارت تماس (قطع خودکار پس از ۲۰ ثانیه):</strong> <code>modem.dial</code> → <code>ATD...;</code> → <code>CallState::Outgoing</code> → حلقه‌ی زمان → <code>AT+CHUP</code>/<code>ATH</code> → <code>CallState::Idle</code> با <code>CallEndReason::Timeout</code>.</li>
+<li><strong>تشخیص URC پایان تماس از‌دست‌رفته + دروازه‌ی صف:</strong> تماس دوم → پیامک در حین تماس نگه داشته می‌شود (بدون <code>AT+CMGS</code>) → لیست <code>+CLCC</code> خالی (مثل M08R که <code>NO CARRIER</code> نمی‌فرستد) → پایان تماس با <code>CallEndReason::NoAnswer</code> → صف دوباره حرکت می‌کند.</li>
+<li><strong>بازنشانی‌های دوگانه‌ی نگهداری (بودجه):</strong> <code>MaintenanceWatchdog</code> با <code>periodic_ms=1000</code> و <code>ops_period=3</code> → بودجه‌ی زمانی (<code>ResetReason::Periodic</code>) → بودجه‌ی عملیات (<code>ResetReason::OpsBudget</code>) → درخواست دستی (<code>ResetReason::Manual</code>).</li>
+<li><strong>بررسی سلامت پس از بازنشانی:</strong> <code>maintenance().start_check()</code> → پاسخ به <code>AT+CSQ</code>/<code>AT+CPIN?</code>/<code>AT+CREG?</code> → <code>health().at_ok</code> و <code>rssi_dbm == -113 + 2*20</code>.</li>
+<li><strong>حذف SIM:</strong> تزریق <code>+CPIN: NOT INSERTED</code> → <code>ModemState::SimMissing</code> + رویداد <code>SimState::Removed</code>.</li>
+<li><strong>بازیابی SIM با چرخه‌ی CFUN:</strong> مشاهده‌ی <code>AT+CFUN=0</code> و <code>AT+CFUN=1</code> → تزریق <code>+CPIN: READY</code> → <code>ModemState::WaitingRegistration</code>.</li>
+<li><strong>واچ‌داگ و پاک‌سازی صف:</strong> <code>pause_queue</code> → شغل SMS → جلو بردن ۴۶ ثانیه (بیش از <code>GSM_JOB_MAX_AGE_MS=45000</code>) → صف خالی (<code>queue_size()==0</code>).</li>
+<li><strong>واچ‌داگ تایم‌اوت‌های متوالی:</strong> سه بار ارسال ناموفق → افزایش <code>pwr.pulse_count</code> (پاورسایکل سخت‌افزاری).</li>
+</ol>
+<p>در پایان <code>"ALL TESTS PASSED!"</code> چاپ می‌شود.</p>
+<h2>نکات فنی</h2>
+<ul>
+<li>تست‌ها قطعی هستند؛ زمان با <code>advance</code> و پاسخ‌ها با <code>uart.inject</code> کنترل می‌شوند (بدون خواب واقعی).</li>
+<li>برای ترافیک AT قطعی، <code>housekeeping().enabled=false</code> و <code>maintenance().policy().health_check=false</code> در بخش‌های مربوطه ست می‌شوند.</li>
+<li>نگهبان طول پیامک: <code>kErrSmsTooLong</code> باید در <code>JobCallback</code> گزارش شود و هیچ <code>AT+CMGS</code> ارسال نشود؛ محدودیت با <code>modem.sms().set_max_chars</code> در زمان اجرا تغییر می‌کند.</li>
+<li>نظارت تماس: قطع خودکار پس از ~۲۰ ثانیه؛ حالت <code>+CLCC: 1,0,3,0,0</code> (زنگ/هشدار) نگه داشته می‌شود تا سرانجام <code>ATH</code>/<code>AT+CHUP</code>.</li>
+<li>دروازه‌ی صف: در حین تماس، شغل‌های SMS ارسال نمی‌شوند و پس از پایان تماس دوباره فعال می‌شوند.</li>
+<li>URC پایان تماس از‌دست‌رفته: مودم‌هایی مثل M08R <code>NO CARRIER</code>/<code>BUSY</code> نمی‌فرستند؛ لیست خالی <code>+CLCC</code> باید پایان تماس را آشکار کند.</li>
+<li>بازنشانی نگهداری: هم بودجه‌ی زمانی (<code>periodic_ms</code>) و هم بودجه‌ی عملیات (<code>ops_period</code>) باید مستقل کار کنند.</li>
+<li>سلامت: <code>rssi_dbm</code> از <code>+CSQ: 20,0</code> با فرمول <code>-113 + 2*rssi</code> محاسبه می‌شود.</li>
+<li>بازیابی SIM: چرخه‌ی <code>AT+CFUN=0/1</code> (بر مبنای فرمان‌های مشاهده‌شده، نه زمان) و سپس <code>+CPIN: READY</code>.</li>
+<li>پاک‌سازی صف: شغل‌های کهنه‌تر از <code>GSM_JOB_MAX_AGE_MS</code> (۴۵۰۰۰ms) توسط واچ‌داگ حذف می‌شوند.</li>
+<li>واچ‌داگ سخت‌افزاری: تایم‌اوت‌های متوالی ارسال → پاورسایکل (افزایش <code>pulse_count</code>).</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>gsm/ports/host/gsm_port_host.hpp</code> — شبیه‌ساز UART/Clock/Power که تست بر پایه‌ی آن است.</li>
+<li><code>gsm/modem/modem.hpp</code> — API اصلی زیر تست (<code>Modem</code>، <code>dial</code>، <code>send_sms</code>، <code>check_balance</code>، صف، نگهداری).</li>
+<li><code>gsm/codec/ucs2.hpp</code> — <code>codec::utf8_to_ucs2_hex</code> برای تست کدک.</li>
+<li><code>gsm/CMakeLists.txt</code> — با <code>GSM_BUILD_TESTS</code> هدف <code>host_smoke</code> را می‌سازد و با <code>add_test</code> ثبت می‌کند.</li>
+<li>پیکربندی‌ها/ثابت‌ها: <code>GSM_SMS_MAX_CHARS</code>، <code>GSM_JOB_MAX_AGE_MS</code> (از <code>gsm/gsm_config.hpp</code>).</li>
+<li>کلاس‌های <code>JobCallback</code>، <code>JobState</code>، <code>CallState</code>، <code>CallEndReason</code>، <code>HealthState</code>، <code>ResetReason</code> از هسته‌ی کتابخانه.</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

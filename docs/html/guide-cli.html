@@ -1,0 +1,132 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>کنسول CLI</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>راهنمای کنسول تعاملی (gsm::cli::Console)</h1>
+<blockquote><p>نسخه ۰.۴ — کنسول <code>gsm_cli</code> از اپلیکیشن به <strong>هسته کتابخانه</strong> منتقل شد و یک قابلیت رسمی از کتابخانه است.</p></blockquote>
+<h2>۱. چرا منتقل شد؟</h2>
+<p>کنسول تعاملی قبلاً در پوشه <code>gsm_cli</code> داخل اپلیکیشن زندگی می‌کرد و فقط برای همان پروژه قابل استفاده بود. چون کارایی خود را ثابت کرده بود، به هسته کتابخانه منتقل شد:</p>
+<pre><code>قبل:  App/gsm_cli/cli.cpp          (۱۱۰۰+ خط، وابسته به STM32 HAL)
+بعد:  gsm/include/gsm/cli/cli.hpp  ← کنسول قابل حمل (کتابخانه)
+      gsm/src/cli.cpp
+      App/gsm_cli/cli.cpp          ← فقط چسب سخت‌افزاری (~۱۰۰ خط)
+      gsm/user_code/cli.cpp        ← همان چسب برای مثال STM32</code></pre>
+<p>حالا هر پروژه‌ای (STM32، Arduino، تست میزبان) با چند خط، همان کنسول را دارد.</p>
+<h2>۲. راه‌اندازی سریع</h2>
+<pre><code class="lang-cpp">#include &quot;gsm/cli/cli.hpp&quot;
+
+static gsm::cli::Console console(modem, clock);
+
+// خروجی: هر بایت‌سنکی (سریال، وب، تست)
+static void uart_write(void*, const char* data, uint16_t len) { uart.write(data, len); }
+
+void init() {
+    console.set_output(gsm::cli::TextSink{&amp;uart_write, nullptr});
+    modem.begin();
+    console.init();       // ثبت کال‌بک‌ها + رسم منو
+}
+
+void loop() {
+    modem.tick();
+    console.tick();
+    while (uart.readable()) console.feed(uart.read_byte());   // ورودی کاربر
+}</code></pre>
+<p>بدون هیپ، بدون STL — مانند بقیه کتابخانه.</p>
+<h2>۳. دستورها و کلیدها</h2>
+<h3>نمایش وضعیت</h3>
+<table><thead><tr><th>ورودی</th><th>عملکرد</th></tr></thead><tbody>
+<tr><td><code>m</code></td><td>رسم مجدد منو</td></tr>
+<tr><td><code>i</code></td><td>وضعیت زنده (رفرش خودکار هر ۲ ثانیه)</td></tr>
+<tr><td><code>q</code></td><td>جزئیات صف کارها</td></tr>
+<tr><td><code>w</code></td><td>پنل واچ‌داگ و سلامت</td></tr>
+<tr><td><code>s</code></td><td>استعلام وضعیت کامل (Sweep)</td></tr>
+<tr><td><code>r</code></td><td>اسکن پیامک‌های خوانده‌نشده</td></tr>
+<tr><td><code>d</code></td><td>پاک‌سازی پیامک‌های خوانده‌شده</td></tr>
+<tr><td><code>b</code></td><td>استعلام شارژ (USSD هوشمند اپراتور)</td></tr>
+</tbody></table>
+<h3>اقدامات و بازیابی</h3>
+<table><thead><tr><th>ورودی</th><th>عملکرد</th></tr></thead><tbody>
+<tr><td><code>p</code></td><td>توقف/ادامه صف</td></tr>
+<tr><td><code>x</code></td><td>توقف همه و پاک‌سازی صف</td></tr>
+<tr><td><code>h</code></td><td>قطع فوری تماس (اضطراری)</td></tr>
+<tr><td><code>R</code></td><td>ریست نرم‌افزاری FSM</td></tr>
+<tr><td><code>K</code></td><td>ریست سخت‌افزاری با PWRKEY</td></tr>
+<tr><td><code>P</code></td><td>پل Passthrough (خروج با <code>e</code>)</td></tr>
+<tr><td><code>health</code></td><td>اجرای بررسی سلامت</td></tr>
+<tr><td><code>wreset</code></td><td>درخواست ریست نگه‌بانی</td></tr>
+</tbody></table>
+<h3>سیاست‌ها (جدید در v0.4)</h3>
+<table><thead><tr><th>ورودی</th><th>عملکرد</th></tr></thead><tbody>
+<tr><td><code>smsmax &lt;n&gt;</code></td><td>تنظیم سقف طول پیامک (کاراکتر)</td></tr>
+<tr><td><code>callto &lt;ms&gt;</code></td><td>تنظیم تایم‌اوت قطع خودکار تماس</td></tr>
+<tr><td><code>L</code> / <code>T</code> / <code>C</code></td><td>سطح لاگ / تایم‌استمپ / رنگ ANSI</td></tr>
+</tbody></table>
+<h3>دستورات متنی</h3>
+<pre><code>sms &lt;num&gt; &lt;text&gt;    ارسال پیامک (فارسی/انگلیسی)
+dial &lt;num&gt;          تماس صوتی
+ussd &lt;code&gt;         ارسال کد USSD
+read &lt;idx&gt;          خواندن پیامک
+del &lt;idx&gt;           حذف پیامک
+at &lt;cmd&gt;            اجرای مستقیم فرمان AT</code></pre>
+<h2>۴. پل وب (Web Bridge)</h2>
+<p>کنسول می‌تواند هم‌زمان رویدادها و لاگ‌ها را به یک مصرف‌کننده خارجی (پنل وب) آینه کند:</p>
+<pre><code class="lang-cpp">console.set_web_output([](const char* line, void* ud) {
+    // هر خط، یک پیام آماده برای پنل وب
+}, nullptr);
+
+console.exec_web(&quot;sms 0912... سلام&quot;);   // اجرای دستور از پنل وب
+console.status_line(buf, sizeof(buf));  // وضعیت فشرده CSV برای پنل:
+// fsm|act|step|ready|sim|net|op|rssi|bars|smsu|smst|paused|qsize|qcap|call|peer</code></pre>
+<p>در حالت وب (<code>exec_web</code>)، رندرهای تمام‌صفحه (منو/وضعیت زنده) سرکوب و فقط متن ساده ارسال می‌شود.</p>
+<h2>۵. Passthrough</h2>
+<p>با <code>P</code> (یا <code>console.set_passthrough(true)</code>) تمام بایت‌ها به‌صورت خام بین ترمینال و ماژول جابه‌جا می‌شوند — برای دیباگ مستقیم AT. خروج با <code>e</code>.</p>
+<h2>۶. رویدادها</h2>
+<p>کنسول در <code>init()</code> این کال‌بک‌ها را روی مودم نصب می‌کند و رنگی چاپ می‌کند:</p>
+<ul>
+<li>پیامک دریافتی (با پاسخ خودکار به <code>ping</code> با <code>pong</code>)</li>
+<li>تغییر وضعیت تماس + دلیل پایان تماس</li>
+<li>رویداد سیم‌کارت (خروج/آماده)</li>
+<li>نتیجه هر جاب (با کد خطا)</li>
+<li>گزارش سلامت</li>
+</ul>
+<h2>۷. نکته برای اپلیکیشن‌ها</h2>
+<p>API چسب اپلیکیشن (<code>cli::init/tick/on_uart_rx/on_uart_error/set_web_output/exec_web/status_line</code>) دقیقاً مانند قبل باقی مانده است؛ فقط پیاده‌سازی به کنسول کتابخانه واگذار شده. مراجعه کنید به <code>docs/fa/files/app-gsm_cli-cli.cpp.md</code>.</p></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

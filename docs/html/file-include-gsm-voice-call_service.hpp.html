@@ -1,0 +1,165 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>include-gsm-voice-call_service.hpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/voice/call_service.hpp</h1>
+<h2>نقش فایل</h2>
+<p>سرویس مدیریت تماس صوتی: شماره‌گیری، پاسخ، قطع تماس و مهم‌تر از همه <strong>نظارت خودران بر تماس (supervision)</strong> در نسخهٔ v0.4 — تایمرهای قطع/رد خودکار، polling متناوب <code>+CLCC</code> به‌عنوان تور ایمنی (و مرجع اصلی در ماژول‌های M08R) و ثبت دلیل پایان تماس. هدف این است که تماس‌های نیمه‌کاره هرگز صف Jobها را قفل نکنند و مودم در وضعیت تماس معلق نماند.</p>
+<h2>ساختارهای کلیدی</h2>
+<h3>enumهای وضعیت</h3>
+<pre><code class="lang-cpp">enum class CallState : uint8_t
+{
+    Idle = 0, Dialing, Outgoing, Incoming, Active, Releasing
+};
+
+// Why a call went back to Idle (last ended call only).
+enum class CallEndReason : uint8_t
+{
+    None = 0, LocalHangup, RemoteHangup, Busy, NoAnswer,
+    NoCarrier, NoDialtone, Timeout, Error
+};
+
+enum class CallStep : uint8_t
+{
+    Idle = 0, EnableClip, Dial, Answer, Hangup, HangupFallback, ClccProbe, Done
+};
+
+const char* to_string(CallState s);
+const char* to_string(CallStep s);
+const char* to_string(CallEndReason r);</code></pre>
+<p><code>HangupFallback</code>: اگر دستور قطع اصلی (مثلاً <code>AT+CHUP</code>) جواب ندهد، تلاش با <code>ATH</code> (یا بالعکس، بسته به trait). <code>ClccProbe</code>: یک پروب <code>+CLCC</code> در جریان (مستقل از مراحل Job).</p>
+<h3><code>struct CallPolicy</code> — قواعد قابل تنظیم در زمان اجرا (ویژگی v0.4)</h3>
+<pre><code class="lang-cpp">struct CallPolicy
+{
+    // Auto-hangup an outgoing call that is not established within this window.
+    uint32_t dial_timeout_ms = GSM_CALL_ANSWER_TIMEOUT_MS;   // 20s
+    // Auto-reject an incoming call that is not answered within this window.
+    uint32_t ring_timeout_ms = GSM_CALL_RING_TIMEOUT_MS;     // 20s
+    // +CLCC call-state polling interval (also the safety net for missed URCs).
+    uint32_t clcc_poll_ms = GSM_CALL_CLCC_POLL_MS;           // 2s
+    // Master switch for the automatic hangup / reject timers.
+    bool auto_hangup = true;
+};</code></pre>
+<p>دسترسی: <code>CallService::policy()</code> و <code>Modem::call_policy()</code>.</p>
+<h3><code>class CallService final : public IService</code></h3>
+<pre><code class="lang-cpp">using StateChanged = Delegate&lt;CallState, const char*&gt;;  // state + peer number
+using Ended        = Delegate&lt;CallEndReason&gt;;
+
+CallService(AtEngine&amp; engine, SessionState&amp; session, const DeviceTraits&amp; traits);
+
+bool start_dial(const char* number_e164);
+bool start_answer();
+bool start_hangup();
+
+// Self-driving supervision: timers, auto-hangup and +CLCC polling. Called on
+// every Modem tick even when no call job is the current job, so an incoming
+// call that lands between SMS jobs can never wedge the queue.
+void monitor(uint32_t now_ms, bool engine_idle);
+
+// IService: active / pump / cancel / step_name / result + IAtObserver
+void on_line(const char* line, uint16_t len) override;
+void on_final(const AtResult&amp; res) override;
+
+// URC notifications (from Modem::handle_urc)
+void notify_ring(const char* caller);
+void notify_hangup();
+void notify_busy();
+
+// state queries
+CallState     state() const;
+const char*   peer() const;            // PhoneNumber::e164 of the peer
+bool          in_call() const;         // state == Active
+bool          ringing() const;         // state == Incoming
+bool          engaged() const;         // state != Idle (job queue gate)
+CallEndReason last_end_reason() const;
+uint32_t      duration_ms(uint32_t now_ms) const;
+
+// configuration
+void set_on_state(StateChanged cb);
+void set_on_ended(Ended cb);
+void set_auto_clip(bool on);           // enable +CLIP for caller ID (default true)
+CallPolicy&amp;       policy();
+const CallPolicy&amp; policy() const;</code></pre>
+<p>فیلدهای نظارتی داخلی: <code>dial_since_ms_</code>، <code>ring_since_ms_</code>، <code>active_since_ms_</code>، <code>state_since_ms_</code>، <code>last_clcc_ms_</code>، <code>clcc_misses_</code>، <code>clcc_seen_</code>، <code>clcc_seen_before_</code> — تایمرها و شمارندهٔ پروب‌های <code>+CLCC</code>.</p>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">                       Modem::tick() -&gt; CallService::monitor(now, engine_idle)
+                                       (even with no call job in the queue)
+        |
+        +-- Incoming:  RING/+CLIP -&gt; notify_ring() -&gt; state=Incoming, ring timer
+        |      no answer in ring_timeout_ms  -&gt; auto reject (Hangup)   [v0.4]
+        |
+        +-- Outgoing:  start_dial() -&gt; EnableClip -&gt; Dial -&gt; Dialing/Outgoing
+        |      not established in dial_timeout_ms -&gt; auto-hangup
+        |      (end_reason=Timeout, result.code=kErrCallTimeout)       [v0.4]
+        |
+        +-- Active:    +CLCC polling every clcc_poll_ms
+        |      (clcc_authoritative on M08R: CLCC is the source of truth)
+        |      clcc_misses_ &gt;= GSM_CALL_CLCC_MISSES -&gt; call declared dead
+        |      NO CARRIER / BUSY / ATH -&gt; end_call(reason) -&gt; on_ended(reason)
+        |
+        +-- Hangup flow: Hangup (trait hangup_cmd) -&gt; HangupFallback (ATH/CHUP)</code></pre>
+<p>نمونه:</p>
+<pre><code class="lang-cpp">modem.set_on_call_ended([](gsm::CallEndReason r) { /* ... */ });
+modem.call_policy().auto_hangup = true;
+modem.dial(&quot;+98912xxxxxxx&quot;, cb);</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><strong>بدون تخصیص حافظه</strong>: <code>PhoneNumber peer_</code> از نوع <code>StaticString</code>؛ همهٔ تایمرها <code>uint32_t</code> با الگوی <code>hal::elapsed</code>.</li>
+<li><strong><code>clcc_authoritative</code></strong> (از <code>DeviceTraits</code>): برای M08R اعتماد اصلی به <code>+CLCC</code> است نه URCهای <code>NO CARRIER</code>/<code>BUSY</code> — این URCها در این ماژول نامطمئن‌اند و ماژول ممکن است بعد از payload پیامکی قطع‌شده گیر کند.</li>
+<li><code>monitor</code> عمداً <strong>جدا از Job</strong> کار می‌کند: تماس ورودی بین دو Job پیامک هم دیده می‌شود؛ <code>Modem::call_gate()</code> بر اساس <code>engaged()</code> جلوی Jobهای غیرتماسی را می‌گیرد تا صف خراب نشود.</li>
+<li><code>clcc_misses_</code> با آستانهٔ <code>GSM_CALL_CLCC_MISSES</code> (پیش‌فرض ۲) مرگ تماس را اعلام می‌کند — پاسخ به URCهای از‌دست‌رفته.</li>
+<li><code>fallback_</code> تضمین می‌کند برای هر قطع فقط یک بار fallback انجام شود؛ <code>HangupFallback</code> از حلقهٔ بی‌نهایت جلوگیری می‌کند.</li>
+<li>پایان با <code>kErrCallTimeout</code> (خطای سطح کتابخانه) به‌همراه <code>CallEndReason::Timeout</code> گزارش می‌شود.</li>
+<li><code>CallPolicy</code> در زمان اجرا قابل تنظیم است؛ همهٔ مقادیر پیش‌فرض از <code>gsm_config.hpp</code> می‌آیند.</li>
+<li><code>enable_clip</code> (خودکار با <code>set_auto_clip</code>) شمارهٔ تماس‌گیرنده را از <code>+CLIP</code> می‌گیرد؛ <code>peer()</code> فقط بعد از دریافت CLIP یا شماره‌گیری معتبر است.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>core/service.hpp</code> — پایهٔ <code>IService</code></li>
+<li><code>core/at_engine.hpp</code> — اجرای <code>ATD</code>/<code>ATA</code>/<code>AT+CHUP</code>/<code>ATH</code>/<code>AT+CLCC</code></li>
+<li><code>core/urc_router.hpp</code> — <code>Ring</code>/<code>CallerId</code>/<code>CallEnded</code>/<code>CallBusy</code> به <code>notify_*</code></li>
+<li><code>device/device_traits.hpp</code> — <code>hangup_cmd</code>، <code>supports_clcc</code>، <code>clcc_authoritative</code></li>
+<li><code>codec/phone_number.hpp</code> — <code>PhoneNumber peer_</code></li>
+<li><code>gsm_config.hpp</code> — <code>GSM_CALL_*</code> (پیش‌فرض‌های <code>CallPolicy</code>)، <code>kErrCallTimeout</code> در <code>at_types.hpp</code></li>
+<li><code>modem/modem.hpp</code> — Jobهای <code>CallDial/CallAnswer/CallHangup</code>، <code>call_gate()</code> و <code>preempt_for_call</code></li>
+<li><code>cli/cli.hpp</code> — نمایش وضعیت تماس و <code>CallEndReason</code></li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

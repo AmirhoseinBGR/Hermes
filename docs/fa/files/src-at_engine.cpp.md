@@ -1,0 +1,108 @@
+# gsm/src/at_engine.cpp
+
+## نقش فایل
+
+این فایل پیاده‌سازی `gsm::AtEngine` است؛ موتور اجرای فرمان‌های AT که به‌صورت غیرهمزمان (event-driven) روی یک رابط UART کار می‌کند. موتور فقط یک فرمان در حال اجرا (in-flight) را نگه می‌دارد، پاسخ‌ها را خط‌به‌خط از `LineReader` می‌گیرد، نتیجه نهایی (`OK`، `ERROR`، `+CME ERROR`، …) را دسته‌بندی می‌کند و از طریق رابط `IAtObserver` به سرویس فراخوان (SMS، تماس، وضعیت و …) اطلاع می‌دهد. تشخیص URCها (پیام‌های ناخواسته مودم) بر عهده `UrcRouter` است و این موتور فقط خط‌های باقی‌مانده را به observer می‌رساند.
+
+## توابع و منطق کلیدی
+
+### `bool AtEngine::execute(const AtRequest& req, IAtObserver* observer)`
+شروع یک فرمان AT. اگر موتور مشغول باشد (`busy()`) یا هنوز زمان نگهبانی `GSM_AT_GUARD_TIME` (پیش‌فرض ۳۰ms) از پایان فرمان قبلی نگذشته باشد، `false` برمی‌گرداند. در حالت موفق، observer، مهلت (`timeout_ms`)، و انتظار پرامپت (`expect_prompt`) را ثبت می‌کند، بافر خواندن را `reset` می‌کند و فرمان را به‌همراه `\r\n` روی UART می‌نویسد:
+
+```cpp
+if (busy()) return false;
+if (!hal::elapsed(clock_.millis(), last_done_, GSM_AT_GUARD_TIME)) return false;
+// ...
+sent_.assign(req.command);
+uart_.write(reinterpret_cast<const uint8_t*>(sent_.c_str()), sent_.size());
+const uint8_t crlf[2] = {'\r', '\n'};
+uart_.write(crlf, 2);
+```
+
+### `bool AtEngine::execute(const char* cmd, uint32_t timeout_ms, IAtObserver* observer)`
+نسخه ساده‌شده که یک `AtRequest` موقت می‌سازد و به نسخه اصلی پاس می‌دهد.
+
+### `bool AtEngine::await_final(uint32_t timeout_ms, IAtObserver* observer)`
+بدون ارسال فرمان، فقط منتظر نتیجه نهایی می‌ماند. برای «فاز payload» کاربرد دارد (مثلاً بعد از نوشتن متن پیامک و Ctrl+Z که فقط باید `+CMGS: …` و `OK` دریافت شود). چون فرمانی ارسال نمی‌شود، `sent_` خالی می‌ماند و echo-killer غیرفعال است.
+
+### `uint16_t AtEngine::write_raw(const uint8_t* data, uint16_t len)` / `write_raw(const char* text)`
+نوشتن خام روی UART برای payloadها (هگز UCS2 یا متن خام). در حالت trace با پیشوند `TX<` لاگ بایتی می‌شود. نسخه `const char*` طول رشته را با `strlen` می‌گیرد و برای `nullptr` مقدار 0 برمی‌گرداند.
+
+### `void AtEngine::abort()`
+لغو فرمان در حال اجرا. اگر موتر در وضعیت انتظار پرامپت (`expect_prompt_`) باشد ابتدا `write_escape()` (ارسال ESC / بایت 0x1B) می‌فرستد تا مودم از حالت ورود داده خارج شود، سپس نتیجه را `AtStatus::Aborted` می‌کند. برای مودم‌هایی مثل M08R که با گیر کردن در پرامپت `>` مشکل‌ساز می‌شوند حیاتی است.
+
+### `bool AtEngine::classify_final(const char* line, AtStatus& status, int16_t& code) const`
+یک خط را در برابر پاسخ‌های نهایی استاندارد AT می‌سنجد و در صورت تطابق `true` برمی‌گرداند:
+
+| خط پاسخ | `AtStatus` | کد |
+|---|---|---|
+| `OK` | `Ok` | -1 |
+| `ERROR` | `Error` | -1 |
+| `+CME ERROR: n` | `CmeError` | n |
+| `+CMS ERROR: n` | `CmsError` | n |
+| `NO CARRIER` | `NoCarrier` | -1 |
+| `BUSY` | `Busy` | -1 |
+| `NO ANSWER` | `NoAnswer` | -1 |
+| `NO DIALTONE` | `NoDialtone` | -1 |
+
+عدد خطا با `parse_int(line + 11, v)` (پس از پیشوند ۱۱ نویسه‌ای `"+CME ERROR:"` / `"+CMS ERROR:"`) استخراج می‌شود.
+
+### `void AtEngine::finish(AtStatus status, int16_t code)`
+پایان یک تراکنش: observer را پاک می‌کند (موتور دوباره `idle()` می‌شود)، زمان پایان را برای guard time ثبت می‌کند و `on_final(AtResult{status, code})` را روی observer قبلی فراخوانی می‌کند.
+
+### `void AtEngine::tick()`
+قلب موتور؛ در هر چرخه `Modem::tick` صدا زده می‌شود:
+
+```text
+while (uart_.read(&byte, 1) == 1)
+    │
+    ├─ LineReader::feed(byte)
+    │     ├─ Token::Overflow → هشدار، reader_.reset() (خط دور ریخته می‌شود)
+    │     ├─ Token::Prompt ('>') → observer_->on_prompt()
+    │     │      و اگر expect_prompt_ باشد → finish(Ok)   ← پایان فاز هدر CMGS
+    │     └─ Token::Line → پردازش خط کامل:
+    │            ├─ خط اکوی فرمان ارسالی؟ → دور ریخته می‌شود
+    │            ├─ classify_final()؟ → لاگ راهنمای CME/CMS + finish()
+    │            ├─ urc_.dispatch()؟ → مصرف شد؛ به observer نمی‌رسد
+    │            └─ در غیر این صورت → observer_->on_line(line, len)
+    │
+    └─ بررسی timeout: اگر observer فعال و مهلت سپری شده →
+           هشدار، escape در صورت نیاز، finish(Timeout)
+```
+
+نکته ظریف: خطوط اکو (echo) با مقایسه دقیق با `sent_` حذف می‌شوند؛ برای همین `ATE0` در bootstrap اهمیت دارد ولی حتی با اکوی فعال هم موتور گمراه نمی‌شود.
+
+## جریان کاری
+
+```text
+   سرویس (SMS/Call/…)                AtEngine                    مودم روی UART
+   ──────────────────                ────────                    ──────────────
+   execute("AT+CMGS=…")
+        └────────────────────────►  ثبت observer/timeout
+                                    write(cmd + CRLF) ──────────►  TX
+   on_line(...)  ◄────────────────  reader_: خط از بایت‌ها        ◄── RX
+   on_prompt()   ◄────────────────  دیدن '>' (پرامپت داده)
+   write_raw(hex) / write_ctrl_z ─►  write_raw مستقیم ──────────►  TX payload
+   await_final(timeout) ─────────►  انتظار نتیجه
+   on_final(Ok/CmeError/…) ◄──────  finish() پس از OK/ERROR       ◄── RX
+```
+
+## نکات فنی
+
+- **تک‌فرمانی:** هر لحظه فقط یک observer فعال است؛ `busy()` یعنی `observer_ != nullptr`. سرویس‌ها باید قبل از `execute` مطمئن شوند موتور آزاد است (خود موتور هم در صورت اشغال `false` برمی‌گرداند).
+- **Guard time:** فاصله حداقل ۳۰ms بین دو فرمان (`GSM_AT_GUARD_TIME`) از تداخل پاسخ‌های مودم‌های کند جلوگیری می‌کند؛ یک `execute` ممکن است به‌ظاهر بی‌دلیل `false` برگرداند!
+- **پرامپت `>`:** فقط وقتی بافر خط خالی باشد `Token::Prompt` تولید می‌شود؛ بنابراین `>` در میانه یک خط (مثلاً در متن پیامک) پرامپت تلقی نمی‌شود.
+- **سرریز خط:** بافر `LineReader` با `GSM_LINE_MAX` (۵۱۲) محدود است؛ خطوط بلندتر با `Token::Overflow` بی‌سروصدا دور ریخته و ریست می‌شوند.
+- **کدهای خطا:** `+CME/+CMS ERROR` هم به‌صورت عددی (`code`) و هم با متن راهنما (`cme_error_hint` / `cms_error_hint` از `at_types.cpp`) لاگ می‌شوند.
+- **بدون تخصیص حافظه پویا:** همه بافرها ثابت و روی پشته/اعضای کلاس هستند؛ مناسب محیط‌های embedded.
+- **Timeout در فاز payload:** وقتی `sent_` خالی است (یعنی `await_final`)، پیام timeout با `(payload phase)` چاپ می‌شود تا اشکال‌زابی ساده‌تر باشد.
+
+## ارتباط با سایر فایل‌ها
+
+- `gsm/core/at_engine.hpp` — تعریف کلاس، `AtRequest`، `write_ctrl_z()` / `write_escape()` (اینلاین در هدر).
+- `gsm/core/line_reader.hpp` + `src/line_reader.cpp` — توکنایزر خط/پرامپت.
+- `gsm/core/at_types.hpp` + `src/at_types.cpp` — `AtStatus`، `AtResult` و راهنماهای خطای CME/CMS.
+- `gsm/core/urc_router.hpp` + `src/urc_router.cpp` — مسیریابی خطوط ناخواسته (URC) قبل از رسیدن به observer.
+- `gsm/util/static_string.hpp` — `str_starts_with`، `parse_int`.
+- `gsm/hal/hal.hpp` — `IUart`، `IClock` و `hal::elapsed` (محاسبه timeoutها بدون نگرانی از سرریز شمارنده).
+- مصرف‌کننده‌ها: `src/sms_service.cpp`، `src/call_service.cpp`، `src/status_service.cpp`، `src/ussd_service.cpp`، `src/watchdog.cpp` و `Modem` (همگی `IAtObserver` هستند).

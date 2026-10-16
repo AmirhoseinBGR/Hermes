@@ -1,0 +1,101 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>src-job_queue.cpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/job_queue.cpp</h1>
+<h2>نقش فایل</h2>
+<p>پیاده‌سازی <code>gsm::JobQueue</code>؛ صف حلقوی ثابت‌اندازه برای jobهای مودم (ارسال پیامک، تماس، وضعیت، USSD) به‌همراه توابع متنی <code>JobKind</code> و <code>JobState</code>. این صف بدون هیچ تخصیص حافظه پویا کار می‌کند، از jobهای فوری (urgent) از سرِ صف پشتیبانی می‌کند، امکان لغو تکی/جمعی دارد، و jobهای کهنه را برای جلوگیری از انباشت (مثلاً وقتی مودم آفلاین است) پاک‌سازی می‌کند.</p>
+<h2>توابع و منطق کلیدی</h2>
+<h3><code>to_string(JobKind)</code> / <code>to_string(JobState)</code></h3>
+<ul>
+<li><code>JobKind</code>: <code>"none" | "sms-send" | "sms-read" | "sms-scan" | "sms-del" | "sms-del-read" | "dial" | "answer" | "hangup" | "status" | "ussd"</code></li>
+<li><code>JobState</code>: <code>"queued" | "running" | "ok" | "failed" | "cancelled"</code></li>
+</ul>
+<h3><code>bool JobQueue::push(const Job&amp; job, JobCallback cb)</code></h3>
+<p>افزودن به صف؛ اگر <code>job.urgent</code> باشد، job <strong>سرِ صف</strong> قرار می‌گیرد (شاخص <code>head_</code> یک خانه به عقب برده می‌شود) وگرنه به انتهای حلقه (<code>head_ + count_</code>) می‌رود:</p>
+<pre><code class="lang-cpp">if (job.urgent) {
+    head_ = (head_ + GSM_QUEUE_DEPTH - 1) % GSM_QUEUE_DEPTH;
+    slots_[head_].job = job;
+} else {
+    const uint8_t tail = (head_ + count_) % GSM_QUEUE_DEPTH;
+    slots_[tail].job   = job;
+}
+++count_;</code></pre>
+<p>صف پُر → <code>false</code> (فراخواننده یعنی <code>Modem::enqueue</code> با <code>kInvalidJob</code> پاسخ می‌دهد).</p>
+<h3><code>bool JobQueue::pop(Job&amp; out, JobCallback&amp; cb)</code></h3>
+<p>برداشتن سرِ صف؛ اگر صف خالی یا <strong>متوقف (<code>paused_</code>)</strong> باشد <code>false</code>. اسلات خالی می‌شود (<code>job.clear()</code> و <code>cb.clear()</code>) تا به delegateهای نگهدارنده اشاره‌گر، منابع نشت نکند.</p>
+<h3><code>const Job* JobQueue::at(uint8_t i) const</code></h3>
+<p>دسترسی فقط‌خواندنی به عنصر i‑ام از سرِ صف (برای نمایش در <code>Console::draw_queue</code>)؛ خارج از محدوده → <code>nullptr</code>.</p>
+<h3><code>bool JobQueue::cancel(JobId id, Job&amp; out, JobCallback&amp; cb)</code></h3>
+<p>جست‌وجوی خطی در حلقه؛ پس از یافتن، job با وضعیت <code>Cancelled</code> بیرون داده می‌شود و اسلات‌ها با shift فشرده می‌شوند تا ترتیب حفظ شود.</p>
+<h3><code>void JobQueue::clear()</code> / <code>bool JobQueue::take_cancelled(...)</code></h3>
+<p><code>clear</code> همه jobها را با وضعیت <code>Cancelled</code> به آرایه <code>cancelled_[]</code> منتقل می‌کند (حداکثر <code>GSM_QUEUE_DEPTH</code> مورد). <code>Modem::flush_cancelled</code> سپس با <code>take_cancelled</code> (به‌صورت LIFO) هر کدام را بیرون کشیده و callback آن را صدا می‌زند تا هیچ درخواستی بدون پاسخ نماند.</p>
+<h3><code>uint8_t JobQueue::purge_stale(uint32_t now, uint32_t max_age_ms)</code></h3>
+<p>حذف jobهایی که بیش از <code>max_age_ms</code> (در <code>Modem</code> مقدار <code>GSM_JOB_MAX_AGE_MS = 45000</code>) در صف مانده‌اند؛ حذف‌شده‌ها هم به <code>cancelled_[]</code> می‌روند تا callbackشان اجرا شود. تعداد حذف‌شده را برمی‌گرداند. <code>max_age_ms == 0</code> یعنی غیرفعال.</p>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">push(job) ──► [ urgent؟ سرِ صف : انتهای صف ] ──► count++
+                       │
+Modem::tick ──► pop() ─┼─► paused_؟  (صبر)
+                       ▼
+                 start_job / اجرا
+                       │
+   cancel(id) ──► یافتن + shift فشرده‌سازی ──► callback با Cancelled
+   clear()   ──► همه به cancelled_[] ──► take_cancelled → callback
+   purge_stale(now, 45s) ──► jobهای کهنه به cancelled_[]</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><strong>حلقه ثابت با <code>GSM_QUEUE_DEPTH = 6</code>:</strong> همه اسلات‌ها از پیش تخصیص یافته‌اند؛ <code>head_</code> و <code>count_</code> شاخص‌های <code>uint8_t</code> با محاسبات modulo هستند — مناسب حافظه محدود و بدون قطعی (deterministic).</li>
+<li><strong>جابه‌جایی‌های O(n):</strong> <code>cancel</code> و <code>purge_stale</code> با shift حلقه‌ای کار می‌کنند؛ با عمق ۶ ناچیز است.</li>
+<li><strong>jobهای urgent</strong> (مثل <code>answer</code>/<code>hang_up</code> در <code>Modem</code>) حتی از jobهای جاریِ در صف هم جلوترند؛ اما job «در حال اجرا» هرگز وسط کار لغو نمی‌شود مگر با <code>Modem::cancel</code> یا <code>preempt_for_call</code>.</li>
+<li><strong><code>paused_</code> فقط <code>pop</code> را می‌بندد؛</strong> <code>push</code> همچنان کار می‌کند (می‌توان حین توقف، درخواست انباشت).</li>
+<li><strong>قرارداد callback:</strong> هر jobی که از صف خارج می‌شود (موفق، لغو، purge) حتماً callback دارد؛ <code>clear</code> این را با بافر <code>cancelled_[]</code> تضمین می‌کند.</li>
+<li><strong>بدون heap:</strong> <code>Slot</code> شامل <code>Job</code> + <code>JobCallback</code> (delegate ذخیره‌ای) است؛ هیچ <code>new</code>/<code>malloc</code> در مسیر بحرانی نیست.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>gsm/queue/job_queue.hpp</code> — تعریف کلاس، <code>JobKind</code>، <code>JobState</code>.</li>
+<li><code>gsm/queue/job.hpp</code> — ساختار <code>Job</code> (id، kind، attempts، enqueued_ms، number/text، نتیجه) و <code>JobCallback</code>.</li>
+<li><code>gsm/util/delegate.hpp</code> — delegate بدون تخصیص حافظه برای callbackها.</li>
+<li><code>src/modem.cpp</code> — مالک صف: <code>enqueue</code>/<code>pop</code>/<code>cancel</code>/<code>purge_stale</code>/<code>take_cancelled</code> و سیاست retry در <code>finish_job</code>.</li>
+<li><code>include/gsm/gsm_config.hpp</code> — <code>GSM_QUEUE_DEPTH</code>، <code>GSM_JOB_MAX_AGE_MS</code>.</li>
+<li><code>src/cli.cpp</code> — نمایش صف در پنل <code>q</code> (با <code>capacity()</code> و <code>queued(i)</code>).</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

@@ -1,0 +1,108 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>src-at_types.cpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/at_types.cpp</h1>
+<h2>نقش فایل</h2>
+<p>پیاده‌سازی توابع کمکی متنی برای انواع نتیجه فرمان‌های AT: تبدیل <code>AtStatus</code> به رشته قابل‌خواندن برای لاگ، و جدول‌های «راهنمای خطا» برای کدهای <code>+CMS ERROR</code> و <code>+CME ERROR</code>. این فایل هیچ منطق اجرایی ندارد و صرفاً پل ارتباطی بین کدهای عددی مودم و انسان (لاگ/کنسول) است.</p>
+<h2>توابع و منطق کلیدی</h2>
+<h3><code>const char* to_string(AtStatus s)</code></h3>
+<p>نگاشت یک‌به‌یک حالت‌های <code>AtStatus</code> به رشته‌های ثابت:</p>
+<table><thead><tr><th><code>AtStatus</code></th><th>خروجی</th></tr></thead><tbody>
+<tr><td><code>Pending</code></td><td><code>"PENDING"</code></td></tr>
+<tr><td><code>Ok</code></td><td><code>"OK"</code></td></tr>
+<tr><td><code>Error</code></td><td><code>"ERROR"</code></td></tr>
+<tr><td><code>CmeError</code></td><td><code>"CME_ERROR"</code></td></tr>
+<tr><td><code>CmsError</code></td><td><code>"CMS_ERROR"</code></td></tr>
+<tr><td><code>Timeout</code></td><td><code>"TIMEOUT"</code></td></tr>
+<tr><td><code>Aborted</code></td><td><code>"ABORTED"</code></td></tr>
+<tr><td><code>NoDialtone</code></td><td><code>"NO_DIALTONE"</code></td></tr>
+<tr><td><code>Busy</code></td><td><code>"BUSY"</code></td></tr>
+<tr><td><code>NoCarrier</code></td><td><code>"NO_CARRIER"</code></td></tr>
+<tr><td><code>NoAnswer</code></td><td><code>"NO_ANSWER"</code></td></tr>
+</tbody></table>
+<p>برای مقدار خارج از enum مقدار <code>"?"</code> برمی‌گردد (مسیر ایمنی).</p>
+<h3><code>const char* cms_error_hint(int16_t code)</code></h3>
+<p>توضیح کوتاه انگلیسی برای رایج‌ترین خطاهای SMS (CMS):</p>
+<table><thead><tr><th>کد</th><th>معنا</th></tr></thead><tbody>
+<tr><td>310</td><td>SIM not inserted (سیم‌کارت نیست)</td></tr>
+<tr><td>311</td><td>SIM PIN required (نیاز به PIN)</td></tr>
+<tr><td>313</td><td>SIM failure (خرابی سیم‌کارت)</td></tr>
+<tr><td>321</td><td>invalid memory index (ایندکس حافظه نامعتبر)</td></tr>
+<tr><td>322</td><td>memory full (حافظه پیامک پر است)</td></tr>
+<tr><td>330</td><td>SMSC address unknown (آدرس مرکز پیامک نامشخص)</td></tr>
+<tr><td>500</td><td>unknown error</td></tr>
+<tr><td>512</td><td>SMS send failed (network/SMSC)</td></tr>
+<tr><td>520</td><td>malformed payload: CRLF sent before Ctrl+Z</td></tr>
+<tr><td>3518</td><td>destination not UCS2-encoded while CSCS=UCS2</td></tr>
+</tbody></table>
+<p>برای کدهای دیگر <code>"see module CMS error table"</code> برمی‌گردد.</p>
+<h3><code>const char* cme_error_hint(int16_t code)</code></h3>
+<p>همان کار برای خطاهای عمومی تجهیز (CME):</p>
+<table><thead><tr><th>کد</th><th>معنا</th></tr></thead><tbody>
+<tr><td>10</td><td>SIM not inserted</td></tr>
+<tr><td>11</td><td>SIM PIN required</td></tr>
+<tr><td>13</td><td>SIM failure</td></tr>
+<tr><td>30</td><td>no network service</td></tr>
+<tr><td>58</td><td>invalid parameters / stuck in data-entry prompt</td></tr>
+<tr><td>100</td><td>unknown</td></tr>
+</tbody></table>
+<p>برای کدهای دیگر <code>"see module CME error table"</code>.</p>
+<h2>جریان کاری</h2>
+<p>این فایل state-less است؛ در <code>AtEngine::tick</code> هنگام دیدن <code>+CME ERROR</code> / <code>+CMS ERROR</code> فراخوانی می‌شود:</p>
+<pre><code class="lang-text">AtEngine::tick ──► classify_final() ──► finish(status, code)
+                          │
+                          └─► kLog.warn(&quot;CMS %d: %s&quot;, code, cms_error_hint(code))</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><strong>کد ۵۲۰ (CMS):</strong> نشانه کلاسیک اشتباه در فاز payload پیامک است — ارسال CRLF قبل از Ctrl+Z باعث می‌شود مودم payload را خراب تفسیر کند. <code>SmsService</code> برای همین متن را بدون واسطه و فقط با <code>write_ctrl_z()</code> پایان می‌دهد.</li>
+<li><strong>کد 3518 (CMS):</strong> وقتی <code>AT+CSCS="UCS2"</code> فعال است و شماره مقصد UCS2-encode نشده باشد رخ می‌دهد؛ <code>SmsService::advance_step</code> در مرحله <code>SendHeader</code> با <code>traits_.ucs2_recipient_required</code> این را پیشگیری می‌کند.</li>
+<li><strong>کد ۵۸ (CME):</strong> معروف به گیر کردن مودم در پرامپت ورود داده؛ راه‌حل کتابخانه <code>write_escape()</code> در <code>AtEngine::abort</code> و timeoutهای <code>expect_prompt</code> است.</li>
+<li>همه رشته‌های خروجی ثابت (static const) هستند؛ بازگشت اشاره‌گر کاملاً امن و بدون تخصیص حافظه است.</li>
+<li>جدول‌ها «راهنما» هستند نه منطق کنترلی؛ هیچ‌کدام از کدها بر تصمیم‌گیری FSM تأثیر ندارند و فقط برای خوانایی لاگ به کار می‌روند.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>gsm/core/at_types.hpp</code> — تعریف <code>AtStatus</code>، <code>AtResult</code> و ثابت‌های خطای کتابخانه‌ای (<code>kErrSmsTooLong = -100</code>، <code>kErrCallTimeout = -101</code>، <code>kErrJobStalled = -102</code>).</li>
+<li><code>src/at_engine.cpp</code> — مصرف‌کننده اصلی این توابع در لاگ نتایج نهایی.</li>
+<li><code>src/cli.cpp</code> — <code>to_string(AtStatus)</code> در نمایش نتیجه دستور <code>at &lt;cmd&gt;</code> و رویدادهای <code>[JOB#…]</code>.</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

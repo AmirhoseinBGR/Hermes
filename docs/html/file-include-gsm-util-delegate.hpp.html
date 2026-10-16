@@ -1,0 +1,107 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>include-gsm-util-delegate.hpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/util/delegate.hpp</h1>
+<h2>نقش فایل</h2>
+<p>جایگزین سبک‌وزن و بدون heap برای <code>std::function</code>: یک «delegate» قالب‌بندی‌شده با امضای دلخواه که از یک <strong>تابع + اشاره‌گر context</strong> تشکیل شده است. همهٔ callbackهای کتابخانه (رویدادهای SMS/تماس/Job/URC/سلامت) از این نوع‌اند تا بدون RTTI، استثنا یا تخصیص حافظهٔ پویا کار کنند.</p>
+<h2>ساختارهای کلیدی</h2>
+<h3><code>template &lt;typename... Args&gt; class Delegate</code></h3>
+<pre><code class="lang-cpp">template &lt;typename... Args&gt; class Delegate
+{
+  public:
+    using Fn = void (*)(void* ctx, Args...);
+
+    constexpr Delegate() = default;
+    constexpr Delegate(Fn fn, void* ctx) : fn_(fn), ctx_(ctx) {}
+
+    void operator()(Args... args) const;   // invoke (no-op if empty)
+    explicit operator bool() const;        // bound?
+    void     clear();                      // unbind
+
+    template &lt;typename T, void (T::*M)(Args...)&gt; static Delegate bind(T* obj);
+
+  private:
+    Fn    fn_  = nullptr;
+    void* ctx_ = nullptr;
+};</code></pre>
+<ul>
+<li>سازندهٔ صریح: <code>Delegate(fn, ctx)</code> — تابع ایستا با context دلخواه.</li>
+<li><code>operator()</code>: فراخوانی؛ اگر bind نشده باشد بی‌صدا کاری نمی‌کند (فراخوانی امن روی delegate خالی).</li>
+<li><code>operator bool</code>: بررسی bind بودن.</li>
+<li><strong><code>bind&lt;T, &amp;T::method&gt;(obj)</code></strong>: اتصال متد عضو یک object بدون lambda یا heap؛ از یک lambda بدون capture (تبدیل‌شونده به اشاره‌گر تابع) استفاده می‌کند که <code>ctx</code> را به <code>T*</code> cast می‌کند.</li>
+</ul>
+<p>نمونه:</p>
+<pre><code class="lang-cpp">// Free function + context (used by Modem&#x27;s URC trampoline).
+Delegate&lt;const UrcEvent&amp;&gt; h{&amp;Modem::urc_trampoline, this};
+
+// Member function binding without std::function.
+auto cb = Delegate&lt;const Job&amp;&gt;::bind&lt;App, &amp;App::on_job_done&gt;(&amp;app);</code></pre>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">producer (AtEngine / Modem / services)
+    |
+    |  delegate(args...)  ==  fn_(ctx_, args...)
+    v
+consumer method on the bound object   (or plain function)</code></pre>
+<p>الگوی trampoline در <code>Modem</code>:</p>
+<pre><code class="lang-cpp">// Static thunk forwards to the instance method via the stored context.
+static void urc_trampoline(void* ctx, const UrcEvent&amp; ev)
+{ static_cast&lt;Modem*&gt;(ctx)-&gt;handle_urc(ev); }</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><strong>بدون heap، بدون STL، بدون closure</strong>: فقط یک اشاره‌گر تابع + یک <code>void*</code>؛ اندازهٔ object ثابت و کوچک (معمولاً ۸/۱۶ بایت).</li>
+<li><code>constexpr</code> بودن سازنده‌ها اجازه می‌دهد delegateها در مقداردهی اولیهٔ سراسری ساخته شوند.</li>
+<li>ایمنی نوعی <code>bind&lt;T, &amp;T::M&gt;</code> در زمان کامپایل بررسی می‌شود (قالب عضو با امضای دقیق)؛ خبری از <code>dynamic_cast</code> نیست.</li>
+<li>delegate خالی ایمن است: <code>operator()</code> بدون <code>fn_</code> هیچ کاری نمی‌کند — نیازی به بررسی قبل از فراخوانی نیست (هرچند <code>operator bool</code> موجود است).</li>
+<li>محدودیت: فقط اشاره‌گر ساده به object؛ هوشمندی مالکیت (shared_ptr و …) ندارد — طول عمر object بر عهدهٔ کاربر است.</li>
+<li>الگوی استاندارد کتابخانه: <code>using X = Delegate&lt;Args...&gt;;</code> مثل <code>JobCallback</code>، <code>UrcRouter::Handler</code>، <code>SmsService::Received</code>، <code>MaintenanceWatchdog::ReportCb</code>.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>core/urc_router.hpp</code> — <code>UrcRouter::Handler</code></li>
+<li><code>queue/job.hpp</code> — <code>JobCallback</code></li>
+<li><code>sms/sms_service.hpp</code> — <code>SendDone</code> / <code>Received</code></li>
+<li><code>ussd/ussd_service.hpp</code> — <code>UssdDone</code></li>
+<li><code>voice/call_service.hpp</code> — <code>StateChanged</code> / <code>Ended</code> (با دو آرگومان)</li>
+<li><code>maintenance/watchdog.hpp</code> — <code>ReportCb</code></li>
+<li><code>modem/modem.hpp</code> — <code>SimEventCb</code> و ثبت callbackهای کاربر</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

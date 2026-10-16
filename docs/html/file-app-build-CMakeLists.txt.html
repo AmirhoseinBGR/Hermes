@@ -1,0 +1,104 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>app-build-CMakeLists.txt</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>App/CMakeLists.txt</h1>
+<h2>نقش فایل</h2>
+<p>پیکربندی ساخت لایه‌ی اپلیکیشن «EvoHatch hub». این فایل کتابخانه‌ی <code>app</code> را به‌صورت OBJECT می‌سازد، منطق هسته (core، بدون HAL)، چسب STM32/LVGL (port)، ماژول هشدار (alarm) و ماژول CLI مودم GSM (<code>gsm_cli/cli.cpp</code>) را گرد هم می‌آورد، و به کتابخانه‌های وابسته (<code>def</code>, <code>etl</code>, <code>eeprom</code>, <code>user_ui</code>, <code>gsm_modem</code>) پیوند می‌دهد. سطح لاگ اپلیکیشن را هم تنظیم می‌کند.</p>
+<h2>ساختارها/توابع کلیدی</h2>
+<ul>
+<li>هدر توضیحی: ساختار پوشه‌ها را شرح می‌دهد:</li>
+<li><code>core/</code> — منطق بدون HAL (تست‌شده با <code>make -C tests run</code>).</li>
+<li><code>port/</code> — چسب STM32 + LVGL + user_ui.</li>
+<li><code>alarm/</code> — هوک خطا (نمونه‌ی کامل یا قالب خالی).</li>
+</ul>
+<ul>
+<li><code>option(APP_ALARM_EXAMPLE "Build the worked alarm example instead of the empty template" OFF)</code></li>
+</ul>
+<p>انتخاب بین نمونه‌ی کامل هشدار و قالب خالی.</p>
+<ul>
+<li>انتخاب منبع alarm:</li>
+<li>اگر <code>APP_ALARM_EXAMPLE</code> روشن → <code>alarm/alarm_actions.c</code>.</li>
+<li>وگرنه → <code>alarm/alarm_actions_template.c</code>.</li>
+</ul>
+<ul>
+<li><code>add_library(app OBJECT ...)</code> — کتابخانه‌ی OBJECT از فایل‌ها:</li>
+<li><code>core/device.c</code>, <code>core/errors.c</code>, <code>core/rs485.c</code>, <code>core/esp_link.c</code>, <code>core/settings_store.c</code></li>
+<li><code>port/app_main.c</code>, <code>port/board.c</code>, <code>port/ui_bridge.c</code>, <code>port/esp_sync.c</code>, <code>port/drivers.cpp</code></li>
+<li><code>${APP_ALARM_SRC}</code> (بسته به گزینه)</li>
+<li><code>gsm_cli/cli.cpp</code></li>
+</ul>
+<ul>
+<li><code>target_include_directories(app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})</code> — ریشه‌ی پوشه‌ی App مسیر include عمومی.</li>
+</ul>
+<ul>
+<li><code>target_link_libraries(app PRIVATE def etl eeprom user_ui gsm_modem)</code> — پیوند به کتابخانه‌های وابسته، از جمله <code>gsm_modem</code> (کتابخانه‌ی GSM).</li>
+</ul>
+<ul>
+<li><code>target_compile_definitions(app PRIVATE APP_LOG_LEVEL=APP_LOG_WARN)</code> — سطح لاگ اپ (پیش‌فرض WARN؛ گزینه‌های ERROR/WARN/INFO/TRACE که TRACE هر تراکنش گذرگاه را چاپ می‌کند).</li>
+</ul>
+<h2>جریان کاری</h2>
+<ol>
+<li>CMake گزینه‌ی <code>APP_ALARM_EXAMPLE</code> را بررسی می‌کند و فایل منبع alarm مناسب را انتخاب می‌کند.</li>
+<li>کتابخانه‌ی OBJECT به نام <code>app</code> از فایل‌های core، port، alarm و <code>gsm_cli/cli.cpp</code> ساخته می‌شود.</li>
+<li>مسیر ریشه‌ی App به‌عنوان include عمومی اضافه می‌شود (دسترسی به <code>core/</code>, <code>port/</code>, <code>gsm_cli/</code> و…).</li>
+<li>کتابخانه به <code>def</code>, <code>etl</code>, <code>eeprom</code>, <code>user_ui</code> و <code>gsm_modem</code> پیوند می‌خورد؛ <code>gsm_modem</code> همان کتابخانه‌ی GSM است.</li>
+<li>سطح لاگ با <code>APP_LOG_LEVEL=APP_LOG_WARN</code> تعریف می‌شود.</li>
+</ol>
+<h2>نکات فنی</h2>
+<ul>
+<li><code>add_library(app OBJECT ...)</code> یعنی کتابخانه‌ی اشیاء (object files)؛ این فایل‌ها جداگانه آبجکت می‌شوند و در نهایت به اجرایی نهایی پیوند می‌خورند.</li>
+<li><code>gsm_cli/cli.cpp</code> (چسب کنسول مودم + پل وب) بخشی از همین کتابخانه‌ی app است؛ منطق کنسول خود در <code>gsm_modem</code> قرار دارد.</li>
+<li><code>APP_LOG_LEVEL</code> یک ماکروی کامپایل است؛ سطح <code>APP_LOG_WARN</code> پیش‌فرض است و <code>APP_LOG_TRACE</code> برای اشکال‌زدایی هر تراکنش گذرگاه (bus) به کار می‌رود.</li>
+<li>گزینه‌ی <code>APP_ALARM_EXAMPLE</code> پیش‌فرض <code>OFF</code> است؛ یعنی قالب خالی هشدار ساخته می‌شود مگر صراحتاً روشن شود.</li>
+<li>پیوندها <code>PRIVATE</code> هستند؛ جزئیات کتابخانه‌های وابسته به مصرف‌کنندگان app درز نمی‌کند.</li>
+<li><code>port/drivers.cpp</code> (پل وب/سریال) در همین کتابخانه است و از <code>gsm_cli/cli.cpp</code> (یعنی <code>set_web_output</code>/<code>exec_web</code>/<code>status_line</code>) استفاده می‌کند.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>App/gsm_cli/cli.cpp</code> / <code>App/gsm_cli/cli.hpp</code> — چسب کنسول مودم + پل وب که در این کتابخانه گنجانده شده.</li>
+<li><code>gsm/CMakeLists.txt</code> — کتابخانه‌ی <code>gsm_modem</code> که اینجا لینک می‌شود.</li>
+<li><code>App/port/drivers.cpp</code> — پل وب/سریال (مصرف‌کننده‌ی API وب کنسول).</li>
+<li><code>App/core/*</code> — منطق بدون HAL اپلیکیشن.</li>
+<li><code>App/backend/eeprom/</code> و <code>App/backend/user_ui/</code> — کتابخانه‌های <code>eeprom</code> و <code>user_ui</code> که لینک می‌شوند.</li>
+<li>کتابخانه‌های <code>def</code>, <code>etl</code> — وابستگی‌های عمومی ابزار/کانتینر.</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

@@ -1,0 +1,132 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>include-gsm-core-urc_router.hpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/core/urc_router.hpp</h1>
+<h2>نقش فایل</h2>
+<p>مسیریابی پیام‌های ناخواستهٔ مودم (URC — Unsolicited Result Code) مثل <code>RING</code>، <code>+CMTI</code>، <code>+CREG</code>. این کلاس خطوطی را که در پاسخ به فرمان خاصی نیامده‌اند طبقه‌بندی می‌کند و به‌صورت رویداد ساخت‌یافته (<code>UrcEvent</code>) به یک handler واحد تحویل می‌دهد. این جداسازی باعث می‌شود پروتکل‌های ناخواسته، جریان تراکنش‌های AT را مختل نکنند.</p>
+<h2>ساختارهای کلیدی</h2>
+<h3><code>enum class Urc : uint8_t</code></h3>
+<p>انواع رویداد شناخته‌شده:</p>
+<pre><code class="lang-cpp">enum class Urc : uint8_t
+{
+    Unknown = 0,
+    Ring,            // RING — incoming call
+    CallerId,        // +CLIP: &quot;number&quot;,...
+    CallEnded,       // NO CARRIER / NO ANSWER
+    CallBusy,        // BUSY
+    NoAnswer,        // NO ANSWER
+    SmsReceived,     // +CMTI: &quot;SM&quot;,index
+    SmsDeliveryRep,  // +CDS: delivery report
+    SimReady,        // +CPIN: READY
+    SimRemoved,      // +CREG / SIM removal indication
+    SimInserted,
+    CallReady,       // CALL READY
+    SmsReady,        // SMS READY
+    PowerDown,       // NORMAL POWER DOWN
+    NetworkReg,      // +CREG: &lt;stat&gt;
+    SignalReport,    // +CSQ / +CIEV signal indications
+    Ussd,            // +CUSD: &lt;m&gt;,&quot;&lt;str&gt;&quot;,&lt;dcs&gt;
+    ModemReady,
+};</code></pre>
+<h3><code>struct UrcEvent</code></h3>
+<pre><code class="lang-cpp">struct UrcEvent
+{
+    Urc         kind = Urc::Unknown;
+    const char* line = nullptr;  // the raw URC line
+    int32_t     arg  = -1;       // parsed numeric payload (e.g. +CMTI index, +CREG stat)
+};</code></pre>
+<h3><code>class UrcRouter</code></h3>
+<pre><code class="lang-cpp">class UrcRouter
+{
+  public:
+    using Handler = Delegate&lt;const UrcEvent&amp;&gt;;
+
+    void       set_handler(Handler h) { handler_ = h; }
+    bool       dispatch(const char* line, uint16_t len);   // true if it was a URC
+    static Urc classify(const char* line, int32_t&amp; arg);   // line -&gt; Urc + parsed arg
+
+  private:
+    Handler handler_;
+};</code></pre>
+<ul>
+<li><code>classify</code>: تشخیص نوع URC از پیشوند/الگوی خط (<code>RING</code>، <code>+CMTI:</code>، <code>+CLIP:</code>، <code>+CUSD:</code>، …) و استخراج آرگومان عددی.</li>
+<li><code>dispatch</code>: اگر خط URC باشد، handler را صدا می‌زند و <code>true</code> برمی‌گرداند؛ در غیر این صورت <code>false</code> (خط، پاسخ فرمان جاری است).</li>
+</ul>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">AtEngine::tick()
+    |
+    | line complete
+    v
+UrcRouter.dispatch(line, len)
+    |            \
+    | true        \ false
+    v              v
+Modem::handle_urc()   -&gt; service observer (on_line / on_final)
+    |
+    +-&gt; Ring / CallerId     -&gt; CallService::notify_ring()
+    +-&gt; CallEnded / Busy    -&gt; CallService::notify_hangup()/notify_busy()
+    +-&gt; SmsReceived         -&gt; auto read (SmsService) if enabled
+    +-&gt; SimReady/Removed    -&gt; Modem::handle_sim_recovery(), on_sim callback
+    +-&gt; NetworkReg          -&gt; registration state machine
+    +-&gt; Ussd                -&gt; UssdService::notify_cusd()
+    +-&gt; user_urc_ handler   -&gt; application-level URC hook</code></pre>
+<p>نمونهٔ ثبت handler (در <code>Modem</code> با trampoline):</p>
+<pre><code class="lang-cpp">// Static trampoline since Delegate stores a plain function + context.
+urc_.set_handler(UrcRouter::Handler{&amp;Modem::urc_trampoline, this});</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><strong>بدون تخصیص حافظه</strong>: <code>UrcEvent</code> فقط اشاره‌گر به خط موجود و یک <code>int32_t</code>؛ متن خط متعلق به بافر <code>LineReader</code> است و فقط تا پردازش بعدی معتبر است.</li>
+<li><code>Delegate</code> به‌جای <code>std::function</code> استفاده شده (بدون heap و بدون STL).</li>
+<li>تشخیص URC در برابر پاسخ فرمان بر عهدهٔ <code>classify</code> (الگوی خط) و <code>AtEngine</code> است؛ خطوطی که الگوی URC داشته باشند از جریان پاسخ تراکنش جدا می‌شوند.</li>
+<li>URCهای ناشناخته به <code>Urc::Unknown</code> طبقه‌بندی می‌شوند و از طریق <code>user_urc_</code> در دسترس کاربرند (هدر ناشناس دور انداخته نمی‌شود).</li>
+<li>برای ماژول‌هایی مثل M08R که URCهای پایان تماس نامطمئن‌اند (<code>clcc_authoritative</code>)، <code>CallEnded</code>/<code>CallBusy</code> صرفاً مکمل‌اند و نباید تنها مرجع قطع تماس باشند (به <code>voice/call_service.hpp</code> نگاه کنید).</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>core/at_engine.hpp</code> — فراخوانی <code>dispatch</code> برای هر خط دریافتی</li>
+<li><code>util/delegate.hpp</code> — نوع <code>Handler</code></li>
+<li><code>modem/modem.hpp</code> — handler اصلی (<code>handle_urc</code> + <code>urc_trampoline</code>) و <code>set_on_urc</code></li>
+<li><code>voice/call_service.hpp</code> — <code>notify_ring</code> / <code>notify_hangup</code> / <code>notify_busy</code></li>
+<li><code>ussd/ussd_service.hpp</code> — <code>notify_cusd</code> برای <code>Urc::Ussd</code></li>
+<li><code>status/status_service.hpp</code> — به‌روزرسانی وضعیت شبکه/SIM از رویدادها</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

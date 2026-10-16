@@ -1,0 +1,254 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>راهنمای جامع</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>مستند جامع و مرجع فنی کتابخانه GSM (SIM800 / Quectel M08)</h1>
+<p>یک درایور غیرمسدودکننده (Non-blocking) و کاملاً ماژولار به زبان <strong>C++17</strong> جهت ارتباط پایدار با ماژول های سلولار نظیر <strong>SIM800 / SIM900</strong> و <strong>Quectel M08 / M66</strong>.</p>
+<p>این کتابخانه بر اساس اصول مهندسی سیستم های امبدد طراحی شده است:</p>
+<ul>
+<li><strong>Zero Dynamic Allocation (بدون Heap / malloc / new)</strong>: تمام بافرها در زمان کامپایل رزرو می شوند.</li>
+<li><strong>بدون وابستگی به STL</strong>: بدون استفاده از <code>std::vector</code>, <code>std::string</code>, <code>std::function</code>.</li>
+<li><strong>بدون استثناها و تایپ ران تایم (No Exceptions / No RTTI)</strong>: کاملاً سازگار با <code>-fno-exceptions -fno-rtti</code>.</li>
+<li><strong>معماری Non-blocking Tick</strong>: فراخوانی ساده در هر سیکل <code>tick()</code> بدون ایجاد تاخیر برای سیستم عامل (FreeRTOS) یا حلقه ی اصلی.</li>
+<li><strong>پشتیبانی کامل از پیامک فارسی</strong>: پیش فرض کل سیستم روی UCS2 در Text Mode قفل شده است.</li>
+</ul>
+<hr>
+<h2>فهرست سرفصل ها</h2>
+<ol>
+<li><a href="#۱-معماری-سیستم-و-تفکیک-لایه ها">معماری سیستم و تفکیک لایه ها</a></li>
+<li><a href="#۲-راه اندازی-هوشمند-و-مکانیزم-pwrkey">راه اندازی هوشمند و مکانیزم PWRKEY</a></li>
+<li><a href="#۳-صبر-برای-رجیستر-شدن-در-شبکه-و-تایم اوت-شبکه">صبر برای رجیستر شدن در شبکه و تایم اوت شبکه</a></li>
+<li><a href="#۴-تشخیص-زنده-اتصال-و-خارج-شدن-سیم کارت">تشخیص زنده اتصال و خارج شدن سیم کارت (SIM Detection)</a></li>
+<li><a href="#۵-استعلام-شارژ-و-کدهای-ussd">استعلام شارژ و کدهای USSD (ایرانسل، همراه اول، رایتل)</a></li>
+<li><a href="#۶-سیستم-لاگینگ-پیشرفته-و-رفع-مشکل-رنگ های-ansi">سیستم لاگینگ پیشرفته و رفع مشکل رنگ های ANSI</a></li>
+<li><a href="#۷-ماشین-حالت-اصلی-و-زیرحالت ها">ماشین حالت اصلی و زیرحالت ها</a></li>
+<li><a href="#۸-صف-کارها-و-اولویت ها">صف کارها و اولویت ها (JobQueue)</a></li>
+<li><a href="#۹-کنسول-تعاملی-سریال-برای-تست-جامع-در-stm32">کنسول تعاملی سریال برای تست جامع در STM32</a></li>
+<li><a href="#۱۰-راهنمای-گیت-ایجاد-مخزن-مستقل-و-git-submodule">راهنمای گیت، ایجاد مخزن مستقل و Git Submodule</a></li>
+</ol>
+<hr>
+<h2>۱. معماری سیستم و تفکیک لایه ها</h2>
+<pre><code>┌────────────────────────────────────────────────────────┐
+│ L4: Application / User Layer (stm32_main.cpp)          │
+└───────────────────────────▲────────────────────────────┘
+                            │
+┌───────────────────────────┴────────────────────────────┐
+│ L3: Modem Orchestrator &amp; Services                      │
+│  - Main FSM (Booting -&gt; PwrKey -&gt; WaitingReg -&gt; Ready) │
+│  - JobQueue (SMS, Calls, Status, USSD)                 │
+│  - Services: SmsService, CallService, UssdService, ... │
+└───────────────────────────▲────────────────────────────┘
+                            │
+┌───────────────────────────┴────────────────────────────┐
+│ L2: Protocol Layer (AtEngine &amp; UrcRouter)              │
+│  - AtEngine (Command dispatch, Prompt &#x27;&gt;&#x27;, ESC abort)  │
+│  - UrcRouter (RING, +CLIP, +CMTI, +CPIN, +CUSD, ...)   │
+└───────────────────────────▲────────────────────────────┘
+                            │
+┌───────────────────────────┴────────────────────────────┐
+│ L1: Codecs &amp; Utilities (Zero-Alloc)                    │
+│  - UCS2 Hex &lt;-&gt; UTF-8 Codec                            │
+│  - PhoneNumber (E.164 normalization)                   │
+│  - Logger (ANSI color support for writer_sink, ms time)│
+└───────────────────────────▲────────────────────────────┘
+                            │
+┌───────────────────────────┴────────────────────────────┐
+│ L0: Hardware Abstraction Layer (HAL)                   │
+│  - IUart, IClock, IPowerControl (PWRKEY/RESET)         │
+│  - Stm32Uart (ReceiveToIdle_DMA), Arduino, Host        │
+└────────────────────────────────────────────────────────┘</code></pre>
+<hr>
+<h2>۲. راه اندازی هوشمند و مکانیزم PWRKEY</h2>
+<p>در نسخه ی جدید، فرآیند راه اندازی مودم دقیقاً به شرح زیر مدیریت می شود:</p>
+<ol>
+<li>ابتدا مودم تا ۳ بار دستور <code>AT</code> می فرستد.</li>
+<li>چنانچه پاسخی دریافت نشود (مثلاً ماژول خاموش باشد) و اینترفیس <code>IPowerControl</code> به مودم متصل شده باشد، وارد حالت <code>PowerPulsing</code> شده و پایه ی <strong>PWRKEY</strong> را به مدت مشخص (پیش فرض ۱۲۰۰ میلی ثانیه) پولس می زند.</li>
+<li>مجدداً دستورات پروب <code>AT</code> ارسال می شوند. اگر باز هم پاسخی دریافت نشود، یک بار دیگر پولس PWRKEY اعمال می شود و در صورت عدم دریافت پاسخ وارد وضعیت <code>Fault</code> می گردد.</li>
+</ol>
+<p>نحوه ی راه اندازی در STM32:</p>
+<pre><code class="lang-cpp">static port::Stm32PowerControl pwr(GPIOB, GPIO_PIN_12); // پین PWRKEY
+static Modem modem(gsm_uart, clk, kSim800, &amp;pwr);</code></pre>
+<hr>
+<h2>۳. صبر برای رجیستر شدن در شبکه و تایم اوت شبکه</h2>
+<p>مودم پس از پاسخ گویی به <code>AT</code>، به صورت پیش فرض کانفیگ نمی شود، بلکه وارد حالت <code>WaitingRegistration</code> می شود:</p>
+<ul>
+<li>به صورت متناوب هر ۲ ثانیه دستور <code>AT+CREG?</code> را ارسال می کند یا منتظر رخداد URC شبکه ای <code>+CREG: 1</code> (شبکه خانگی) یا <code>+CREG: 5</code> (رومینگ) می ماند.</li>
+<li>یک تایم اوت مشخص (<code>GSM_REGISTRATION_TIMEOUT</code> پیش فرض ۴۵ ثانیه) برای اتصال به شبکه در نظر گرفته شده است. در صورت عدم رجیستر شدن در این مدت، مودم وارد وضعیت <code>Fault</code> شده و لاگ خطای شبکه ای ثبت می کند.</li>
+<li>تنها <strong>پس از اطمینان از رجیستر شدن در شبکه</strong>، فرآیند پیکربندی <code>Configuring</code> آغاز می گردد.</li>
+</ul>
+<hr>
+<h2>۴. تشخیص زنده اتصال و خارج شدن سیم کارت</h2>
+<p>سیستم روتر URC و وضعیت سیم کارت به صورت پویا وقایع سیم کارت را پایش می کند:</p>
+<ul>
+<li>کدهای <code>+CPIN: NOT INSERTED</code> یا پیام های وضعیت سخت افزاری سیم کارت تشخیص داده می شوند.</li>
+<li>در صورت خارج شدن سیم کارت:</li>
+<li>مودم وارد وضعیت <code>SimMissing</code> می شود.</li>
+<li>کالبک <code>on_sim</code> با وضعیت <code>SimState::Removed</code> بلافاصله صدا زده می شود.</li>
+<li>فرآیندهای پس زمینه متوقف می شوند تا منابع تلف نشوند.</li>
+<li>به محض قرارگیری مجدد سیم کارت (<code>+CPIN: READY</code>):</li>
+<li>کالبک با وضعیت <code>SimState::Ready</code> فراخوانی می شود.</li>
+<li>مودم مجدداً به طور خودکار به مرحله ی <code>WaitingRegistration</code> رفته و چرخه را تکمیل می کند.</li>
+</ul>
+<p>تعریف کالبک سیم کارت در کد شما:</p>
+<pre><code class="lang-cpp">modem.set_on_sim(Modem::SimEventCb([](void*, SimState state) {
+    if (state == SimState::Removed) {
+        printf(&quot;هشدار: سیم کارت خارج شد!\r\n&quot;);
+    } else if (state == SimState::Ready) {
+        printf(&quot;سیم کارت متصل شد.\r\n&quot;);
+    }
+}, nullptr));</code></pre>
+<hr>
+<h2>۵. استعلام شارژ و کدهای USSD</h2>
+<p>سرویس اختصاصی <code>UssdService</code> با دستور استاندارد <code>AT+CUSD</code> اضافه شده است.</p>
+<h3>تشخیص خودکار اپراتور:</h3>
+<p>کتابخانه بر اساس خروجی دستور <code>AT+COPS?</code> اپراتور فعال را تفکیک می کند:</p>
+<ul>
+<li><strong>ایرانسل (Irancell / MTN / 43235)</strong></li>
+<li><strong>همراه اول (MCI / TCI / IR-TCI / 43211)</strong></li>
+<li><strong>رایتل (RighTel / 43220)</strong></li>
+</ul>
+<h3>استعلام شارژ:</h3>
+<ul>
+<li>متد <code>modem.check_balance()</code> به صورت کاملاً خودکار بر اساس اپراتور تشخیص داده شده کد USSD مربوطه را ارسال می کند:</li>
+<li>ایرانسل: <code><em>141</em>1#</code></li>
+<li>همراه اول: <code><em>140</em>11#</code></li>
+<li>رایتل: <code>*140#</code></li>
+<li>همچنین می توانید با <code>modem.ussd("*140#")</code> هر کد دلخواهی را ارسال کنید.</li>
+<li>پاسخ دریافتی شبکه (حتی در صورت رمزگذاری با UCS2 Hex) به صورت خودکار به متن خوانای فارسی/انگلیسی UTF-8 دیکود می شود.</li>
+</ul>
+<hr>
+<h2>۶. سیستم لاگینگ پیشرفته و رفع مشکل رنگ های ANSI</h2>
+<p>در نسخه قبلی، زمانی که لاگ ها را به کنسول UART (<code>writer_sink</code>) می فرستادید، کدهای رنگی ANSI فرمت بندی نمی شدند و فقط در <code>stdio_sink</code> فعال بودند. این مورد کاملاً اصلاح شد:</p>
+<ol>
+<li>تابع <code>writer_sink</code> اکنون مستقیماً کدهای ANSI رنگی را تولید کرده و به سریال می فرستد.</li>
+<li>کنترل در زمان اجرا (Runtime Toggle):</li>
+</ol>
+<pre><code class="lang-cpp">   log::Registry::set_color(true);       // فعال/غیرفعال کردن رنگ ها
+   log::Registry::set_timestamps(true);  // فعال/غیرفعال کردن نمایش تایم اسکپ [ms]
+   log::Registry::set_global_level(log::Level::Debug);</code></pre>
+<ol>
+<li>در کنسول تعاملی کلید <strong><code>C</code></strong> رنگ ها و کلید <strong><code>T</code></strong> تایم استمپ را در لحظه تغییر می دهد.</li>
+</ol>
+<hr>
+<h2>۷. ماشین حالت اصلی و زیرحالت ها</h2>
+<pre><code>[Off] ──&gt; begin() ──&gt; [Booting] (probe AT x3)
+                          │ (fails)
+                          └──&gt; [PowerPulsing] (pulse PWRKEY) ──&gt; [Booting]
+                                                                     │
+[Fault] &lt;── (Reg timeout) &lt;── [WaitingRegistration] &lt;── (AT OK) ─────┘
+                                      │
+                               (Registered)
+                                      ▼
+                                [Configuring] (ATE0, CMEE, CMGF, CSCS, CSMP, ...)
+                                      │
+                                      ▼
+                                   [Ready] &lt;═══════════════╗
+                                 ╱    │    ╲               ║
+                         Job Queued   │   Incoming Call    ║
+                                ╱     │     ╲              ║
+                               ▼      │      ▼             ║
+                          [Working]   │  [Ringing]         ║
+                           (SMS,      │      │             ║
+                           USSD,      │  (Answer)          ║
+                           Call, ...) │      ▼             ║
+                               │      │   [InCall]         ║
+                               │      │      │             ║
+                               └──────┴──────┴─────────────╝</code></pre>
+<hr>
+<h2>۸. صف کارها و اولویت ها</h2>
+<ul>
+<li><strong>ظرفیت ثابت (Zero-Alloc)</strong>: تعریف شده با <code>GSM_QUEUE_DEPTH</code> (پیش فرض ۶).</li>
+<li><strong>Urgent Priority</strong>: کارهای اضطراری (مثل <code>hang_up()</code> یا <code>answer()</code>) از ابتدای صف وارد می شوند.</li>
+<li><strong>Auto-Retry</strong>: در صورت خطای موقت ماژول یا شبکه، کارها مجدداً تلاش می شوند.</li>
+<li><strong>کنترل جامع</strong>:</li>
+<li><code>modem.pause_queue()</code> / <code>modem.resume_queue()</code></li>
+<li><code>modem.stop_all()</code> (لغو کار جاری با سقط دستور AT و پاک سازی صف)</li>
+</ul>
+<hr>
+<h2>۹. کنسول تعاملی سریال برای تست جامع در STM32</h2>
+<p>فایل <code>examples/stm32_main.cpp</code> را روی بورد پروگرم کنید و ترمینال سریال را با باودریت ۱۱۵۲۰۰ باز کنید:</p>
+<ul>
+<li>کلید <strong><code>m</code></strong>: نمایش منوی رنگی راهنما</li>
+<li>کلید <strong><code>i</code></strong>: وضعیت زنده مودم (CSQ, dBm, خطوط آنتن، وضعیت رجیستر شبکه، نام اپراتور، وضعیت سیم کارت)</li>
+<li>کلید <strong><code>b</code></strong>: استعلام میزان شارژ سیم کارت با کد USSD هوشمند اپراتور</li>
+<li>کلید <strong><code>q</code></strong>: مشاهده وضعیت صف کارها و کارهای در انتظار</li>
+<li>کلید <strong><code>s</code></strong>: اجرای استعلام وضعیت کامل (Sweep)</li>
+<li>کلید <strong><code>r</code></strong>: اسکن پیامک های خوانده نشده</li>
+<li>کلید <strong><code>d</code></strong>: پاک سازی پیامک های خوانده شده از حافظه</li>
+<li>کلید <strong><code>h</code></strong>: قطع تماس فوری</li>
+<li>کلید <strong><code>T</code></strong>: روشن/خاموش کردن برچسب زمانی لاگ ها</li>
+<li>کلید <strong><code>C</code></strong>: روشن/خاموش کردن رنگ های ANSI لاگ ها</li>
+<li>کلید <strong><code>P</code></strong>: سوئیچ به حالت Passthrough Bridge (ارتباط مستقیم بایت به بایت با مودم و خروج با <code>e</code>)</li>
+<li>دستور <strong><code>sms 09037744527 سلام دنیا</code></strong>: ارسال پیامک فارسی</li>
+<li>دستور <strong><code>dial 09037744527</code></strong>: برقراری تماس صوتی</li>
+<li>دستور **<code>ussd *140#</code>**: ارسال کد دلخواه USSD</li>
+<li>دستور <strong><code>at AT+CSQ</code></strong>: اجرای مستقیم فرمان AT بدون تداخل با FSM</li>
+</ul>
+<hr>
+<h2>۱۰. راهنمای گیت، ایجاد مخزن مستقل و Git Submodule</h2>
+<h3>۱. ساخت مخزن مستقل در مسیر کتابخانه:</h3>
+<pre><code class="lang-bash">cd Libraries/DEF/gsm
+git init
+git add .
+git commit -m &quot;feat: complete non-blocking GSM driver with USSD, SIM detection, and PWRKEY support&quot;</code></pre>
+<h3>۲. ارسال به گیت هاب:</h3>
+<pre><code class="lang-bash">git remote add origin https://github.com/&lt;your-username&gt;/gsm-modem.git
+git branch -M main
+git push -u origin main</code></pre>
+<h3>۳. اضافه کردن به عنوان Git Submodule در پروژه اصلی:</h3>
+<p>در شاخه اصلی پروژه تان:</p>
+<pre><code class="lang-bash"># حذف پوشه محلی موقت
+rm -rf Libraries/DEF/gsm
+
+# اضافه کردن ساب ماژول در همان مسیر
+git submodule add https://github.com/&lt;your-username&gt;/gsm-modem.git Libraries/DEF/gsm
+git commit -m &quot;chore: add gsm library as git submodule&quot;
+git push</code></pre>
+<hr>
+<h2>افزوده‌های نسخه ۰.۴ (مهم)</h2>
+<table><thead><tr><th>موضوع</th><th>مستند اختصاصی</th></tr></thead><tbody>
+<tr><td>مدیریت تماس: قطع خودکار ۲۰ ثانیه‌ای، تشخیص رد/بی‌جوابی با +CLCC، گیت صف</td><td><code>CALL_MANAGEMENT.md</code></td></tr>
+<tr><td>محدودیت سخت‌گیرانه طول پیامک (پیش‌فرض ۶۰ کاراکتر، قابل تنظیم)</td><td><code>SMS_POLICY.md</code></td></tr>
+<tr><td>دو ریست‌کننده دوره‌ای (زمانی/تعداد عملیات) + بررسی سلامت</td><td><code>WATCHDOG.md</code></td></tr>
+<tr><td>کنسول تعاملی به‌عنوان قابلیت هسته کتابخانه (<code>gsm::cli::Console</code>)</td><td><code>CLI.md</code></td></tr>
+<tr><td>راهنمای فایل‌به‌فایل و نسخه HTML مستندات</td><td><code>fa/</code> و <code>html/</code></td></tr>
+</tbody></table></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

@@ -1,0 +1,60 @@
+# gsm/user_code/cli.cpp
+
+## نقش فایل
+
+پیاده‌سازی «چسب سخت‌افزاری» (hardware glue) کنسول تعاملی روی STM32. این فایل فقط سخت‌افزار (UART مودم، UART دیباگ، زمان‌سنج، کنترل تغذیه) و نمونه‌ی مودم `kQuectelM08R` را می‌سازد و آن‌ها را به کنسول کتابخانه `gsm::cli::Console` وصل می‌کند. تمام منطق کنسول (منو، وضعیت زنده، دستورات، پاس‌ترو) در خود کتابخانه است؛ این فایل عمداً نازک نگه داشته شده است.
+
+## ساختارها/توابع کلیدی
+
+نمونه‌های ایستا (static) در سطح فایل:
+
+- `static port::Stm32Uart<512> s_gsm_uart(&huart7)` — UART مودم (UART7) با بافر DMA ۵۱۲ بایتی.
+- `static port::Stm32Uart<256> s_dbg_uart(&huart1)` — UART دیباگ/کنسول (USART1) با بافر DMA ۲۵۶ بایتی.
+- `static port::Stm32Clock s_clk` — زمان‌سنج مبتنی بر `HAL_GetTick`.
+- `static port::Stm32PowerControl s_gsmpwr(...)` — (شرطی، فقط اگر `GSM_PWR_GPIO_Port`/`GSM_PWR_Pin` تعریف شده باشند) کنترل PWRKEY مودم.
+- `static Modem s_modem(s_gsm_uart, s_clk, kQuectelM08R, ...)` — نمونه‌ی مودم M08R؛ اگر پین تغذیه تعریف نشده باشد، `nullptr` برای کنترل تغذیه می‌گیرد.
+- `static gsm::cli::Console s_console(s_modem, s_clk)` — کنسول کتابخانه متصل به مودم و زمان‌سنج.
+- `static void uart_write(void*, const char* data, uint16_t len)` — متن خروجی کنسول را روی UART دیباگ می‌نویسد (به‌عنوان `TextSink`).
+
+توابع عمومی `namespace cli`:
+
+- `void init()`
+  - `s_gsm_uart.begin()` و `s_dbg_uart.begin()` (شروع دریافت DMA).
+  - تنظیم خروجی کنسول: `s_console.set_output(gsm::cli::TextSink{&uart_write, nullptr})`.
+  - تنظیم فواصل نگهداری (housekeeping): `signal_ms=15000`، `sms_scan_ms=20000`، `full_sweep_ms=60000`، `cleanup_ms=300000`.
+  - `s_modem.begin()` سپس `s_console.init()`.
+
+- `void tick()`
+  - `s_modem.tick()` و `s_console.tick()` را در هر چرخه صدا می‌زند.
+
+- `void on_uart_rx(UART_HandleTypeDef* huart, uint16_t size)`
+  - اگر `huart->Instance == UART7` → `s_gsm_uart.on_rx_event(size)` (داده‌ی مودم).
+  - اگر `USART1` → `s_dbg_uart.on_rx_event(size)` سپس بایت‌ها یکی‌یکی با `s_console.feed(b)` به کنسول داده می‌شوند.
+
+- `void on_uart_error(UART_HandleTypeDef* huart)`
+  - خطای هر UART را به `on_error()` همان پُرت ارجاع می‌دهد تا دریافت بازیابی شود.
+
+## جریان کاری
+
+1. **راه‌اندازی:** `cli::init()` → شروع UARTها → تنظیم خروجی کنسول → تنظیم housekeeping → `modem.begin()` → `console.init()` (ثبت کال‌بک‌ها و رسم منو).
+2. **حلقه‌ی اصلی:** `cli::tick()` → `modem.tick()` (پیشرفت ماشین حالت AT) + `console.tick()` (به‌روزرسانی نمایش/پاسخ).
+3. **ورودی کاربر:** وقفه‌ی USART1 → `on_uart_rx` → `s_console.feed(b)` برای هر بایت → کنسول خط فرمان را کامل و اجرا می‌کند.
+4. **خروجی:** کنسول متن را از طریق `uart_write` روی USART1 چاپ می‌کند.
+
+## نکات فنی
+
+- این فایل فقط «سیم‌کشی» است؛ هیچ منطق کنسول یا تجاری در آن نیست. منطق در `gsm::cli::Console` (کتابخانه) است.
+- `s_gsm_uart` و `s_dbg_uart` اندازه‌ی DMA متفاوت (۵۱۲ / ۲۵۶) دارند؛ بسته به حجم ترافیک مودم در برابر کنسول.
+- پین تغذیه با `#if defined(GSM_PWR_GPIO_Port) && defined(GSM_PWR_Pin)` اختیاری است؛ در نبود آن مودم بدون کنترل تغذیه ساخته می‌شود.
+- `kQuectelM08R` نوع دستگاه (device trait) مودم را مشخص می‌کند؛ برخلاف مثال آردوینو که `kSim800` است.
+- فواصل housekeeping (سیگنال، اسکن پیامک، جاروب کامل، پاک‌سازی) به میلی‌ثانیه و قابل تنظیم‌اند.
+- `tick` باید مرتباً و بدون وقفه‌ی طولانی صدا زده شود تا هم مودم و هم کنسول پاسخ‌گو بمانند.
+
+## ارتباط با سایر فایل‌ها
+
+- `gsm/user_code/cli.hpp` — رابط عمومی که این فایل پیاده می‌کند.
+- `gsm/include/gsm/cli/cli.hpp` — کلاس `gsm::cli::Console` (منطق کنسول).
+- `gsm/ports/stm32/gsm_port_stm32.hpp` — `Stm32Uart`/`Stm32Clock`/`Stm32PowerControl`.
+- `gsm/modem/modem.hpp` — کلاس `Modem` و ثابت `kQuectelM08R`.
+- `gsm/examples/stm32_main.cpp` — نقطه‌ی ورودی که `cli::init`/`cli::tick`/`cli::on_uart_rx`/`cli::on_uart_error` را صدا می‌زند.
+- `App/gsm_cli/cli.cpp` — نسخه‌ی مشابه برای اپلیکیشن کامل که افزون بر این‌ها پل وب (web bridge) هم دارد.

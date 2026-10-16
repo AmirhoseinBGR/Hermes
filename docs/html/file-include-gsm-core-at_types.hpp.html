@@ -1,0 +1,137 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>include-gsm-core-at_types.hpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/core/at_types.hpp</h1>
+<h2>نقش فایل</h2>
+<p>انواع پایهٔ زبان AT کتابخانه را تعریف می‌کند: وضعیت نتیجهٔ یک فرمان AT، ساختار نتیجه، کدهای خطای سطح کتابخانه و اینترفیس مشاهده‌گر (<code>IAtObserver</code>) که همهٔ سرویس‌ها از طریق آن خروجی موتور AT را دریافت می‌کنند. این فایل قرارداد مشترک بین <code>AtEngine</code> و تمام سرویس‌هاست.</p>
+<h2>ساختارهای کلیدی</h2>
+<h3><code>enum class AtStatus : uint8_t</code></h3>
+<p>وضعیت پایانی یک تراکنش AT:</p>
+<pre><code class="lang-cpp">enum class AtStatus : uint8_t
+{
+    Pending = 0,
+    Ok,
+    Error,
+    CmeError,
+    CmsError,
+    Timeout,
+    Aborted,
+    NoDialtone,
+    Busy,
+    NoCarrier,
+    NoAnswer,
+};</code></pre>
+<ul>
+<li><code>Ok</code> / <code>Error</code>: پاسخ‌های استاندارد <code>OK</code> / <code>ERROR</code></li>
+<li><code>CmeError</code> / <code>CmsError</code>: خطاهای <code>+CME ERROR: n</code> و <code>+CMS ERROR: n</code> (کد عددی در <code>code</code>)</li>
+<li><code>NoDialtone</code> / <code>Busy</code> / <code>NoCarrier</code> / <code>NoAnswer</code>: پاسخ‌های پایانی مربوط به تماس</li>
+<li><code>Timeout</code> / <code>Aborted</code>: اتمام زمان یا لغو دستی</li>
+</ul>
+<h3><code>struct AtResult</code></h3>
+<pre><code class="lang-cpp">struct AtResult
+{
+    AtStatus status = AtStatus::Pending;
+    int16_t  code   = -1;
+    bool     ok() const { return status == AtStatus::Ok; }
+};</code></pre>
+<p><code>code</code> برای خطاهای CME/CMS کد عددی مودم و برای خطاهای سطح کتابخانه یکی از مقادیر زیر است.</p>
+<h3>کدهای خطای سطح کتابخانه (<code>code &lt; -99</code>)</h3>
+<pre><code class="lang-cpp">constexpr int16_t kErrSmsTooLong  = -100; // outgoing text exceeds the strict length guard
+constexpr int16_t kErrCallTimeout = -101; // call supervision auto-hangup fired
+constexpr int16_t kErrJobStalled  = -102; // job could not be started after retries</code></pre>
+<ul>
+<li><strong><code>kErrSmsTooLong</code> (ویژگی v0.4)</strong>: نگهبان طول پیامک خروجی فعال شده و متن از <code>max_chars</code> بیشتر است.</li>
+<li><strong><code>kErrCallTimeout</code> (ویژگی v0.4)</strong>: تایمر نظارت تماس (<code>CallPolicy</code>) قطع خودکار را اجرا کرده است.</li>
+<li><strong><code>kErrJobStalled</code></strong>: Job پس از چند بار تلاش (<code>GSM_JOB_START_RETRIES</code>) شروع نشده است.</li>
+</ul>
+<h3>توابع تبدیل و راهنمای خطا</h3>
+<pre><code class="lang-cpp">const char* to_string(AtStatus s);
+const char* cms_error_hint(int16_t code);
+const char* cme_error_hint(int16_t code);</code></pre>
+<ul>
+<li><code>to_string</code>: نام متنی وضعیت برای لاگ/CLI</li>
+<li><code>cms_error_hint</code> / <code>cme_error_hint</code>: توضیح انسان‌خوان برای کدهای خطای پیامک/تجهیز</li>
+</ul>
+<h3><code>class IAtObserver</code></h3>
+<pre><code class="lang-cpp">class IAtObserver
+{
+  public:
+    virtual ~IAtObserver() = default;
+    virtual void on_line(const char* line, uint16_t len) { ... }
+    virtual void on_prompt() {}
+    virtual void on_final(const AtResult&amp; res) { ... }
+};</code></pre>
+<ul>
+<li><code>on_line</code>: هر خط پاسخ (به‌جز خطوط نهایی و URC)</li>
+<li><code>on_prompt</code>: دریافت نشان <code>&gt;</code> برای ورود به حالت payload (پیامک/USSD)</li>
+<li><code>on_final</code>: نتیجهٔ نهایی تراکنش (OK/ERROR/Timeout/…)</li>
+</ul>
+<p>همهٔ سرویس‌ها (<code>IService</code>) و ابزارهایی مثل <code>SerialBridge</code> و <code>cli::Console</code> این اینترفیس را پیاده می‌کنند.</p>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">AtEngine.execute(req, observer)
+        |
+        |  bytes -&gt; LineReader -&gt; classified lines
+        v
+ observer-&gt;on_line(...)        // response lines (CMGL, +CLCC, ...)
+ observer-&gt;on_prompt()         // &#x27;&gt;&#x27; for SMS/USSD payload
+        |
+        v
+ classify_final()              // OK / ERROR / +CME / +CMS / NO CARRIER ...
+        |
+        v
+ observer-&gt;on_final(AtResult)  // transaction finished</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><code>AtResult</code> و <code>AtStatus</code> نوع‌های POD و کم‌حجم (<code>uint8_t</code> + <code>int16_t</code>)؛ مناسب میکروکنترلر، بدون تخصیص حافظه.</li>
+<li><code>on_line</code> با <code>len</code> صدا زده می‌شود؛ خط لزوماً null-terminated نیست (اگرچه در عمل <code>LineReader</code> رشتهٔ null-terminated می‌دهد).</li>
+<li>کدهای <code>kErr*</code> از -۱۰۰ به پایین‌اند تا با کدهای مثبت CME/CMS تداخل نکنند؛ <code>code = -1</code> یعنی «بدون کد».</li>
+<li><code>Pending</code> فقط برای مقداردهی اولیه است و نباید در <code>on_final</code> دیده شود.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>core/at_engine.hpp</code> — تولیدکنندهٔ رویدادهای <code>IAtObserver</code> و مالک <code>classify_final</code></li>
+<li><code>core/service.hpp</code> — <code>IService</code> از <code>IAtObserver</code> ارث می‌برد</li>
+<li><code>queue/job.hpp</code> — فیلد <code>AtResult result</code> در هر Job</li>
+<li><code>sms/sms_service.hpp</code>، <code>ussd/ussd_service.hpp</code>، <code>voice/call_service.hpp</code> — مصرف‌کنندگان <code>kErrSmsTooLong</code> / <code>kErrCallTimeout</code></li>
+<li><code>tools/serial_bridge.hpp</code>، <code>cli/cli.hpp</code> — نمایش <code>to_string(res.status)</code></li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

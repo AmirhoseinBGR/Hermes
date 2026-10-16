@@ -1,0 +1,93 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ports-arduino-gsm_port_arduino.hpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/ports/arduino/gsm_port_arduino.hpp</h1>
+<h2>نقش فایل</h2>
+<p>این فایل «پُرت آردوینو» (Arduino Port) برای کتابخانه‌ی GSM است. وظیفه‌اش این است که رابط‌های انتزاعی سخت‌افزاری (HAL) کتابخانه را روی محیط آردوینو پیاده‌سازی کند تا همان هسته‌ی AT-Engine بدون تغییر روی برد آردوینو کار کند. هر شیء <code>Stream</code> در آردوینو (مانند <code>HardwareSerial</code> یا <code>SoftwareSerial</code>) قابل استفاده است. این فایل فقط هدر است (کلاس‌ها <code>inline</code>/کوتاه تعریف شده‌اند) و نیاز به فایل <code>.cpp</code> جدا ندارد.</p>
+<h2>ساختارها/توابع کلیدی</h2>
+<ul>
+<li><code>class ArduinoUart final : public hal::IUart</code></li>
+</ul>
+<p>پیاده‌سازی رابط <code>IUart</code> روی یک <code>Stream&amp;</code>. فقط یک عضو خصوصی <code>Stream&amp; s_</code> نگه می‌دارد.</p>
+<ul>
+<li><code>explicit ArduinoUart(Stream&amp; stream)</code> — سازنده، مرجع استریم سریال را می‌گیرد.</li>
+<li><code>uint16_t write(const uint8_t* data, uint16_t len)</code> — بازگرداندن <code>s_.write(data, len)</code> (تعداد بایت نوشته‌شده).</li>
+<li><code>uint16_t read(uint8_t* out, uint16_t max)</code> — حداکثر <code>max</code> بایت را یکی‌یکی از <code>s_.read()</code> می‌خواند تا زمانی که داده‌ای در دسترس نباشد؛ تعداد واقعی خوانده‌شده را برمی‌گرداند.</li>
+<li><code>uint16_t available()</code> — تعداد بایت‌های آماده در بافر دریافتی (<code>s_.available()</code>)، با محافظت در برابر مقدار منفی.</li>
+<li><code>void drain_rx()</code> — تمام بایت‌های باقی‌مانده در بافر دریافتی را می‌خواند و دور می‌ریزد (پاک‌سازی بافر RX).</li>
+</ul>
+<ul>
+<li><code>class ArduinoClock final : public hal::IClock</code></li>
+</ul>
+<p>پیاده‌سازی رابط زمان‌سنج.</p>
+<ul>
+<li><code>uint32_t millis()</code> — مقدار <code>::millis()</code> آردوینو را برمی‌گرداند (میلی‌ثانیه از شروع اجرا).</li>
+</ul>
+<h2>جریان کاری</h2>
+<ol>
+<li>کاربر یک شیء <code>Stream</code> (مثلاً <code>Serial1</code>) می‌سازد و آن را به <code>ArduinoUart</code> می‌دهد.</li>
+<li><code>ArduinoUart</code> در نقش <code>IUart</code> به موتور AT کتابخانه داده می‌شود؛ موتور برای نوشتن دستورات از <code>write</code> و برای خواندن پاسخ‌ها از <code>read</code>/<code>available</code> استفاده می‌کند.</li>
+<li><code>ArduinoClock</code> زمان‌سنجی غیرمسدودکننده (non-blocking) موتور را تأمین می‌کند؛ چون <code>millis()</code> آردوینو سراسری است، نیازی به هیچ وضعیت (state) داخلی نیست.</li>
+<li><code>drain_rx</code> در زمان ریست/شروع مجدد برای دور ریختن باقی‌مانده‌های ناخواسته‌ی بافر به کار می‌رود.</li>
+</ol>
+<p>نمونه استفاده (از فایل <code>examples/arduino_basic.ino</code>):</p>
+<pre><code class="lang-cpp">port::ArduinoUart  modem_uart(Serial1);
+port::ArduinoClock clk;
+Modem              modem(modem_uart, clk, kSim800);</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li>تمام متدها <code>override</code> هستند و از رابط‌های <code>hal::IUart</code> / <code>hal::IClock</code> ارث می‌برند؛ بنابراین هسته‌ی کتابخانه به هیچ وابستگی آردوینویی نیاز ندارد.</li>
+<li><code>write</code> مقدار بازگشتی <code>Stream::write</code> را به <code>uint16_t</code> کست (cast) می‌کند.</li>
+<li><code>read</code> با حلقه‌ی <code>while</code> کار می‌کند نه یک فراخوانی؛ چون <code>Stream::read()</code> فقط یک بایت در هر نوبت برمی‌گرداند.</li>
+<li><code>available</code> در برابر مقدار منفی <code>Stream::available()</code> محافظت شده و همیشه عدد غیرمنفی برمی‌گرداند.</li>
+<li>چون هیچ <code>new</code>/<code>malloc</code> یا استثنا (exception) به کار نرفته، این پُرت با پیکربندی <code>-fno-exceptions -fno-rtti</code> کتابخانه سازگار است.</li>
+<li><code>ArduinoClock</code> عمداً هیچ وضعیتی نگه نمی‌دارد؛ زمان از تابع سراسری <code>millis()</code> خوانده می‌شود.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>gsm/hal/hal.hpp</code> — تعریف رابط‌های <code>IUart</code> و <code>IClock</code> که این فایل آن‌ها را پیاده‌سازی می‌کند.</li>
+<li><code>gsm/modem/modem.hpp</code> — کلاس <code>Modem</code> که نمونه‌ی <code>ArduinoUart</code>/<code>ArduinoClock</code> به آن پاس داده می‌شود.</li>
+<li><code>gsm/examples/arduino_basic.ino</code> — نمونه‌ی کامل استفاده از این پُرت.</li>
+<li><code>gsm/library.json</code> — پلتفرم <code>atmelavr</code>/<code>arduino</code> را به عنوان هدف اعلام می‌کند.</li>
+<li>در برابر <code>ports/host/gsm_port_host.hpp</code> (شبیه‌ساز میزبان) و <code>ports/stm32/gsm_port_stm32.hpp</code> (هسته‌ی HAL میکروکنترلر) قرار می‌گیرد؛ هر سه همان رابط HAL را روی سخت‌افزار متفاوت پیاده‌سازی می‌کنند.</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

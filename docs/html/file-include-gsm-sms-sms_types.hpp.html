@@ -1,0 +1,118 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>include-gsm-sms-sms_types.hpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/sms/sms_types.hpp</h1>
+<h2>نقش فایل</h2>
+<p>انواع دادهٔ حوزهٔ پیامک: رمزگذاری متن (<code>SmsEncoding</code>)، ساختار پیام دریافتی (<code>SmsMessage</code>)، گزارش ارسال (<code>SmsSendReport</code>) و یک صندوق ورودی حلقوی ایستا (<code>SmsInbox</code>). این فایل قرارداد داده‌ای مشترک بین <code>SmsService</code>، Jobها و کاربر نهایی است.</p>
+<h2>ساختارهای کلیدی</h2>
+<h3><code>enum class SmsEncoding : uint8_t</code></h3>
+<pre><code class="lang-cpp">enum class SmsEncoding : uint8_t
+{
+    Auto = 0,   // pick by content (ASCII -&gt; GSM7, else UCS2)
+    Gsm7,       // 7-bit GSM alphabet, 160 chars per SMS
+    Ucs2        // UCS2, 70 chars per SMS (Persian text lands here)
+};</code></pre>
+<h3><code>struct SmsMessage</code></h3>
+<pre><code class="lang-cpp">struct SmsMessage
+{
+    StaticString&lt;GSM_SMS_NUMBER_BYTES&gt; number;
+    StaticString&lt;GSM_SMS_TEXT_BYTES&gt;   text;
+    StaticString&lt;24&gt;                   timestamp;
+    int16_t                            storage_index = -1;
+    SmsEncoding                        encoding      = SmsEncoding::Auto;
+    bool                               unread        = true;
+    void                               clear();
+};</code></pre>
+<ul>
+<li><code>storage_index</code>: ایندکس در حافظهٔ سیم‌کارت/ماژول (برای حذف بعد از خواندن).</li>
+<li><code>timestamp</code>: رشتهٔ خام <code>+CMGL/+CMGR</code> (فرمت سرویس مرکز پیام).</li>
+<li><code>clear()</code> همه را به حالت اولیه برمی‌گرداند.</li>
+</ul>
+<h3><code>struct SmsSendReport</code></h3>
+<pre><code class="lang-cpp">struct SmsSendReport
+{
+    int16_t  reference = -1;   // +CMGS &lt;mr&gt; message reference
+    AtResult result;
+};</code></pre>
+<h3><code>template &lt;uint8_t N&gt; class SmsInbox</code></h3>
+<p>صندوق ورودی حلقوی بدون heap:</p>
+<pre><code class="lang-cpp">SmsMessage&amp; acquire();              // next slot (oldest overwritten), cleared
+uint8_t                  count() const;
+static constexpr uint8_t capacity() { return N; }
+const SmsMessage&amp;        at(uint8_t i) const;   // i=0 is the newest
+void clear();</code></pre>
+<ul>
+<li>الگوی ring buffer: <code>acquire</code> سر <code>head_</code> را جلو می‌برد و قدیمی‌ترین پیام بازنویسی می‌شود.</li>
+<li><code>at(i)</code> از <strong>جدیدترین</strong> به قدیمی‌ترین ایندکس‌دهی می‌کند (<code>at(0)</code> = آخرین پیام).</li>
+</ul>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">incoming +CMTI -&gt; Modem (auto_read) -&gt; SmsService::start_read(index)
+    |
+    v
+parse +CMGR header/body -&gt; SmsMessage last_
+    |
+    v
+on_received_(SmsMessage)   /   SmsInbox::acquire() in application
+    |
+    v
+optional delete_after_read -&gt; AT+CMGD / DeleteRead step</code></pre>
+<p>ارسال:</p>
+<pre><code class="lang-text">SmsService::start_send(number, utf8, enc)
+    -&gt; SmsEncoding::Auto resolved (is_ascii_only -&gt; Gsm7 else Ucs2)
+    -&gt; on success: SmsSendReport{reference, result}</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><strong>بدون تخصیص حافظه</strong>: همهٔ رشته‌ها <code>StaticString</code>؛ <code>SmsInbox</code> آرایهٔ ایستا از <code>SmsMessage</code>.</li>
+<li>متن UTF-8 نگهداری می‌شود (فارسی به‌صورت UCS2 روی سیم منتقل می‌شود ولی در حافظه UTF-8 است) — تبدیل بر عهدهٔ <code>codec/ucs2.hpp</code>.</li>
+<li><code>SmsMessage::text</code> سقف <code>GSM_SMS_TEXT_BYTES</code> (پیش‌فرض ۵۱۲ بایت) دارد.</li>
+<li><code>timestamp</code> عمداً <code>StaticString&lt;24&gt;</code> ثابت است (فرمت استاندارد <code>yy/MM/dd,hh:mm:ss±zz</code>).</li>
+<li><code>SmsInbox::at</code> ایندکس‌گذاری معکوس دارد؛ برای ترتیب زمانی قدیمی‌به‌جدید باید از <code>count()-1</code> به ۰ بروید.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>codec/phone_number.hpp</code> — شمارهٔ فرستنده/گیرنده در سرویس (الگوی نرمال‌سازی E.164)</li>
+<li><code>codec/ucs2.hpp</code> — تبدیل‌های رمزگذاری</li>
+<li><code>sms/sms_service.hpp</code> — تولید و مصرف این انواع</li>
+<li><code>queue/job.hpp</code> — فیلدهای <code>SmsEncoding</code>، <code>number</code>، <code>text</code> در Job</li>
+<li><code>gsm_config.hpp</code> — <code>GSM_SMS_TEXT_BYTES</code>، <code>GSM_SMS_NUMBER_BYTES</code></li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

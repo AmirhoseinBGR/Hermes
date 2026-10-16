@@ -1,0 +1,169 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>src-cli.cpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/cli.cpp</h1>
+<h2>نقش فایل</h2>
+<p>پیاده‌سازی <code>gsm::cli::Console</code>؛ کنسول تعاملی صنعتی مودم GSM که در نسخه v0.4 از اپلیکیشن به داخل کتابخانه منتقل شده تا هر محصولی فقط با یک <code>Console</code> به منوی کامل، وضعیت زنده، نمای صف، پنل watchdog، پل وب و حالت passthrough دسترسی داشته باشد. کنسول ورودی بایت‌به‌بایت سریال را می‌گیرد، دستورهای تک‌حرفی و متنی را اجرا می‌کند، رویدادهای مودم (SMS، تماس، SIM، job، سلامت) را با رنگ‌بندی ANSI چاپ می‌کند و همه‌چیز را به‌صورت هم‌زمان به «پل وب» آینه می‌کند تا یک رابط تحت مرورگر هم بتواند همان دستورات را اجرا کند.</p>
+<h2>توابع و منطق کلیدی</h2>
+<h3>لایه خروجی</h3>
+<ul>
+<li><strong><code>TextSink</code></strong> — سینک متنی عمومی با <code>put</code>/<code>printf</code> (بافر <code>vsnprintf</code> به اندازه ۱۹۲ بایت)؛ پایه همه خروجی‌های سریال.</li>
+<li><strong><code>Console::out</code> / <code>outf</code></strong> — در حالت وب (<code>web_mode_</code>) خروجی به <code>web_out_chunk</code> می‌رود وگرنه به <code>out_</code>.</li>
+<li><strong><code>web_out_chunk</code></strong> — آینه‌سازی خط‌به‌خط برای پل وب: <code>\r</code> حذف، <code>\n</code> یعنی ارسال یک خط کامل؛ بافر خط (<code>wline_</code>) با سرریز خودکار flush می‌شود.</li>
+<li><strong><code>web_event</code></strong> — رویدادهای push (فقط وقتی خودِ وب دستور نداده) برای پنل مرورگر.</li>
+<li><strong><code>log_thunk</code> / <code>install_log_mirror</code></strong> — سینک لاگ کتابخانه را طوری نصب می‌کند که هر رکورد لاگ هم‌زمان به سریال و پل وب برود (<code>log::Registry::set_sink(&amp;log::writer_sink, …)</code>)؛ رنگ ANSI روشن، timestamp خاموش و سطح پیش‌فرض <code>Warn</code>.</li>
+</ul>
+<h3>کمک‌های ANSI</h3>
+<p>پالت مینیمال (RST/BOLD/DIM و رنگ‌های عادی و پررنگ) به‌همراه:</p>
+<ul>
+<li><code>ansi_bar(pct, w)</code> — نوار درصدی رنگی (قرمز &lt; ۳۰٪، زرد &lt; ۶۰٪، سبز) برای آنتن و مخزن SMS.</li>
+<li><code>ansi_divider</code> / <code>ansi_clear</code> — جداکننده و پاک‌سازی صفحه (<code>ESC[2J</code> + <code>ESC[H</code>).</li>
+<li><code>kv(key, val, color)</code> — جفت کلید/مقدار با ستون ۱۴ نویسه‌ای؛ ستون فقرات همه پنل‌ها.</li>
+<li><code>prompt()</code> — نشان <code>gsm&gt; </code>.</li>
+</ul>
+<h3>نماها (Views)</h3>
+<ul>
+<li><strong><code>draw_status_bar</code></strong> — یک خط وضعیت: NET/اپراتور، SIG (dBm و ستاره)، SIM، SMS (استفاده/کل)، صف (با <code>!</code> زرد وقتی paused) و وضعیت تماس + FSM.</li>
+<li><strong><code>draw_live_status</code></strong> — صفحه کامل «حالت زنده»: FSM + گام جاری (<code>activity()</code>/<code>step()</code>)، نوار سیگنال، ثبت شبکه، اپراتور، SIM، نوار مخزن SMS، وضعیت تماس + <strong><code>CallEndReason</code> آخرین تماس</strong>، صف، watchdog (تعداد resetها و بودجه عملیات)، وضعیت سلامت + RSSI، سن داده (<code>updated_at_ms</code>) و در صورت فعال‌بودن <code>show_rate_</code> نرخ حلقه.</li>
+<li><strong><code>draw_queue</code></strong> — وضعیت صف: paused/active، اندازه، job جاری با نشانگر <code>[held-for-call]</code> برای jobهای معطل‌مانده توسط گیت تماس، و فهرست jobهای در انتظار با نشان <code>URGENT</code>.</li>
+<li><strong><code>draw_watchdog</code></strong> — پنل نگهداری: فعال/غیرفعال، <code>Reset #1 time</code> (بودجه زمانی)، <code>Reset #2 ops</code> (بودجه عملیات)، grace، حالت reset (PWRKEY/نرم)، شمارنده‌ها/آپ‌تایم، بودجه عملیات و گزارش سلامت (<code>at/sim/net/rssi</code>).</li>
+<li><strong><code>draw_menu</code></strong> — منوی اصلی در چهار بخش: <code>[STATUS &amp; INFO]</code> (i/s/q/r/d/b/w/health)، <code>[ACTIONS &amp; PROTECTION]</code> (p/x/h/R/K/P/c)، <code>[POLICY]</code> (smsmax/callto/wreset) و <code>[LOGGING]</code> (L/T/C) + فهرست دستورهای متنی.</li>
+<li><strong><code>redraw_current</code> / <code>redraw</code></strong> — بازکشیدن صفحه؛ در حالت وب repaint تمام‌صفحه انجام نمی‌شود (مخصوص سریال است).</li>
+</ul>
+<h3>پردازش دستور: <code>void Console::handle(char* line)</code></h3>
+<p>پس از trim فاصله‌ها، دستورها به‌ترتیب بررسی می‌شوند. در حالت وب، دستورهای تمام‌صفحه (<code>m</code>، <code>c</code>، <code>i</code>، <code>P</code>) با پیام راهنما رد می‌شوند چون متعلق به صفحه سریال‌اند.</p>
+<p><strong>دستورهای تک‌حرفی:</strong></p>
+<table><thead><tr><th>دستور</th><th>عمل</th></tr></thead><tbody>
+<tr><td><code>m</code> / <code>c</code></td><td>منو / پاک‌سازی صفحه</td></tr>
+<tr><td><code>i</code></td><td>وضعیت زنده (بازکشیدن خودکار هر ۲s)</td></tr>
+<tr><td><code>q</code></td><td>نمای صف</td></tr>
+<tr><td><code>w</code></td><td>پنل watchdog و سلامت</td></tr>
+<tr><td><code>health</code></td><td>اجرای بررسی سلامت (<code>maintenance().start_check()</code>)</td></tr>
+<tr><td><code>wreset</code></td><td>درخواست reset نگهداری دستی (<code>ResetReason::Manual</code>)</td></tr>
+<tr><td><code>s</code></td><td>sweep کامل وضعیت (<code>refresh_status</code>)</td></tr>
+<tr><td><code>r</code></td><td>اسکن پیامک‌های خوانده‌نشده</td></tr>
+<tr><td><code>d</code></td><td>حذف پیامک‌های خوانده‌شده</td></tr>
+<tr><td><code>h</code></td><td>قطع فوری تماس (urgent)</td></tr>
+<tr><td><code>b</code></td><td>استعلام موجودی با USSD</td></tr>
+<tr><td><code>p</code></td><td>توقف/ادامه صف</td></tr>
+<tr><td><code>x</code></td><td>توقف همه و پاک‌سازی صف</td></tr>
+<tr><td><code>R</code></td><td>reset نرم FSM</td></tr>
+<tr><td><code>K</code></td><td>پالس PWRKEY (ریست سخت‌افزاری)</td></tr>
+<tr><td><code>P</code></td><td>ورود/خروج حالت passthrough</td></tr>
+<tr><td><code>L</code> / <code>T</code> / <code>C</code></td><td>چرخه سطح لاگ / timestamp / رنگ ANSI</td></tr>
+</tbody></table>
+<p><strong>دستورهای سیاست:</strong> <code>smsmax &lt;chars&gt;</code> (تنظیم <code>max_chars</code> سرویس SMS) و <code>callto &lt;ms&gt;</code> (تنظیم هم‌زمان <code>dial_timeout_ms</code> و <code>ring_timeout_ms</code> در <code>CallPolicy</code>).</p>
+<p><strong>دستورهای متنی:</strong> <code>sms &lt;num&gt; &lt;text&gt;</code> (صف ارسال؛ خطای طول/صف پُر با پیام قرمز)، <code>dial &lt;num&gt;</code>، <code>ussd &lt;code&gt;</code>، <code>read &lt;idx&gt;</code>، <code>del &lt;idx&gt;</code> (حذف مستقیم از سرویس SMS، بیرون از صف!) و <code>at &lt;cmd&gt;</code> (ارسال فرمان AT خام با observer خودِ کنسول و timeout ۵s؛ اگر موتور مشغول باشد <code>AT engine busy!</code>).</p>
+<h3>آینه‌های رویداد مودم (thunkها)</h3>
+<p>هر رویداد با Delegate به کنسول وصل می‌شود و هم به سریال و هم به پل وب گزارش می‌شود:</p>
+<ul>
+<li><strong><code>on_sms_thunk</code></strong> — چاپ <code>[SMS] [index] from=…</code> + متن؛ <strong>پاسخ خودکار <code>pong</code> به پیامک <code>ping</code></strong> (نمایش قابلیت ارسال از درون رویداد).</li>
+<li><strong><code>on_call_thunk</code></strong> / <strong><code>on_call_ended_thunk</code></strong> — <code>[CALL] &lt;state&gt; peer=…</code> و <code>[CALL-END] &lt;CallEndReason&gt;</code>.</li>
+<li><strong><code>on_sim_thunk</code></strong> — هشدار قرمز <code>CRITICAL: SIM CARD REMOVED!</code> یا پیام سبز <code>SIM CARD READY</code>.</li>
+<li><strong><code>on_job_thunk</code></strong> — <code>[JOB#id] &lt;kind&gt; &lt;state&gt; code=…</code> به‌همراه پاسخ USSD در صورت موفقیت.</li>
+<li><strong><code>on_health_thunk</code></strong> — <code>[HEALTH] &lt;state&gt; at=… sim=… net=… rssi=…</code>.</li>
+</ul>
+<h3>چرخه حیات و ورودی</h3>
+<ul>
+<li><strong><code>init(bool draw_menu_now)</code></strong> — نصب آینه لاگ، سیم‌کشی همه callbackها و (در صورت درخواست) رسم منو.</li>
+<li><strong><code>set_passthrough(bool)</code></strong> — جابه‌جایی به حالت پل مستقیم سریال ↔ مودم.</li>
+<li><strong><code>feed(uint8_t byte)</code></strong> — ماشین ورودی:</li>
+<li>حالت passthrough: هر بایت مستقیم به UART مودم؛ حرف <code>e</code> یعنی خروج.</li>
+<li><code>ESC</code> (0x1B): بازگشت به منو از هر نمایی.</li>
+<li><code>\r</code>/<code>\n</code>: اجرای خط جمع‌شده با <code>handle</code> (خط خالی = بازکشیدن نما).</li>
+<li><code>0x08</code>/<code>0x7F</code> (Backspace): حذف نویسه با اکوی <code>\b \b</code>.</li>
+<li>نویسه‌های چاپی (≥ 0x20): انباشت در بافر <code>line_</code> با اکو.</li>
+<li>**<code>feed_line(const char*)</code>** — اجرای مستقیم یک خط متنی (برای ورودی‌های آماده).</li>
+<li>**<code>exec_web(const char* line)</code>** — نقطه ورود پل وب: دستور را با <code>web_mode_ = true</code> اجرا می‌کند تا خروجی به‌جای سریال به وب برود، سپس یک newline باقی‌مانده را flush می‌کند.</li>
+<li>**<code>status_line(char*, cap)</code>** — رشته وضعیت فشرده با جداکننده <code>|</code> (۱۶ فیلد: FSM/activity/step/ready/sim/net/operator/rssi/bars/sms_used/sms_total/queue…) برای polling صفحه وب.</li>
+</ul>
+<h3><code>void Console::tick()</code></h3>
+<ul>
+<li>شمارنده <code>loop_count_</code> برای محاسبه نرخ حلقه.</li>
+<li>در passthrough: خواندن تا ۶۴ بایت از UART مودم و چاپ مستقیم.</li>
+<li>در نمای زنده: بازکشیدن خودکار هر ۲۰۰۰ میلی‌ثانیه (<code>last_draw_</code>).</li>
+</ul>
+<h3><code>IAtObserver</code> (برای دستور <code>at</code>)</h3>
+<ul>
+<li><code>on_line</code> — چاپ خط پاسخ.</li>
+<li><code>on_final</code> — چاپ نتیجه نهایی به شکل <code>&lt;OK&gt;</code> / <code>&lt;TIMEOUT&gt;</code> / …</li>
+</ul>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">   سریال/TCP                    Console                         مودم
+   ─────────                    ───────                         ─────
+   بایت‌ها ──► feed() ──► خط کامل ──► handle()
+                                        │
+              ┌─────────────────────────┼──────────────────────────┐
+              ▼                         ▼                          ▼
+         نماها (i/q/w)          دستور عملیاتی              دستور متنی
+      draw_live_status          p/x/h/R/K/health           sms/dial/ussd/at
+              │                         │                          │
+              │                         ▼                          ▼
+              │                    modem API  ◄──── JobQueue ──── سرویس‌ها
+              │                         │
+   رویدادها: ◄┴── on_*_thunk ◄── callbackهای مودم (SMS/Call/SIM/Job/Health)
+        │
+        ├──► سریال (ANSI)
+        └──► web_out_chunk / web_event ──► پل وب (exec_web در جهت معکوس)</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><strong>کنسول به‌عنوان قابلیت کتابخانه:</strong> همه stateها (بافر خط، حالت‌ها، پرچم وب) داخل <code>Console</code> است؛ <code>init()</code> هیچ وابستگی به اپلیکیشن ندارد و API با <code>feed</code>/<code>tick</code>/<code>exec_web</code>/<code>status_line</code> کامل می‌شود.</li>
+<li><strong>بدون heap:</strong> بافرهای <code>printf</code> (۱۹۲)، <code>web_event</code> (۱۷۶)، خط وب و <code>line_</code> همگی ثابت‌اند؛ برای میکروکنترلر مناسب است.</li>
+<li><strong>آینه لاگ سراسری است:</strong> <code>install_log_mirror</code> سینک <code>log::Registry</code> را عوض می‌کند؛ اگر اپلیکیشن سینک خودش را بخواهد باید بعد از <code>init</code> این کار را بکند (<code>ScopedSink</code> در log.cpp برای همین است).</li>
+<li><strong>رنگ‌بندی وابسته به <code>log::Registry::color()</code></strong> است؛ دستور <code>C</code> آن را کلی خاموش/روشن می‌کند (برای ترمینال‌های بدون ANSI).</li>
+<li><strong><code>del &lt;idx&gt;</code> خارج از صف</strong> مستقیماً <code>sms().start_delete_index</code> را صدا می‌زند؛ اگر سرویس مشغول باشد بی‌صدا نادیده گرفته می‌شود — تفاوت عمدی با <code>read</code> که job می‌سازد.</li>
+<li><strong>پل وب خط‌oriented است:</strong> <code>web_out_chunk</code> بافر خط دارد و repaintهای تمام‌صفحه (<code>m</code>/<code>c</code>/<code>i</code>) در حالت وب غیرفعال‌اند تا پروتکل ساده بماند.</li>
+<li><strong>نشانگر <code>[held-for-call]</code></strong> در نمای صف، jobهای معطل‌شده توسط گیت تماس (قابلیت v0.4 مودم) را نمایان می‌کند.</li>
+<li><strong><code>callto</code></strong> هر دو تایمر <code>CallPolicy</code> (MO و MT) را با هم تنظیم می‌کند؛ برای تفکیک باید از API مستقیم <code>modem().call_policy()</code> استفاده شود.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>gsm/cli/cli.hpp</code> — تعریف <code>Console</code>، <code>TextSink</code>، <code>Mode</code> و <code>WriterSink</code> لاگ.</li>
+<li><code>src/modem.cpp</code> — همه عملیات‌ها از طریق API مودم (<code>send_sms</code>، <code>dial</code>، <code>hang_up</code>، <code>refresh_status</code>، <code>stop_all</code>، <code>reset</code>، <code>power_cycle</code>، <code>at()</code> و …).</li>
+<li><code>src/call_service.cpp</code> — <code>CallPolicy</code> (دستور <code>callto</code>)، <code>CallState</code>/<code>CallEndReason</code> در نماها.</li>
+<li><code>src/sms_service.cpp</code> — <code>set_max_chars</code> (دستور <code>smsmax</code>) و حذف مستقیم.</li>
+<li><code>src/watchdog.cpp</code> — پنل <code>w</code>، دستورهای <code>health</code> / <code>wreset</code> و گزارش <code>HealthReport</code>.</li>
+<li><code>src/job_queue.cpp</code> — <code>JobQueue::capacity</code> و نمایش صف.</li>
+<li><code>src/log.cpp</code> — <code>log::Registry</code>، <code>writer_sink</code> و سطح‌های لاگ (دستور <code>L</code>).</li>
+<li><code>gsm/tools/serial_bridge.hpp</code> — نمونه اتصال سریال/وب که <code>feed</code>/<code>exec_web</code> را تغذیه می‌کند.</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

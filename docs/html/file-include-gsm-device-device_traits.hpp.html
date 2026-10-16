@@ -1,0 +1,117 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>include-gsm-device-device_traits.hpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/device/device_traits.hpp</h1>
+<h2>نقش فایل</h2>
+<p>توصیف‌های سخت‌افزاری هر خانوادهٔ ماژول GSM در قالب یک struct مقداردهی‌اولیه‌شده در زمان کامپایل (<code>DeviceTraits</code>) و سه مقدار آماده برای ماژول‌های پشتیبانی‌شده. تفاوت‌های ظریف بین ماژول‌ها (دستور قطع تماس، محل ذخیرهٔ پیامک، پارامترهای CSMP، timeoutها و اعتماد به <code>+CLCC</code>) اینجا متمرکز شده تا کد سرویس‌ها شرطی و پراکنده نشود.</p>
+<h2>ساختارهای کلیدی</h2>
+<h3><code>struct DeviceTraits</code></h3>
+<pre><code class="lang-cpp">struct DeviceTraits
+{
+    const char* name;
+    bool        ucs2_recipient_required;  // recipient must also be UCS2-encoded
+    const char* csmp_ucs2;                // AT+CSMP=... for UCS2 text
+    const char* csmp_gsm;                 // AT+CSMP=... for GSM-7 text
+    const char* hangup_cmd;               // ATH or AT+CHUP
+    const char* storage_cmd;              // AT+CPMS=...
+    bool        supports_clcc;
+    bool        supports_cmgd_delete_all;
+    uint32_t    boot_timeout_ms;
+    uint32_t    prompt_timeout_ms;
+    uint32_t    send_timeout_ms;
+    // If true, call supervision trusts +CLCC polling as the primary source of
+    // truth (module URCs for NO CARRIER / BUSY are unreliable, e.g. M08R).
+    bool clcc_authoritative;
+};</code></pre>
+<h3>مقادیر ازپیش‌تعریف‌شده</h3>
+<table><thead><tr><th>Trait</th><th>ماژول</th><th>hangup</th><th>storage</th><th>boot</th><th>clcc_authoritative</th></tr></thead><tbody>
+<tr><td><code>kSim800</code></td><td>SIM800</td><td><code>ATH</code></td><td><code>"SM","SM","SM"</code></td><td>15000ms</td><td>false</td></tr>
+<tr><td><code>kQuectelM08</code></td><td>M08</td><td><code>AT+CHUP</code></td><td><code>"ME","ME","ME"</code></td><td>20000ms</td><td>false</td></tr>
+<tr><td><code>kQuectelM08R</code></td><td>M08R</td><td><code>AT+CHUP</code></td><td><code>"ME","ME","ME"</code></td><td>20000ms</td><td><strong>true</strong></td></tr>
+</tbody></table>
+<p>نمونه:</p>
+<pre><code class="lang-cpp">inline constexpr DeviceTraits kQuectelM08R{&quot;M08R&quot;,
+                                           /*ucs2_recipient_required*/ true,
+                                           /*csmp_ucs2*/ &quot;AT+CSMP=17,167,0,8&quot;,
+                                           /*csmp_gsm*/ &quot;AT+CSMP=17,167,0,0&quot;,
+                                           /*hangup*/ &quot;AT+CHUP&quot;,
+                                           /*storage*/ &quot;AT+CPMS=\&quot;ME\&quot;,\&quot;ME\&quot;,\&quot;ME\&quot;&quot;,
+                                           /*clcc*/ true,
+                                           /*cmgd_all*/ true,
+                                           /*boot*/ 20000,
+                                           /*prompt*/ GSM_AT_PROMPT_TIMEOUT,
+                                           /*send*/ GSM_AT_CMGS_TIMEOUT,
+                                           /*clcc_auth*/ true};</code></pre>
+<h3>ویژگی جدید v0.4: <code>clcc_authoritative</code> برای M08R</h3>
+<pre><code class="lang-cpp">// M08R variant: call-end URCs (NO CARRIER / BUSY / NO ANSWER) are unreliable and
+// the module can wedge after interrupted SMS payloads. Call supervision therefore
+// relies on +CLCC polling (clcc_authoritative) plus the call watchdog.</code></pre>
+<p>برای M08R، نظارت تماس به <strong>polling متناوب <code>+CLCC</code></strong> به‌عنوان مرجع اصلی حقیقت تکیه می‌کند؛ URCهای پایان تماس صرفاً کمکی‌اند. این flag مستقیماً رفتار <code>CallService::monitor</code> را تغییر می‌دهد.</p>
+<h2>جریان کاری</h2>
+<pre><code class="lang-text">Modem(uart, clock, traits = kSim800, power*)
+        |
+        |  traits held by reference (must outlive Modem — use constexpr values)
+        v
+SmsService    : csmp_ucs2 / csmp_gsm / storage_cmd / send_timeout_ms / ucs2_recipient_required
+CallService   : hangup_cmd / supports_clcc / clcc_authoritative
+StatusService : storage_cmd
+Boot sequence : boot_timeout_ms / prompt_timeout_ms</code></pre>
+<p>استفاده:</p>
+<pre><code class="lang-cpp">// Pick the trait matching the hardware; constexpr statics have static storage.
+gsm::Modem modem(uart, clock, gsm::kQuectelM08R, &amp;power);</code></pre>
+<h2>نکات فنی</h2>
+<ul>
+<li><code>constexpr</code> و <code>inline</code> — بدون هزینهٔ زمان اجرا؛ رشته‌های literal در حافظهٔ فقط‌خواندنی.</li>
+<li>traitها با <strong>اشاره‌گر const</strong> نگهداری می‌شوند؛ از مقدارهای سراسری (<code>kSim800</code> و …) یا object با طول عمر کافی استفاده کنید.</li>
+<li><code>csmp_ucs2</code> برای M08/M08R با مقدار DCS=8 و برای SIM800 با 25 متفاوت است — همین تفاوت ظریف دلیل وجود این struct است.</li>
+<li>timeoutهای <code>prompt</code> و <code>send</code> به‌طور پیش‌فرض از <code>gsm_config.hpp</code> می‌آیند اما در trait قابل override ماژول‌محورند.</li>
+<li>افزودن ماژول جدید = تعریف یک <code>DeviceTraits</code> جدید؛ نیازی به تغییر سرویس‌ها نیست.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>gsm_config.hpp</code> — <code>GSM_AT_PROMPT_TIMEOUT</code>، <code>GSM_AT_CMGS_TIMEOUT</code></li>
+<li><code>sms/sms_service.hpp</code> — پارامترهای CSMP، مسیر ذخیره، timeout ارسال، الزام شمارهٔ UCS2</li>
+<li><code>voice/call_service.hpp</code> — <code>hangup_cmd</code>، <code>supports_clcc</code>، <code>clcc_authoritative</code></li>
+<li><code>status/status_service.hpp</code> — <code>storage_cmd</code> برای شمارش پیامک‌ها</li>
+<li><code>modem/modem.hpp</code> — سازندهٔ <code>Modem</code> trait را دریافت می‌کند</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

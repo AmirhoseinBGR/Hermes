@@ -1,0 +1,13 @@
+{
+  "name": "gsm-modem",
+  "version": "0.4.0",
+  "description": "Non-blocking SIM800 / Quectel M08/M08R C++17 driver: AT core, call supervision with auto-hangup, strict SMS length guard, dual maintenance watchdogs with health check, job queue, UCS2 text-mode SMS, interactive CLI console. No STL, no dynamic allocation.",
+  "keywords": ["sim800", "quectel", "m08", "m08r", "gsm", "sms", "ucs2", "stm32", "arduino", "cli", "watchdog", "call"],
+  "frameworks": ["stm32cube", "arduino", "*"],
+  "platforms": ["ststm32", "atmelavr", "espressif32", "native"],
+  "build": {
+    "srcDir": "src",
+    "includeDir": "include",
+    "flags": ["-std=gnu++17", "-fno-exceptions", "-fno-rtti"]
+  }
+}

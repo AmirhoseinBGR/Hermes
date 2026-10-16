@@ -1,0 +1,138 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>معماری سیستم</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>معماری کتابخانه GSM (SIM800 / Quectel M08 / M08R)</h1>
+<p>هدف: یک درایور غیرمسدودکننده (non-blocking) با <code>tick()</code>، ماشین حالت اصلی + زیرحالت،</p>
+<p>صف کار، و پیش فرض «SMS فارسی در Text Mode با UCS2». بدون STL، بدون heap،</p>
+<p>بدون exception/RTTI.</p>
+<h2>۱) لایه بندی</h2>
+<pre><code>L4  app                      ← کد شما (فقط با Modem حرف می زند)
+      └── gsm::cli::Console  ← کنسول تعاملی (قابلیت کتابخانه، اختیاری)
+--------------------------------------------------------------
+L3  Modem                    main FSM + JobQueue + Housekeeping + گیت تماس
+    ├── SmsService           زیرحالت ارسال/خواندن/حذف + گارد طول پیام
+    ├── CallService          سرپرستی تماس (تایمر قطع خودکار + پرس‌وجوی +CLCC)
+    ├── StatusService        CSQ / CREG / CPIN / CPMS / COPS
+    ├── UssdService          کدهای USSD و استعلام شارژ
+    └── MaintenanceWatchdog  دو ریست‌کننده دوره‌ای + بررسی سلامت
+--------------------------------------------------------------
+L2  AtEngine                 یک فرمان در پرواز، تایم اوت، prompt، ESC
+    ├── LineReader           بایت → خط (و تشخیص «&gt; » بدون terminator)
+    └── UrcRouter            RING / +CMTI / NO CARRIER / ...
+--------------------------------------------------------------
+L1  codec (UCS2, PhoneNumber) + log + util (StaticString, RingBuffer, Delegate)
+--------------------------------------------------------------
+L0  hal::IUart / IClock / IPowerControl   ← تنها نقطه ی وابستگی به پلتفرم
+    ports/stm32 (پیش فرض) · ports/arduino · ports/host (تست دسکتاپ)</code></pre>
+<p>قاعده ی طلایی: <strong>هیچ لایه ای به لایه ی بالاتر وابسته نیست</strong> و فقط <code>AtEngine</code> با UART حرف می زند.</p>
+<p>پورت جدید = پیاده سازی سه اینترفیس L0. ماژول جدید = یک <code>DeviceTraits</code> جدید.</p>
+<h2>۲) ماشین حالت</h2>
+<p>حالت اصلی (<code>ModemState</code>):</p>
+<table><thead><tr><th>حالت</th><th>معنی</th><th>خروج</th></tr></thead><tbody>
+<tr><td><code>Off</code></td><td>خاموش/شروع نشده</td><td><code>begin()</code></td></tr>
+<tr><td><code>Booting</code></td><td>ارسال <code>AT</code> تا جواب دادن ماژول (۱۰ تلاش)</td><td>پاسخ <code>OK</code></td></tr>
+<tr><td><code>Configuring</code></td><td>اجرای لیست bootstrap (ATE0, CMEE, CLIP, CNMI, CMGF, CSCS, CSMP, CPMS)</td><td>پایان لیست</td></tr>
+<tr><td><code>Ready</code></td><td>بی کار؛ فقط اینجا housekeeping اجرا می شود</td><td>آمدن Job یا URC</td></tr>
+<tr><td><code>Working</code></td><td>یک Job در جریان است (<code>activity()</code> + <code>step()</code>)</td><td>پایان Job</td></tr>
+<tr><td><code>Ringing</code></td><td>تماس ورودی در انتظار</td><td><code>answer()</code> / <code>hang_up()</code> / <code>NO CARRIER</code></td></tr>
+<tr><td><code>InCall</code></td><td>تماس برقرار</td><td>قطع تماس</td></tr>
+<tr><td><code>Fault</code></td><td>تسلیم؛ نیاز به <code>reset()</code></td><td><code>reset()</code></td></tr>
+</tbody></table>
+<p>زیرحالت ها داخل سرویس ها زندگی می کنند (<code>SmsStep</code>, <code>CallStep</code>, <code>StatusStep</code>, <code>CallState</code>).</p>
+<p>مثلاً ارسال پیامک: <code>cmgf → cscs → csmp → cpms → cmgs-header → payload → wait-cmgs</code>.</p>
+<p>قدم های کانفیگ اگر قبلاً اعمال شده باشند (<code>SessionState</code>) بدون ترافیک AT رد می شوند؛</p>
+<p>یعنی پیامک دوم فقط <code>AT+CMGS</code> می فرستد. هر خطا <code>SessionState</code> را بی اعتبار می کند تا</p>
+<p>دفعه ی بعد کانفیگ از نو اعمال شود.</p>
+<h2>۳) صف کار (JobQueue)</h2>
+<ul>
+<li>ظرفیت ثابت <code>GSM_QUEUE_DEPTH</code> (پیش فرض ۶)، FIFO، بدون allocation.</li>
+<li><code>urgent</code> (مثل <code>hang_up()</code> و <code>answer()</code>) از جلوی صف وارد می شود.</li>
+<li>retry داخلی هر Job (<code>max_attempts</code>؛ ارسال پیامک پیش فرض ۲).</li>
+<li>کنترل کلی: <code>pause_queue()</code> / <code>resume_queue()</code> / <code>stop_all()</code> / <code>cancel(id)</code>.</li>
+</ul>
+<p><code>stop_all()</code> هم Job در حال اجرا را با ESC/ATH می بندد، هم بقیه را Cancelled می کند</p>
+<p>و کالبک ها را صدا می زند (هیچ Job بی جواب نمی ماند).</p>
+<ul>
+<li>وضعیت صف قابل مشاهده است: <code>queue_size()</code>, <code>queued(i)</code>, <code>current_job()</code>.</li>
+</ul>
+<h2>۴) حالت Idle / نگهبانی</h2>
+<p>در <code>Ready</code> و طبق <code>HousekeepingConfig</code>:</p>
+<p><code>signal_ms</code> (CSQ) · <code>full_sweep_ms</code> (CSQ+CREG+CPIN+CPMS+COPS) · <code>sms_scan_ms</code></p>
+<p>(<code>AT+CMGL="REC UNREAD"</code> و تحویل + حذف) · <code>cleanup_ms</code> (<code>AT+CMGD=1,1</code> پاک سازی خوانده شده ها).</p>
+<p>همه چیز در <code>ModemStatus</code> ذخیره می شود (<code>csq_raw</code>, <code>rssi_dbm</code>, <code>signal_bars()</code>,</p>
+<p><code>registration</code>, <code>sim_ready</code>, <code>sms_used/total</code>, <code>operator_name</code>).</p>
+<h2>۵) پیامک فارسی (پیش فرض کل سیستم)</h2>
+<p><code>SmsEncoding::Ucs2</code> پیش فرض است. جزئیات کشف شده از لاگ های خودت در</p>
+<p><a href="QUIRKS.md"><code>QUIRKS.md</code></a> کد شده اند. خلاصه: در <code>CSCS="UCS2"</code> هم متن <strong>و هم شماره</strong></p>
+<p>باید UCS2-hex باشند و بعد از payload هیچ CRLF قبل از Ctrl+Z نباید برود.</p>
+<h2>۶) لاگ</h2>
+<p><code>gsm::log</code> جانشین <code>def::debug</code> است: سطح Off..Trace، sink قابل تعویض (stdio / writer /</p>
+<p>null)، <strong>رنگ ANSI به صورت runtime قابل خاموش شدن</strong>، timestamp، <code>bytes()</code> برای دیدن</p>
+<p><code>\r\n</code>/<code>&lt;CtrlZ&gt;</code>/<code>&lt;ESC&gt;</code> و <code>hexdump()</code>، حذف کامل در کامپایل با <code>GSM_LOG_LEVEL_MAX</code>.</p>
+<h2>۷) مصرف حافظه (پیش فرض)</h2>
+<p>RX ring 512B + DMA 256B + صف (۶ × ~۲۳۰B) + inbox/بافرهای متن ≈ <strong>۳ تا ۴ کیلوبایت RAM</strong>،</p>
+<p>همه استاتیک. با <code>GSM_*</code> قابل کوچک شدن است.</p>
+<h2>۸) نقطه های توسعه (بدون دست زدن به هسته)</h2>
+<ul>
+<li>ماژول جدید (M66، A6، SIM7600): یک <code>DeviceTraits</code> اضافه کن.</li>
+<li>GPRS/TCP بعداً: <code>net/DataService : IService</code> + <code>JobKind::*</code> جدید. هسته دست نخورده می ماند.</li>
+<li>PDU mode: <code>codec/pdu.*</code> + یک <code>SmsEncoding::Pdu</code>.</li>
+<li>USSD / تماس چندطرفه / AT+CLCC polling: سرویس جدید در همان الگو.</li>
+</ul>
+<h2>۶) جریان گیت تماس و سرپرستی (v0.4)</h2>
+<pre><code>Modem::tick() (هر تیک):
+  at_.tick()                    ← خواندن UART و توزیع خطوط/URC
+  check_watchdog()              ← واچ‌داگ صنعتی قبلی
+  call_.monitor(now, idle)      ← تایمر قطع خودکار + پرس‌وجوی +CLCC
+  maintenance_service()         ← دو ریست‌کننده دوره‌ای
+  ... ماشین حالت اصلی ...
+  pump_services()               ← اجرای صف (با گیت تماس)
+  watchdog_.pump(...)           ← پروب‌های سلامت فقط وقتی همه‌چیز بیکار است</code></pre>
+<p><strong>گیت تماس</strong>: وقتی <code>call_.state() != Idle</code> باشد، جاب‌های غیرتماسی شروع نمی‌شوند</p>
+<p>(در صف یا <code>current_</code> نگه داشته می‌شوند). اگر تماس ورودی وسط یک جاب برسد،</p>
+<p><code>preempt_for_call()</code> جاب را با ESC به‌صورت امن لغو و <code>deferred</code> می‌کند؛</p>
+<p>بعد از پایان تماس، جاب بدون از دست دادن بودجه تلاش مجدد از سر گرفته می‌شود.</p>
+<p><strong>ضد گیر کردن صف</strong>: اگر سرویسی از شروع جاب امتناع کند، چند بار تلاش و سپس</p>
+<p>جاب با <code>kErrJobStalled</code> تمام می‌شود — صف هرگز نمی‌ایستد.</p>
+<p><strong>ریست نگه‌بانی</strong>: <code>full_restart(hardware, keep_jobs=true)</code> جاب‌های صف‌کشیده را</p>
+<p>نگه می‌دارد؛ بعد از رسیدن به <code>Ready</code>، بررسی سلامت اجرا و نتیجه گزارش می‌شود.</p></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

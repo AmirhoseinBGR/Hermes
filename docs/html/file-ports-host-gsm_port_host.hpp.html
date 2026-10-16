@@ -1,0 +1,100 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ports-host-gsm_port_host.hpp</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/ports/host/gsm_port_host.hpp</h1>
+<h2>نقش فایل</h2>
+<p>این فایل «پُرت میزبان» (Host Port) برای اجرای کتابخانه‌ی GSM روی کامپیوتر (بدون سخت‌افزار واقعی مودم) است. هدف اصلی‌اش تست و شبیه‌سازی است: به‌جای UART واقعی، بافرهای نرم‌افزاری می‌سازد که تست می‌تواند داده «تزریق» (inject) کند و فرستاده‌شده‌ها را بازرسی کند. زمان‌سنج و کنترل تغذیه هم به‌صورت مصنوعی/شمارنده‌ای پیاده شده‌اند تا تست‌ها قطعی (deterministic) باشند.</p>
+<h2>ساختارها/توابع کلیدی</h2>
+<ul>
+<li><code>template &lt;uint16_t Size = 2048&gt; class HostUart final : public hal::IUart</code></li>
+</ul>
+<p>UART شبیه‌سازی‌شده با بافر حلقه‌ای (<code>RingBuffer&lt;Size&gt;</code>) برای RX و یک آرایه‌ی <code>char</code> برای TX.</p>
+<ul>
+<li><code>uint16_t write(const uint8_t* data, uint16_t len)</code> — بایت‌ها را در بافر <code>tx_</code> می‌ریزد (به‌صورت رشته‌ی null-terminated) و <code>len</code> را برمی‌گرداند.</li>
+<li><code>uint16_t read(uint8_t* out, uint16_t max)</code> — تا <code>max</code> بایت از بافر RX (<code>rx_.pop</code>) برمی‌دارد.</li>
+<li><code>uint16_t available()</code> — تعداد بایت‌های موجود در بافر RX (<code>rx_.size()</code>).</li>
+<li><code>void drain_rx()</code> — بافر RX را خالی می‌کند (<code>rx_.clear()</code>).</li>
+<li><code>void inject(const char* text)</code> — رشته‌ای را به‌عنوان داده‌ی «دریافتی از مودم» وارد بافر RX می‌کند (برای شبیه‌سازی پاسخ مودم).</li>
+<li><code>const char* tx() const</code> — دسترسی به بافر ارسالی (برای بازرسی دستورات صادرشده توسط موتور).</li>
+<li><code>void clear_tx()</code> — بافر ارسالی را پاک می‌کند.</li>
+</ul>
+<ul>
+<li><code>class HostClock final : public hal::IClock</code></li>
+</ul>
+<p>زمان‌سنج مصنوعی با عضو عمومی <code>uint32_t now</code>.</p>
+<ul>
+<li><code>uint32_t millis()</code> — مقدار <code>now</code> را برمی‌گرداند؛ تست مقدار <code>now</code> را جلو می‌برد تا زمان را کنترل کند.</li>
+</ul>
+<ul>
+<li><code>class HostPowerControl final : public hal::IPowerControl</code></li>
+</ul>
+<p>شمارنده‌ی پالس تغذیه برای تشخیص ریست/پاورسایکل سخت‌افزاری در تست.</p>
+<ul>
+<li><code>void power_key(bool asserted)</code> — اگر <code>asserted</code> باشد <code>pulse_count</code> را یکی زیاد می‌کند.</li>
+<li><code>uint32_t pulse_count</code> — تعداد دفعات فشردن کلید تغذیه (برای اثبات اینکه watchdog سخت‌افزار را ریست کرده).</li>
+</ul>
+<h2>جریان کاری</h2>
+<ol>
+<li>تست (<code>tests/host_smoke.cpp</code>) نمونه‌های <code>HostUart</code>، <code>HostClock</code> و <code>HostPowerControl</code> می‌سازد و به <code>Modem</code> می‌دهد.</li>
+<li>تست با <code>advance(ms)</code> مقدار <code>clock_.now</code> را جلو می‌برد و <code>modem.tick()</code> را صدا می‌زند تا موتور AT پیش برود.</li>
+<li>تست با <code>uart.inject("OK\r\n")</code> پاسخ‌های ساختگی مودم را وارد می‌کند و با <code>uart.tx()</code> / <code>tx_has(needle)</code> بررسی می‌کند که موتور چه دستوراتی فرستاده است.</li>
+<li><code>HostPowerControl.pulse_count</code> نشان می‌دهد که آیا watchdog در شرایط خطای متوالی، پاورسایکل سخت‌افزاری انجام داده است.</li>
+</ol>
+<h2>نکات فنی</h2>
+<ul>
+<li><code>HostUart</code> یک قالب (template) با اندازه‌ی پیش‌فرض <code>2048</code> است؛ اندازه‌ی بافر RX و TX یکسان است.</li>
+<li><code>write</code> همیشه <code>len</code> را برمی‌گرداند (حتی اگر بافر TX پر شود)؛ این برای سادگی تست است و بازگشت واقعی خروجی سریال را تضمین نمی‌کند.</li>
+<li>بافر TX به‌صورت رشته‌ی <code>'\0'</code>-terminated نگه داشته می‌شود تا بتوان با <code>strstr</code> (در <code>tx_has</code>) جست‌وجو کرد.</li>
+<li><code>HostClock.now</code> عمومی است تا تست بتواند مستقیماً زمان را دستکاری کند (بدون وقفه‌ی واقعی).</li>
+<li><code>HostPowerControl</code> فقط <code>power_key</code> را پیاده می‌کند؛ <code>reset</code> از پیش‌فرض رابط (<code>IPowerControl</code>) استفاده می‌کند.</li>
+<li>هیچ تخصیص پویا (dynamic allocation) یا استثنایی به کار نرفته؛ با <code>-fno-exceptions -fno-rtti</code> سازگار است.</li>
+<li><code>std::strlen</code>/<code>std::memcpy</code> از <code>&lt;cstring&gt;</code> استفاده شده؛ برخلاف پُرت‌های embedded، اینجا STL مجاز است چون هدف تست میزبان است.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>gsm/hal/hal.hpp</code> — رابط‌های <code>IUart</code>/<code>IClock</code>/<code>IPowerControl</code> که اینجا پیاده‌سازی می‌شوند.</li>
+<li><code>gsm/util/ring_buffer.hpp</code> — <code>RingBuffer</code> که بافر RX از آن ساخته شده.</li>
+<li><code>gsm/tests/host_smoke.cpp</code> — تنها مصرف‌کننده‌ی این پُرت؛ تمام سناریوهای تست (طول پیامک، نظارت تماس، watchdog، بازیابی SIM و…) از طریق همین شبیه‌ساز اجرا می‌شوند.</li>
+<li><code>gsm/CMakeLists.txt</code> — با گزینه‌ی <code>GSM_BUILD_TESTS</code> پوشه‌ی <code>ports/host</code> را به include path اضافه می‌کند.</li>
+<li>در کنار <code>ports/arduino/</code> و <code>ports/stm32/</code> قرار می‌گیرد؛ هر سه یک رابط HAL را برای محیط متفاوت فراهم می‌کنند.</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

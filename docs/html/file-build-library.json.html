@@ -1,0 +1,85 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>build-library.json</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/library.json</h1>
+<h2>نقش فایل</h2>
+<p>متادیتای بسته برای PlatformIO (و ابزارهای مشابه مدیریت کتابخانه). این فایل نام، نسخه، توضیحات، کلیدواژه‌ها، چارچوب‌ها/پلتفرم‌های پشتیبانی‌شده و پرچم‌های ساخت کتابخانه‌ی <code>gsm-modem</code> را تعریف می‌کند. این همان «شناسنامه‌ی» کتابخانه است که به ابزار بیرونی می‌گوید چگونه آن را بسازد و در چه محیط‌هایی قابل استفاده است.</p>
+<h2>ساختارها/توابع کلیدی</h2>
+<p>این فایل JSON است و ساختار تابعی ندارد؛ کلیدهای اصلی:</p>
+<ul>
+<li><code>"name": "gsm-modem"</code> — نام بسته.</li>
+<li><code>"version": "0.4.0"</code> — نسخه‌ی فعلی (v0.4، نسخه‌ای که کنسول CLI را به هسته منتقل کرد).</li>
+<li><code>"description"</code> — توصیف مختصر: درایور غیرمسدودکننده‌ی SIM800 / Quectel M08/M08R با C++17؛ شامل هسته‌ی AT، نظارت تماس با قطع خودکار، نگهبان سخت‌گیرانه‌ی طول پیامک، واچ‌داگ دوگانه‌ی نگهداری با بررسی سلامت، صف شغل، پیامک متنی UCS2، کنسول CLI تعاملی؛ بدون STL و بدون تخصیص پویا.</li>
+<li><code>"keywords"</code> — برچسب‌های جست‌وجو: <code>sim800</code>, <code>quectel</code>, <code>m08</code>, <code>m08r</code>, <code>gsm</code>, <code>sms</code>, <code>ucs2</code>, <code>stm32</code>, <code>arduino</code>, <code>cli</code>, <code>watchdog</code>, <code>call</code>.</li>
+<li><code>"frameworks"</code> — <code>stm32cube</code>, <code>arduino</code>, <code>*</code> (هر چارچوب دیگر).</li>
+<li><code>"platforms"</code> — <code>ststm32</code>, <code>atmelavr</code>, <code>espressif32</code>, <code>native</code>.</li>
+<li><code>"build"</code> — پیکربندی ساخت:</li>
+<li><code>"srcDir": "src"</code> — پوشه‌ی منبع.</li>
+<li><code>"includeDir": "include"</code> — پوشه‌ی سرصفحه‌ها.</li>
+<li><code>"flags"</code> — پرچم‌های کامپایل: <code>-std=gnu++17</code>, <code>-fno-exceptions</code>, <code>-fno-rtti</code>.</li>
+</ul>
+<h2>جریان کاری</h2>
+<ol>
+<li>PlatformIO (یا ابزار مشابه) <code>library.json</code> را می‌خواند تا نام/نسخه‌ی بسته را بشناسد.</li>
+<li>بر اساس <code>"platforms"</code> و <code>"frameworks"</code> سازگاری با محیط هدف بررسی می‌شود.</li>
+<li>با <code>"srcDir"</code>/<code>"includeDir"</code> ساختار پوشه برای کامپایل مشخص می‌شود.</li>
+<li>پرچم‌های <code>"build.flags"</code> هنگام کامپایل اعمال می‌شوند (C++17 بدون استثنا/RTTI).</li>
+<li>کتابخانه به‌صورت خودکار در پروژه‌ی مصرف‌کننده گنجانده و ساخته می‌شود.</li>
+</ol>
+<h2>نکات فنی</h2>
+<ul>
+<li><code>"version": "0.4.0"</code> با تغییر معماری v0.4 هم‌خوان است: کنسول تعاملی از اپلیکیشن به هسته (<code>gsm/cli/</code>) منتقل شد.</li>
+<li>توضیحات بر «No STL, no dynamic allocation» تأکید دارد؛ با پرچم‌های <code>-fno-exceptions -fno-rtti</code> هم‌راستا است.</li>
+<li><code>"platforms"</code> شامل <code>native</code> است تا تست میزبان (<code>host_smoke</code>) هم پشتیبانی شود.</li>
+<li><code>"frameworks"</code> با <code>*</code> به هر چارچوب دیگری اجازه‌ی استفاده می‌دهد (فقط قرارداد HAL رعایت شود).</li>
+<li>پرچم <code>-std=gnu++17</code> (به‌جای <code>c++17</code>) افزونه‌های GNU را مجاز می‌کند؛ با CMake که <code>CMAKE_CXX_STANDARD 17</code> دارد هم‌ساز است.</li>
+<li>این متادیتا با <code>gsm/CMakeLists.txt</code> هم‌راستا است: هر دو C++17 و بدون استثنا/RTTI.</li>
+</ul>
+<h2>ارتباط با سایر فایل‌ها</h2>
+<ul>
+<li><code>gsm/CMakeLists.txt</code> — معادل CMake این پیکربندی (همان استاندارد و پرچم‌ها).</li>
+<li><code>gsm/src/</code> و <code>gsm/include/</code> — پوشه‌هایی که <code>srcDir</code>/<code>includeDir</code> به آن‌ها اشاره می‌کنند.</li>
+<li><code>gsm/ports/</code> — پُرت‌های <code>stm32cube</code>/<code>arduino</code>/<code>native</code> که در <code>"platforms"</code>/<code>"frameworks"</code> منعکس شده‌اند.</li>
+<li><code>gsm/tests/host_smoke.cpp</code> — تست میزبان که با پلتفرم <code>native</code> سازگار است.</li>
+<li>توضیحات به قابلیت‌هایی اشاره دارد که در فایل‌های هسته پیاده شده‌اند: <code>sms_service</code>, <code>call_service</code>, <code>job_queue</code>, <code>watchdog</code>, <code>cli</code>.</li>
+</ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

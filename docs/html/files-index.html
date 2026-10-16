@@ -1,0 +1,44 @@
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>فایل‌به‌فایل</title><style>
+:root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
+        --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
+* { box-sizing: border-box; }
+body { direction: rtl; margin:0; background:var(--bg); color:var(--ink);
+       font-family: Vazirmatn, "Segoe UI", Tahoma, Arial, sans-serif;
+       line-height: 2; }
+main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.4rem 6rem; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1 { font-size: 1.9rem; border-bottom: 3px solid var(--accent);
+     padding-bottom: .5rem; color: #fff; }
+h2 { font-size: 1.45rem; margin-top: 2.6rem; color: var(--accent2);
+     border-right: 6px solid var(--accent2); padding-right: .8rem; }
+h3 { font-size: 1.15rem; margin-top: 1.8rem; color: var(--warn); }
+p  { margin: .9rem 0; }
+code { direction: ltr; display: inline-block; background: var(--code);
+       color: #9fe8ff; padding: .05rem .4rem; border-radius: .35rem;
+       font-family: "JetBrains Mono", Consolas, monospace; font-size: .88em; }
+pre { direction: ltr; text-align: left; background: var(--code);
+      border: 1px solid #26314a; border-radius: .6rem; padding: 1rem 1.2rem;
+      overflow-x: auto; line-height: 1.7; }
+pre code { background: none; padding: 0; color: #cfe6ff; }
+blockquote { border-right: 4px solid var(--warn); background: #1c2333;
+             margin: 1rem 0; padding: .6rem 1.1rem; border-radius: .5rem;
+             color: #dbe4f2; }
+table { border-collapse: collapse; width: 100%; margin: 1.2rem 0; }
+th, td { border: 1px solid #2b3752; padding: .55rem .8rem; text-align: right; }
+th { background: #1d2740; color: var(--accent2); }
+tr:nth-child(even) td { background: #141b2b; }
+ul, ol { padding-right: 1.6rem; }
+li { margin: .35rem 0; }
+hr { border: none; border-top: 1px solid #2b3752; margin: 2.2rem 0; }
+nav.top { background: var(--panel); border-bottom: 1px solid #2b3752;
+          padding: .9rem 1.4rem; display: flex; gap: 1.2rem;
+          justify-content: center; flex-wrap: wrap; position: sticky; top: 0; }
+nav.top a { color: var(--dim); font-size: .95rem; }
+nav.top a:hover { color: var(--accent); }
+.badge { display:inline-block; background:#22304e; color:var(--accent2);
+         border-radius:.8rem; padding:.05rem .7rem; font-size:.8rem;
+         margin-left:.4rem; }
+footer { text-align:center; color:var(--dim); font-size:.85rem;
+         padding:2rem 0 3rem; }
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>راهنمای فایل‌به‌فایل</h1><p>برای هر فایل از کد، یک راهنمای کامل فارسی نوشته شده است:</p><table><tbody><tr><td><a href="file-app-build-CMakeLists.txt.html">app-build-CMakeLists.txt</a></td></tr><tr><td><a href="file-app-gsm_cli-cli.cpp.html">app-gsm_cli-cli.cpp</a></td></tr><tr><td><a href="file-app-gsm_cli-cli.hpp.html">app-gsm_cli-cli.hpp</a></td></tr><tr><td><a href="file-build-CMakeLists.txt.html">build-CMakeLists.txt</a></td></tr><tr><td><a href="file-build-library.json.html">build-library.json</a></td></tr><tr><td><a href="file-examples-arduino_basic.ino.html">examples-arduino_basic.ino</a></td></tr><tr><td><a href="file-examples-stm32_main.cpp.html">examples-stm32_main.cpp</a></td></tr><tr><td><a href="file-include-gsm-cli-cli.hpp.html">include-gsm-cli-cli.hpp</a></td></tr><tr><td><a href="file-include-gsm-codec-phone_number.hpp.html">include-gsm-codec-phone_number.hpp</a></td></tr><tr><td><a href="file-include-gsm-codec-ucs2.hpp.html">include-gsm-codec-ucs2.hpp</a></td></tr><tr><td><a href="file-include-gsm-core-at_engine.hpp.html">include-gsm-core-at_engine.hpp</a></td></tr><tr><td><a href="file-include-gsm-core-at_types.hpp.html">include-gsm-core-at_types.hpp</a></td></tr><tr><td><a href="file-include-gsm-core-line_reader.hpp.html">include-gsm-core-line_reader.hpp</a></td></tr><tr><td><a href="file-include-gsm-core-service.hpp.html">include-gsm-core-service.hpp</a></td></tr><tr><td><a href="file-include-gsm-core-urc_router.hpp.html">include-gsm-core-urc_router.hpp</a></td></tr><tr><td><a href="file-include-gsm-device-device_traits.hpp.html">include-gsm-device-device_traits.hpp</a></td></tr><tr><td><a href="file-include-gsm-gsm_config.hpp.html">include-gsm-gsm_config.hpp</a></td></tr><tr><td><a href="file-include-gsm-hal-hal.hpp.html">include-gsm-hal-hal.hpp</a></td></tr><tr><td><a href="file-include-gsm-log-log.hpp.html">include-gsm-log-log.hpp</a></td></tr><tr><td><a href="file-include-gsm-maintenance-watchdog.hpp.html">include-gsm-maintenance-watchdog.hpp</a></td></tr><tr><td><a href="file-include-gsm-modem-modem.hpp.html">include-gsm-modem-modem.hpp</a></td></tr><tr><td><a href="file-include-gsm-queue-job.hpp.html">include-gsm-queue-job.hpp</a></td></tr><tr><td><a href="file-include-gsm-queue-job_queue.hpp.html">include-gsm-queue-job_queue.hpp</a></td></tr><tr><td><a href="file-include-gsm-sms-sms_service.hpp.html">include-gsm-sms-sms_service.hpp</a></td></tr><tr><td><a href="file-include-gsm-sms-sms_types.hpp.html">include-gsm-sms-sms_types.hpp</a></td></tr><tr><td><a href="file-include-gsm-status-status_service.hpp.html">include-gsm-status-status_service.hpp</a></td></tr><tr><td><a href="file-include-gsm-tools-serial_bridge.hpp.html">include-gsm-tools-serial_bridge.hpp</a></td></tr><tr><td><a href="file-include-gsm-ussd-ussd_service.hpp.html">include-gsm-ussd-ussd_service.hpp</a></td></tr><tr><td><a href="file-include-gsm-util-delegate.hpp.html">include-gsm-util-delegate.hpp</a></td></tr><tr><td><a href="file-include-gsm-util-ring_buffer.hpp.html">include-gsm-util-ring_buffer.hpp</a></td></tr><tr><td><a href="file-include-gsm-util-static_string.hpp.html">include-gsm-util-static_string.hpp</a></td></tr><tr><td><a href="file-include-gsm-voice-call_service.hpp.html">include-gsm-voice-call_service.hpp</a></td></tr><tr><td><a href="file-ports-arduino-gsm_port_arduino.hpp.html">ports-arduino-gsm_port_arduino.hpp</a></td></tr><tr><td><a href="file-ports-host-gsm_port_host.hpp.html">ports-host-gsm_port_host.hpp</a></td></tr><tr><td><a href="file-ports-stm32-gsm_port_stm32.hpp.html">ports-stm32-gsm_port_stm32.hpp</a></td></tr><tr><td><a href="file-src-at_engine.cpp.html">src-at_engine.cpp</a></td></tr><tr><td><a href="file-src-at_types.cpp.html">src-at_types.cpp</a></td></tr><tr><td><a href="file-src-call_service.cpp.html">src-call_service.cpp</a></td></tr><tr><td><a href="file-src-cli.cpp.html">src-cli.cpp</a></td></tr><tr><td><a href="file-src-job_queue.cpp.html">src-job_queue.cpp</a></td></tr><tr><td><a href="file-src-line_reader.cpp.html">src-line_reader.cpp</a></td></tr><tr><td><a href="file-src-log.cpp.html">src-log.cpp</a></td></tr><tr><td><a href="file-src-modem.cpp.html">src-modem.cpp</a></td></tr><tr><td><a href="file-src-phone_number.cpp.html">src-phone_number.cpp</a></td></tr><tr><td><a href="file-src-sms_service.cpp.html">src-sms_service.cpp</a></td></tr><tr><td><a href="file-src-status_service.cpp.html">src-status_service.cpp</a></td></tr><tr><td><a href="file-src-ucs2.cpp.html">src-ucs2.cpp</a></td></tr><tr><td><a href="file-src-urc_router.cpp.html">src-urc_router.cpp</a></td></tr><tr><td><a href="file-src-ussd_service.cpp.html">src-ussd_service.cpp</a></td></tr><tr><td><a href="file-src-watchdog.cpp.html">src-watchdog.cpp</a></td></tr><tr><td><a href="file-tests-host_smoke.cpp.html">tests-host_smoke.cpp</a></td></tr><tr><td><a href="file-user_code-cli.cpp.html">user_code-cli.cpp</a></td></tr><tr><td><a href="file-user_code-cli.hpp.html">user_code-cli.hpp</a></td></tr></tbody></table></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>
