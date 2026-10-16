@@ -469,6 +469,29 @@ int main()
     assert(!pwr.level); // the PWRKEY line is never left asserted
     printf("Silent-module PWRKEY retry works (off -> on)!\n");
 
+    // ---- software reboot via AT+CFUN=1,1 (not PWRKEY) ----
+    printf("Testing software reboot AT+CFUN=1,1...\n");
+    modem.housekeeping().enabled              = false;
+    modem.maintenance().policy().health_check = false;
+    modem.maintenance().policy().use_power_cycle = false;
+    uart.clear_tx();
+    modem.soft_reboot();
+    assert(modem.state() == ModemState::SoftRebooting);
+    advance(50, 2);
+    assert(tx_has("AT+CFUN=1,1"));
+    uart.inject("OK\r\n");
+    advance(50, 2);
+    assert(modem.state() == ModemState::Booting);
+    uart.clear_tx();
+    advance(2000, 1); // still inside boot guard
+    assert(!tx_has("AT"));
+    advance(700, 1);
+    assert(tx_has("AT"));
+    uart.inject("OK\r\n");
+    advance(50, 2);
+    assert(modem.state() == ModemState::WaitingRegistration);
+    printf("Software reboot AT+CFUN=1,1 works!\n");
+
     printf("ALL TESTS PASSED!\n");
     return 0;
 }

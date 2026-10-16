@@ -99,6 +99,9 @@
 #ifndef GSM_CFUN_CYCLE_INTERVAL_MS
 #define GSM_CFUN_CYCLE_INTERVAL_MS 25000 // if SIM still missing, cycle CFUN=0 then CFUN=1
 #endif
+#ifndef GSM_CFUN_RESET_TIMEOUT_MS
+#define GSM_CFUN_RESET_TIMEOUT_MS 8000 // AT+CFUN=1,1 may reset before OK is sent
+#endif
 #ifndef GSM_HARDWARE_REBOOT_TIMEOUT_MS
 #define GSM_HARDWARE_REBOOT_TIMEOUT_MS                                                             \
     90000 // if stuck without SIM/FSM for 90s, do full power cycle

@@ -32,6 +32,8 @@ const char* to_string(ModemState s)
         return "booting";
     case ModemState::PowerPulsing:
         return "pwrkey-pulsing";
+    case ModemState::SoftRebooting:
+        return "cfun-reset";
     case ModemState::WaitingRegistration:
         return "waiting-reg";
     case ModemState::Configuring:
@@ -73,6 +75,9 @@ void Modem::urc_trampoline(void* ctx, const UrcEvent& ev)
 { static_cast<Modem*>(ctx)->handle_urc(ev); }
 
 void Modem::begin()
+{ prepare_boot(/*arm_guard=*/false, /*note_watchdog=*/true); }
+
+void Modem::prepare_boot(bool arm_guard, bool note_watchdog)
 {
     g_log_clock = &clock_;
     log::Registry::set_clock(&log_now);
@@ -90,11 +95,32 @@ void Modem::begin()
     module_up_            = false;
     module_up_since_      = 0;
     if (pwrkey_asserted_) release_pwrkey(); // never leave the pin pulled
-    pwrkey_pulse_ms_    = GSM_PWRKEY_PULSE_MS;
-    boot_guard_active_ = false; // a plain (re)start probes as soon as it can
-    watchdog_.on_reset_started(clock_.millis());
+    pwrkey_pulse_ms_       = GSM_PWRKEY_PULSE_MS;
+    boot_guard_active_     = arm_guard;
+    boot_guard_since_      = clock_.millis();
+    if (note_watchdog) watchdog_.on_reset_started(clock_.millis());
     enter(ModemState::Booting);
-    kLog.info("begin (%s)", traits_.name);
+    kLog.info(arm_guard ? "begin (%s) after AT+CFUN=1,1" : "begin (%s)", traits_.name);
+}
+
+void Modem::soft_reboot()
+{
+    at_.abort();
+    stop_all(false);
+    start_soft_reboot();
+}
+
+void Modem::start_soft_reboot()
+{
+    kLog.warn("Software reboot: AT+CFUN=1,1");
+    watchdog_.on_reset_started(clock_.millis());
+    session_.invalidate();
+    module_up_          = false;
+    module_up_since_    = 0;
+    saw_power_down_     = false;
+    at_probe_count_     = 0;
+    pwrkey_pulse_count_ = 0;
+    enter(ModemState::SoftRebooting);
 }
 
 void Modem::reset()
@@ -109,7 +135,7 @@ void Modem::power_cycle()
     if (!power_)
     {
         kLog.warn("Software Power-Cycle (no PWRKEY pin available)");
-        reset();
+        soft_reboot();
         return;
     }
     kLog.warn("Hardware Power-Cycle: pulsing PWRKEY pin");
@@ -204,6 +230,12 @@ void Modem::handle_power_down()
     // it and pulse again to turn it back on — never sit in Off.
     // Only PowerPulsing/Booting count: boot_guard_active_ stays latched after
     // Booting and must not swallow a later real POWER DOWN while Ready.
+    if (state_ == ModemState::SoftRebooting)
+    {
+        kLog.warn("POWER DOWN during CFUN reboot ignored");
+        return;
+    }
+
     if (power_ && (state_ == ModemState::PowerPulsing || state_ == ModemState::Booting))
     {
         kLog.warn("POWER DOWN during power-cycle; will pulse PWRKEY to turn on");
@@ -281,7 +313,7 @@ void Modem::full_restart(bool hardware, bool keep_jobs)
         enter(ModemState::PowerPulsing);
         return;
     }
-    begin();
+    start_soft_reboot();
 }
 
 void Modem::maintenance_service()
@@ -325,6 +357,8 @@ const char* Modem::step() const
     {
     case ModemState::Booting:
         return boot_guard_elapsed() ? "probe-at" : "boot-guard";
+    case ModemState::SoftRebooting:
+        return "cfun-1,1";
     case ModemState::PowerPulsing:
         return pwrkey_asserted_ ? "pwrkey-hold" : "pwrkey";
     case ModemState::WaitingRegistration:
@@ -762,6 +796,16 @@ void Modem::on_final(const AtResult& res)
     }
     else if (res.ok()) { consecutive_timeouts_ = 0; }
 
+    if (state_ == ModemState::SoftRebooting)
+    {
+        if (res.status == AtStatus::Aborted) return;
+        kLog.info("AT+CFUN=1,1 %s — waiting for module reboot",
+                  res.ok() ? "accepted" : to_string(res.status));
+        at_.discard_rx();
+        prepare_boot(/*arm_guard=*/true, /*note_watchdog=*/false);
+        return;
+    }
+
     if (state_ == ModemState::Booting)
     {
         if (res.status == AtStatus::Aborted) return;
@@ -936,7 +980,7 @@ void Modem::check_watchdog()
         if (power_) { power_cycle(); }
         else
         {
-            reset();
+            soft_reboot();
         }
         return;
     }
@@ -1015,6 +1059,11 @@ void Modem::tick()
 
     case ModemState::SimMissing:
         handle_sim_recovery();
+        return;
+
+    case ModemState::SoftRebooting:
+        if (!at_issued_ && at_.idle())
+            at_issued_ = at_.execute("AT+CFUN=1,1", GSM_CFUN_RESET_TIMEOUT_MS, this);
         return;
 
     case ModemState::Booting:

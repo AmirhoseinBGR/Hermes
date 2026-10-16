@@ -24,7 +24,8 @@
 
 ### چرخه حیات: `begin()` / `reset()` / `power_cycle()` / `full_restart(...)`
 - `begin()` — صفر کردن شمارنده‌های بازیابی، ثبت زمان در watchdog (`on_reset_started`)، ورود به `Booting`.
-- `reset()` — `at_.abort()` + `stop_all(false)` + `begin()` (نرم، صف پاک می‌شود).
+- `reset()` — `at_.abort()` + `stop_all(false)` + `begin()` (فقط FSM، ماژول ریست نمی‌شود).
+- `soft_reboot()` — ریست نرم ماژول با `AT+CFUN=1,1`، سپس boot guard و پروب `AT`.
 - `power_cycle()` — پالس PWRKEY در صورت وجود `IPowerControl`، سپس `reset()`.
 - **`full_restart(bool hardware, bool keep_jobs)` (v0.4):** راه‌اندازی مجدد کامل با انتخاب سیاست صف:
 

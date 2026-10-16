@@ -508,7 +508,7 @@ void Console::draw_watchdog()
     std::snprintf(buf, sizeof(buf), "%lu ms", (unsigned long)pol.grace_ms);
     kv("Grace", buf, DIM);
     std::snprintf(buf, sizeof(buf), "%s",
-                  pol.use_power_cycle ? "PWRKEY power-cycle" : "soft reset");
+                  pol.use_power_cycle ? "PWRKEY power-cycle" : "AT+CFUN=1,1");
     kv("Reset mode", buf, DIM);
 
     std::snprintf(buf, sizeof(buf), "%lu resets, uptime %lu ms", (unsigned long)wd.resets_done(),
@@ -598,7 +598,7 @@ void Console::draw_menu()
     out(B_YELLOW);
     out("R");
     out(RST);
-    out("  Reset FSM (Software)\r\n    ");
+    out("  Software reboot AT+CFUN=1,1\r\n    ");
     out(B_YELLOW);
     out("K");
     out(RST);
@@ -841,7 +841,7 @@ void Console::handle(char* line)
     if (std::strcmp(line, "R") == 0)
     {
         outf("%sSoftware reset of FSM...%s\r\n", B_YELLOW, RST);
-        modem_.reset();
+        modem_.soft_reboot();
         redraw_current();
         return;
     }

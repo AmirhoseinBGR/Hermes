@@ -46,6 +46,7 @@
 16. **قطع غیرمنتظره بعد از پنجرهٔ ignore:** `POWERED DOWN` → بازیابی با `power_cycle` (نه ماندن در `Off`).
 17. **`POWER DOWN` حین boot guard:** پولس دوم (روشن کردن) زده می‌شود؛ URC دیررس بعد از `AT` نادیده گرفته می‌شود.
 18. **`POWER DOWN` دو تکه وسط پروب `AT`:** `NORMAL POWER DO` + `WN` نباید توسط `execute` دور ریخته شود.
+19. **ریست نرم `AT+CFUN=1,1`:** `soft_reboot()` فرمان را می‌فرستد، بعد از `OK` boot guard، سپس پروب `AT`.
 
 در پایان `"ALL TESTS PASSED!"` چاپ می‌شود.
 

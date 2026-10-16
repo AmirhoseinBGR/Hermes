@@ -69,6 +69,7 @@
 - `GSM_CONSECUTIVE_TIMEOUTS_RESET` (3) — تعداد timeout پیاپی پیش از ورود به بازیابی
 - `GSM_SIM_RETRY_INTERVAL_MS` (10000) — فاصلهٔ پروب مجدد SIM
 - `GSM_CFUN_CYCLE_INTERVAL_MS` (25000) — فاصلهٔ چرخهٔ CFUN=0/1
+- `GSM_CFUN_RESET_TIMEOUT_MS` (8000) — مهلت `AT+CFUN=1,1` (ریست نرم ماژول)
 - `GSM_HARDWARE_REBOOT_TIMEOUT_MS` (90000) — پس از ۹۰ ثانیه گیرکردن، power cycle کامل
 
 ### بازنشانی‌های تعمیراتی / نگهبان دوگانه (ویژگی v0.4)
