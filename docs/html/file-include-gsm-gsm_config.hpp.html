@@ -76,7 +76,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <tr><td><code>GSM_JOB_START_RETRIES</code></td><td>3</td><td>دفعات تلاش برای شروع Job پیش از شکست</td></tr>
 </tbody></table>
 <h3>زمان‌بندی (میلی‌ثانیه)</h3>
-<p><code>GSM_AT_DEFAULT_TIMEOUT</code> (1000)، <code>GSM_AT_PROMPT_TIMEOUT</code> (5000)، <code>GSM_AT_CMGS_TIMEOUT</code> (10000)، <code>GSM_AT_USSD_TIMEOUT</code> (10000)، <code>GSM_AT_GUARD_TIME</code> (30)، <code>GSM_REGISTRATION_TIMEOUT</code> (45000)، <code>GSM_PWRKEY_PULSE_MS</code> (500).</p>
+<p><code>GSM_AT_DEFAULT_TIMEOUT</code> (1000)، <code>GSM_AT_PROMPT_TIMEOUT</code> (5000)، <code>GSM_AT_CMGS_TIMEOUT</code> (10000)، <code>GSM_AT_USSD_TIMEOUT</code> (10000)، <code>GSM_AT_GUARD_TIME</code> (30)، <code>GSM_REGISTRATION_TIMEOUT</code> (45000)، <code>GSM_PWRKEY_PULSE_MS</code> (1200: حداقل پهنای پولس PWRKEY طبق دیتاشیت SIM800/M08)، <code>GSM_MODEM_BOOT_GUARD_MS</code> (2500: سکوت لازم بعد از رهاکردن PWRKEY پیش از پروب <code>AT</code>).</p>
 <h3>نظارت بر تماس (ویژگی v0.4)</h3>
 <pre><code class="lang-cpp">#ifndef GSM_CALL_ANSWER_TIMEOUT_MS
 #define GSM_CALL_ANSWER_TIMEOUT_MS 20000 // MO call: auto-hangup if not established

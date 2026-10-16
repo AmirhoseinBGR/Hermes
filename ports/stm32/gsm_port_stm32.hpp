@@ -100,19 +100,23 @@ class Stm32PowerControl final : public hal::IPowerControl
     {
     }
 
+    // Level-only driver. NO HAL_Delay here on purpose: Modem::tick() owns the
+    // pulse timing (assert -> hold GSM_PWRKEY_PULSE_MS -> release -> boot
+    // guard). Any blocking wait in this call would hang the whole firmware when
+    // it is reached from an interrupt (e.g. a console command fed from the UART
+    // RX ISR), because HAL_Delay() spins on the SysTick tick, which cannot
+    // advance while a lower-priority SysTick is masked by the active IRQ.
     void power_key(bool asserted) override
     {
         if (!pwr_port_) return;
         HAL_GPIO_WritePin(pwr_port_, pwr_pin_,
                           (asserted ^ active_low_) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-        if (asserted) HAL_Delay(GSM_PWRKEY_PULSE_MS);
     }
     void reset(bool asserted) override
     {
         if (!rst_port_) return;
         HAL_GPIO_WritePin(rst_port_, rst_pin_,
                           (asserted ^ active_low_) ? GPIO_PIN_SET : GPIO_PIN_RESET);
-        if (asserted) HAL_Delay(200);
     }
 
   private:

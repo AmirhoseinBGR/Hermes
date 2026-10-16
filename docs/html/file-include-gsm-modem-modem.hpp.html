@@ -82,7 +82,12 @@ void reset();        // soft restart of the library state machine
 void power_cycle();  // full hardware power cycle (needs IPowerControl)
 
 bool has_power_control() const;
-void pulse_pwrkey(uint32_t pulse_ms = GSM_PWRKEY_PULSE_MS);</code></pre>
+void pulse_pwrkey(uint32_t pulse_ms = GSM_PWRKEY_PULSE_MS);
+bool pwrkey_asserted() const;  // پین همین حالا پایین نگه داشته شده است؟
+uint32_t pwrkey_pulse_ms() const;</code></pre>
+<p>پولس PWRKEY <strong>غیرمسدودکننده</strong> است: <code>power_cycle()</code>/<code>pulse_pwrkey()</code> فقط وضعیت را به <code>PowerPulsing</code> می‌برند و <code>tick()</code> ترتیب</p>
+<p><code>assert</code> → نگه داشتن به مدت <code>pwrkey_pulse_ms</code> → <code>release</code> → انتظار <code>GSM_MODEM_BOOT_GUARD_MS</code> → پروب <code>AT</code> را اجرا می‌کند.</p>
+<p>هیچ‌کدام از این توابع بلاک نمی‌کنند و هرگز نباید از داخل وقفه صدا زده شوند.</p>
 <p>APIهای Job (همگی <code>JobId</code> برمی‌گردانند؛ callback اختیاری):</p>
 <pre><code class="lang-cpp">JobId send_sms(const char* number, const char* utf8_text, JobCallback cb = {},
                SmsEncoding enc = SmsEncoding::Auto);

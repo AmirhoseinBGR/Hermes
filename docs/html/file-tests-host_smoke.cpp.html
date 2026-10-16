@@ -80,6 +80,8 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <li><strong>بازیابی SIM با چرخه‌ی CFUN:</strong> مشاهده‌ی <code>AT+CFUN=0</code> و <code>AT+CFUN=1</code> → تزریق <code>+CPIN: READY</code> → <code>ModemState::WaitingRegistration</code>.</li>
 <li><strong>واچ‌داگ و پاک‌سازی صف:</strong> <code>pause_queue</code> → شغل SMS → جلو بردن ۴۶ ثانیه (بیش از <code>GSM_JOB_MAX_AGE_MS=45000</code>) → صف خالی (<code>queue_size()==0</code>).</li>
 <li><strong>واچ‌داگ تایم‌اوت‌های متوالی:</strong> سه بار ارسال ناموفق → افزایش <code>pwr.pulse_count</code> (پاورسایکل سخت‌افزاری).</li>
+<li><strong>پولس غیرمسدودکننده‌ی PWRKEY + boot guard:</strong> <code>power_cycle()</code> بلافاصله برمی‌گردد (پین را خودش دست نمی‌زند)، <code>tick()</code> پین را پایین می‌کشد، ۱۲۰۰ms نگه می‌دارد، رها می‌کند و تا پایان <code>GSM_MODEM_BOOT_GUARD_MS</code> هیچ <code>AT</code> نمی‌فرستد؛ سپس مودم تا <code>Ready</code> بالا می‌آید.</li>
+<li><strong>پاسخ‌دادن مجدد به ماژول خاموش‌شده:</strong> با سکوت ماژول، کتابخانه خودش پولس بعدی را می‌زند (off → on) و پس از پاسخ <code>OK</code> وضعیت به <code>WaitingRegistration</code> می‌رود؛ پین PWRKEY هیچ‌وقت asserted باقی نمی‌ماند.</li>
 </ol>
 <p>در پایان <code>"ALL TESTS PASSED!"</code> چاپ می‌شود.</p>
 <h2>نکات فنی</h2>

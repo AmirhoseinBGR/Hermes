@@ -46,6 +46,14 @@ void init()
 
 void tick()
 {
+    // Console input is buffered by the RX ISR (DMA -> ring) and executed here,
+    // in the main loop. A command such as 'K' (PWRKEY hard reset) must never run
+    // inside an interrupt: it restarts the modem FSM and used to block on
+    // HAL_Delay() inside the ISR, which froze the whole device.
+    uint8_t  b      = 0;
+    uint16_t budget = 256;
+    while (budget-- && s_dbg_uart.read(&b, 1) == 1) s_console.feed(b);
+
     s_modem.tick();
     s_console.tick();
 }
@@ -58,9 +66,7 @@ void on_uart_rx(UART_HandleTypeDef* huart, uint16_t size)
     }
     else if (huart->Instance == USART1)
     {
-        s_dbg_uart.on_rx_event(size);
-        uint8_t b;
-        while (s_dbg_uart.read(&b, 1) == 1) s_console.feed(b);
+        s_dbg_uart.on_rx_event(size); // ISR: DMA -> ring only, no command parsing
     }
 }
 

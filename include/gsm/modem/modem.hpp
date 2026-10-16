@@ -51,9 +51,14 @@ class Modem final : public IAtObserver
     void reset();
     void power_cycle();
 
-    // Hardware power control helpers
-    bool has_power_control() const { return power_ != nullptr; }
-    void pulse_pwrkey(uint32_t pulse_ms = GSM_PWRKEY_PULSE_MS);
+    // Hardware power control helpers.
+    // The PWRKEY pulse is *non-blocking*: the state machine drives the pin
+    // (assert -> hold -> release -> boot guard -> AT probe) from tick(), so no
+    // HAL_Delay ever runs inside an interrupt. Never drive the pin from an ISR.
+    bool     has_power_control() const { return power_ != nullptr; }
+    void     pulse_pwrkey(uint32_t pulse_ms = GSM_PWRKEY_PULSE_MS);
+    bool     pwrkey_asserted() const { return pwrkey_asserted_; }
+    uint32_t pwrkey_pulse_ms() const { return pwrkey_pulse_ms_; }
 
     // --- jobs ---------------------------------------------------------------
     JobId send_sms(const char* number, const char* utf8_text, JobCallback cb = {},
@@ -126,6 +131,11 @@ class Modem final : public IAtObserver
     void check_watchdog();
     void handle_sim_recovery();
 
+    // Non-blocking PWRKEY pulse (assert / hold / release / boot guard)
+    void start_pwrkey_pulse();
+    void release_pwrkey();
+    bool boot_guard_elapsed() const;
+
     // Call / queue interplay and maintenance helpers
     static bool is_call_job(JobKind kind);
     void        preempt_for_call();
@@ -178,6 +188,13 @@ class Modem final : public IAtObserver
     uint8_t             start_failures_    = 0;
     uint32_t            maintenance_since_ = 0;
     MaintenanceWatchdog watchdog_;
+
+    // Non-blocking PWRKEY state (see start_pwrkey_pulse/release_pwrkey)
+    bool     pwrkey_asserted_   = false;
+    uint32_t pwrkey_since_      = 0;
+    bool     boot_guard_active_ = false;
+    uint32_t boot_guard_since_  = 0;
+    uint32_t pwrkey_pulse_ms_   = GSM_PWRKEY_PULSE_MS;
 };
 
 } // namespace gsm

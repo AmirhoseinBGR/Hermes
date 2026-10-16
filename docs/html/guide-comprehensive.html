@@ -101,9 +101,11 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <p>در نسخه ی جدید، فرآیند راه اندازی مودم دقیقاً به شرح زیر مدیریت می شود:</p>
 <ol>
 <li>ابتدا مودم تا ۳ بار دستور <code>AT</code> می فرستد.</li>
-<li>چنانچه پاسخی دریافت نشود (مثلاً ماژول خاموش باشد) و اینترفیس <code>IPowerControl</code> به مودم متصل شده باشد، وارد حالت <code>PowerPulsing</code> شده و پایه ی <strong>PWRKEY</strong> را به مدت مشخص (پیش فرض ۱۲۰۰ میلی ثانیه) پولس می زند.</li>
+<li>چنانچه پاسخی دریافت نشود (مثلاً ماژول خاموش باشد) و اینترفیس <code>IPowerControl</code> به مودم متصل شده باشد، وارد حالت <code>PowerPulsing</code> شده و پایه ی <strong>PWRKEY</strong> را به مدت مشخص (<code>GSM_PWRKEY_PULSE_MS</code>، پیش فرض ۱۲۰۰ میلی ثانیه) پولس می زند.</li>
 <li>مجدداً دستورات پروب <code>AT</code> ارسال می شوند. اگر باز هم پاسخی دریافت نشود، یک بار دیگر پولس PWRKEY اعمال می شود و در صورت عدم دریافت پاسخ وارد وضعیت <code>Fault</code> می گردد.</li>
 </ol>
+<blockquote><p><strong>پولس PWRKEY غیرمسدودکننده است:</strong> پورت HAL فقط سطح پین را ست/ریست می کند و همه ی زمان بندی (<code>assert</code> → نگه داشتن → <code>release</code> → انتظار <code>GSM_MODEM_BOOT_GUARD_MS</code> پیش فرض ۲۵۰۰ms → سپس پروب <code>AT</code>) داخل <code>Modem::tick()</code> انجام می شود.</p></blockquote>
+<blockquote><p>در پورت STM32 هیچ <code>HAL_Delay</code> وجود ندارد و <code>power_key()</code> نباید از داخل وقفه صدا زده شود (دستورهای کنسول هم در حلقه ی اصلی اجرا می شوند، نه در ISR یو‌آرت).</p></blockquote>
 <p>نحوه ی راه اندازی در STM32:</p>
 <pre><code class="lang-cpp">static port::Stm32PowerControl pwr(GPIOB, GPIO_PIN_12); // پین PWRKEY
 static Modem modem(gsm_uart, clk, kSim800, &amp;pwr);</code></pre>

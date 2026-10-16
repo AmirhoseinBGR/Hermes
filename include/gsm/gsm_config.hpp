@@ -66,7 +66,10 @@
 #define GSM_REGISTRATION_TIMEOUT 45000
 #endif
 #ifndef GSM_PWRKEY_PULSE_MS
-#define GSM_PWRKEY_PULSE_MS 500
+#define GSM_PWRKEY_PULSE_MS 1200 // PWRKEY low time (SIM800/M08 family datasheet minimum)
+#endif
+#ifndef GSM_MODEM_BOOT_GUARD_MS
+#define GSM_MODEM_BOOT_GUARD_MS 2500 // silence after a PWRKEY pulse before AT probing
 #endif
 
 // --- call supervision --------------------------------------------------------
