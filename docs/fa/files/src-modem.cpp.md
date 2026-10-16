@@ -112,7 +112,7 @@ if (limit && chars > limit) {
 | `SimRemoved` | `enter(SimMissing)` + callback بحرانی |
 | `NetworkReg` (کد 1/5) | `network_ready=true` و ورود به `Configuring` |
 | `Ussd` | `ussd_.notify_cusd(line)` |
-| `PowerDown` | باطل‌سازی جلسه + `enter(Off)` |
+| `PowerDown` | `handle_power_down()`: حین PWRKEY → پولس روشن‌کردن؛ بعد از `AT`/`RDY` → URC کهنه (نادیده)؛ در Ready → `power_cycle()`؛ بدون پین PWRKEY → `enter(Off)` |
 
 در پایان، هر URC به `user_urc_(ev)` هم داده می‌شود تا اپلیکیشن بتواند گوش کند.
 
@@ -162,7 +162,7 @@ maintenance_service()         ← بازنشاننده‌های دوگانه wat
 ┌─ FSM ────────────────────────────────────────────────┐
 │ Off/Fault        → return                            │
 │ SimMissing       → handle_sim_recovery()             │
-│ Booting          → پروب "AT"                         │
+│ Booting          → اگر POWER DOWN دیده شد پولس روشن‌کردن؛ وگرنه پروب "AT" │
 │ PowerPulsing     → پالس PWRKEY → Booting             │
 │ WaitingRegistration → "AT+CREG?" هر 2s (timeout 45s) │
 │ Configuring      → اجرای جدول kBoot                  │

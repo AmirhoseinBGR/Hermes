@@ -86,6 +86,9 @@ void Modem::begin()
     last_cfun_cycle_      = 0;
     sim_recovery_phase_   = 0;
     start_failures_       = 0;
+    saw_power_down_       = false;
+    module_up_            = false;
+    module_up_since_      = 0;
     if (pwrkey_asserted_) release_pwrkey(); // never leave the pin pulled
     pwrkey_pulse_ms_    = GSM_PWRKEY_PULSE_MS;
     boot_guard_active_ = false; // a plain (re)start probes as soon as it can
@@ -113,6 +116,10 @@ void Modem::power_cycle()
     reset();                         // abort, drop queue state, enter Booting
     pwrkey_pulse_count_ = 0;         // a manual cycle may pulse twice (off -> on)
     at_probe_count_     = 0;
+    saw_power_down_     = false;
+    module_up_          = false;
+    module_up_since_    = 0;
+    at_.discard_rx();                // drop a leftover NORMAL POWER DOWN from the previous life
     // tick() now drives: assert -> hold pwrkey_pulse_ms -> release -> boot guard.
     enter(ModemState::PowerPulsing);
 }
@@ -129,6 +136,10 @@ void Modem::pulse_pwrkey(uint32_t pulse_ms)
     pwrkey_pulse_ms_    = pulse_ms ? pulse_ms : GSM_PWRKEY_PULSE_MS;
     pwrkey_pulse_count_ = 0;
     at_probe_count_     = 0;
+    saw_power_down_     = false;
+    module_up_          = false;
+    module_up_since_    = 0;
+    at_.discard_rx();
     enter(ModemState::PowerPulsing);
 }
 
@@ -159,6 +170,68 @@ bool Modem::boot_guard_elapsed() const
     // keeps probing the (still running) module immediately as before.
     return !boot_guard_active_ ||
            hal::elapsed(clock_.millis(), boot_guard_since_, GSM_MODEM_BOOT_GUARD_MS);
+}
+
+void Modem::mark_module_up()
+{
+    module_up_         = true;
+    module_up_since_   = clock_.millis();
+    saw_power_down_    = false;
+    boot_guard_active_ = false; // module answered; the post-PWRKEY silence is over
+}
+
+bool Modem::module_recently_up() const
+{
+    return module_up_ &&
+           !hal::elapsed(clock_.millis(), module_up_since_, GSM_POWERDOWN_IGNORE_MS);
+}
+
+void Modem::handle_power_down()
+{
+    // (A) Stale URC. Two overlapping cases from a PWRKEY toggle:
+    //   - AT/RDY already proved the module is on, then a delayed NORMAL POWER
+    //     DOWN from the off-half of the cycle (or UART leftover) arrives.
+    //   - We already issued the ON pulse (pulse #2); another POWER DOWN is
+    //     the leftover from pulse #1 and must not trigger pulse #3 (that
+    //     would turn the live module back off).
+    if (module_recently_up() || pwrkey_pulse_count_ >= 2)
+    {
+        kLog.warn("stale POWER DOWN ignored (module is up)");
+        return;
+    }
+
+    // (B) During a PWRKEY sequence the pulse turned the module OFF. Remember
+    // it and pulse again to turn it back on — never sit in Off.
+    // Only PowerPulsing/Booting count: boot_guard_active_ stays latched after
+    // Booting and must not swallow a later real POWER DOWN while Ready.
+    if (power_ && (state_ == ModemState::PowerPulsing || state_ == ModemState::Booting))
+    {
+        kLog.warn("POWER DOWN during power-cycle; will pulse PWRKEY to turn on");
+        session_.invalidate();
+        saw_power_down_ = true;
+        module_up_      = false;
+        if (state_ == ModemState::PowerPulsing) return; // finish the off-pulse first
+        if (at_issued_)
+        {
+            at_.abort();
+            at_issued_ = false;
+        }
+        boot_guard_active_ = true;
+        boot_guard_since_  = clock_.millis();
+        return;
+    }
+
+    // (C) Unexpected power-down while running.
+    kLog.error("module powered down");
+    session_.invalidate();
+    module_up_ = false;
+    if (power_)
+    {
+        kLog.warn("unexpected POWER DOWN; hardware power-cycle to recover");
+        power_cycle();
+    }
+    else
+        enter(ModemState::Off);
 }
 
 bool Modem::is_call_job(JobKind kind)
@@ -201,6 +274,10 @@ void Modem::full_restart(bool hardware, bool keep_jobs)
         begin(); // begin() already released a stuck PWRKEY and armed the guard
         pwrkey_pulse_count_ = 0;
         at_probe_count_     = 0;
+        saw_power_down_     = false;
+        module_up_          = false;
+        module_up_since_    = 0;
+        at_.discard_rx();
         enter(ModemState::PowerPulsing);
         return;
     }
@@ -618,12 +695,11 @@ void Modem::handle_urc(const UrcEvent& ev)
         ussd_.notify_cusd(ev.line);
         break;
     case Urc::PowerDown:
-        kLog.error("module powered down");
-        session_.invalidate();
-        enter(ModemState::Off);
+        handle_power_down();
         break;
     case Urc::ModemReady:
         kLog.debug("module banner");
+        mark_module_up();
         break;
     default:
         break;
@@ -688,9 +764,11 @@ void Modem::on_final(const AtResult& res)
 
     if (state_ == ModemState::Booting)
     {
+        if (res.status == AtStatus::Aborted) return;
         if (res.ok())
         {
             kLog.info("module responsive to AT");
+            mark_module_up();
             enter(ModemState::WaitingRegistration);
         }
         else
@@ -864,7 +942,8 @@ void Modem::check_watchdog()
     }
 
     // 3. Overall hardware reboot timeout if stuck in non-operational state
-    if (power_ && (state_ == ModemState::Fault || state_ == ModemState::SimMissing))
+    if (power_ && (state_ == ModemState::Fault || state_ == ModemState::SimMissing ||
+                   state_ == ModemState::Off))
     {
         if (hal::elapsed(now, state_since_, GSM_HARDWARE_REBOOT_TIMEOUT_MS))
         {
@@ -941,6 +1020,18 @@ void Modem::tick()
     case ModemState::Booting:
         // Wait out the boot guard before probing: right after a PWRKEY release
         // the module is still booting (RDY / +CFUN: 1 / SIM Ready storm).
+        // If NORMAL POWER DOWN arrived, the pulse turned the module OFF — do
+        // not probe AT (it can still answer while dying). Pulse again to turn it on.
+        if (saw_power_down_ && power_ && pwrkey_pulse_count_ < 2)
+        {
+            if (boot_guard_elapsed())
+            {
+                kLog.warn("module reported POWER DOWN, pulsing PWRKEY to turn it on");
+                saw_power_down_ = false;
+                enter(ModemState::PowerPulsing);
+            }
+            return;
+        }
         if (!at_issued_ && at_.idle() && boot_guard_elapsed())
             at_issued_ = at_.execute("AT", 1000, this);
         return;

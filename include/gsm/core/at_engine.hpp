@@ -47,6 +47,10 @@ class AtEngine
     bool await_final(uint32_t timeout_ms, IAtObserver* observer);
 
     void abort();
+    // Drop unread UART bytes and any partial line. Used at the start of a
+    // hardware power-cycle so a leftover NORMAL POWER DOWN cannot surface
+    // after the module has already come back up.
+    void discard_rx();
     void tick();
 
     void        set_trace(bool on) { trace_ = on; }

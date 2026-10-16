@@ -16,7 +16,9 @@ bool AtEngine::execute(const AtRequest& req, IAtObserver* observer)
     timeout_       = req.timeout_ms;
     started_       = clock_.millis();
     sent_.clear();
-    reader_.reset();
+    // Do NOT reset the line reader here. A PWRKEY cycle can leave
+    // "NORMAL POWER DOWN" (or RDY) mid-line; wiping it makes the URC either
+    // vanish or reassemble later, after AT has already succeeded.
 
     if (req.command)
     {
@@ -66,6 +68,12 @@ void AtEngine::abort()
     if (!busy()) return;
     if (expect_prompt_) write_escape();
     finish(AtStatus::Aborted, -1);
+}
+
+void AtEngine::discard_rx()
+{
+    uart_.drain_rx();
+    reader_.reset();
 }
 
 bool AtEngine::classify_final(const char* line, AtStatus& status, int16_t& code) const

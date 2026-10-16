@@ -7,7 +7,7 @@
 ## توابع و منطق کلیدی
 
 ### `bool AtEngine::execute(const AtRequest& req, IAtObserver* observer)`
-شروع یک فرمان AT. اگر موتور مشغول باشد (`busy()`) یا هنوز زمان نگهبانی `GSM_AT_GUARD_TIME` (پیش‌فرض ۳۰ms) از پایان فرمان قبلی نگذشته باشد، `false` برمی‌گرداند. در حالت موفق، observer، مهلت (`timeout_ms`)، و انتظار پرامپت (`expect_prompt`) را ثبت می‌کند، بافر خواندن را `reset` می‌کند و فرمان را به‌همراه `\r\n` روی UART می‌نویسد:
+شروع یک فرمان AT. اگر موتور مشغول باشد (`busy()`) یا هنوز زمان نگهبانی `GSM_AT_GUARD_TIME` (پیش‌فرض ۳۰ms) از پایان فرمان قبلی نگذشته باشد، `false` برمی‌گرداند. در حالت موفق، observer، مهلت (`timeout_ms`)، و انتظار پرامپت (`expect_prompt`) را ثبت می‌کند و فرمان را می‌فرستد (line reader ریست **نمی‌شود** تا URC نیمه‌کاره از بین نرود؛ تخلیهٔ عمدی با `discard_rx()`). فرمان به‌همراه `\r\n` روی UART می‌نویسد:
 
 ```cpp
 if (busy()) return false;
@@ -27,6 +27,9 @@ uart_.write(crlf, 2);
 
 ### `uint16_t AtEngine::write_raw(const uint8_t* data, uint16_t len)` / `write_raw(const char* text)`
 نوشتن خام روی UART برای payloadها (هگز UCS2 یا متن خام). در حالت trace با پیشوند `TX<` لاگ بایتی می‌شود. نسخه `const char*` طول رشته را با `strlen` می‌گیرد و برای `nullptr` مقدار 0 برمی‌گرداند.
+
+### `void AtEngine::discard_rx()`
+`uart_.drain_rx()` + `reader_.reset()`؛ در شروع `power_cycle` تا `NORMAL POWER DOWN` باقی‌مانده از سیکل قبلی بعد از روشن‌شدن ظاهر نشود.
 
 ### `void AtEngine::abort()`
 لغو فرمان در حال اجرا. اگر موتر در وضعیت انتظار پرامپت (`expect_prompt_`) باشد ابتدا `write_escape()` (ارسال ESC / بایت 0x1B) می‌فرستد تا مودم از حالت ورود داده خارج شود، سپس نتیجه را `AtStatus::Aborted` می‌کند. برای مودم‌هایی مثل M08R که با گیر کردن در پرامپت `>` مشکل‌ساز می‌شوند حیاتی است.

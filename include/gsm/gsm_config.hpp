@@ -71,6 +71,9 @@
 #ifndef GSM_MODEM_BOOT_GUARD_MS
 #define GSM_MODEM_BOOT_GUARD_MS 2500 // silence after a PWRKEY pulse before AT probing
 #endif
+#ifndef GSM_POWERDOWN_IGNORE_MS
+#define GSM_POWERDOWN_IGNORE_MS 4000 // ignore late NORMAL POWER DOWN after AT/RDY proved on
+#endif
 
 // --- call supervision --------------------------------------------------------
 #ifndef GSM_CALL_ANSWER_TIMEOUT_MS

@@ -61,6 +61,7 @@ uint32_t pwrkey_pulse_ms() const;
 پولس PWRKEY **غیرمسدودکننده** است: `power_cycle()`/`pulse_pwrkey()` فقط وضعیت را به `PowerPulsing` می‌برند و `tick()` ترتیب
 `assert` → نگه داشتن به مدت `pwrkey_pulse_ms` → `release` → انتظار `GSM_MODEM_BOOT_GUARD_MS` → پروب `AT` را اجرا می‌کند.
 هیچ‌کدام از این توابع بلاک نمی‌کنند و هرگز نباید از داخل وقفه صدا زده شوند.
+`NORMAL POWER DOWN` حین این دنباله به‌معنی خاموش‌شدن است (پولس بعدی برای روشن کردن)؛ بعد از `AT`/`RDY` موفق پیام کهنه است.
 
 APIهای Job (همگی `JobId` برمی‌گردانند؛ callback اختیاری):
 ```cpp
