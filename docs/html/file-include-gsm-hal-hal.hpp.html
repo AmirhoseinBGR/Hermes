@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/hal/hal.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/hal/hal.hpp</h1>
 <h2>نقش فایل</h2>
-<p>این فایل لایهٔ انتزاع سخت‌افزار (HAL) کتابخانه را تعریف می‌کند: رابط‌های خالص برای UART، زمان‌سنج و کنترل تغذیهٔ ماژول GSM. هدف، جداسازی کامل کد کتابخانه از پلتفرم مقصد است؛ کافی است کاربر پیاده‌سازی‌های متناسب با برد خود (STM32، Arduino، شبیه‌ساز تست و …) را بدهد تا همه‌جای کتابخانه بدون تغییر کار کند.</p>
+<p>این فایل لایهٔ انتزاع سخت افزار (HAL) کتابخانه را تعریف می کند: رابط های خالص برای UART، زمان سنج و کنترل تغذیهٔ ماژول GSM. هدف، جداسازی کامل کد کتابخانه از پلتفرم مقصد است؛ کافی است کاربر پیاده سازی های متناسب با برد خود (STM32، Arduino، شبیه ساز تست و …) را بدهد تا همه جای کتابخانه بدون تغییر کار کند.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>class hal::IUart</code></h3>
 <pre><code class="lang-cpp">class IUart
@@ -57,10 +57,10 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     virtual bool     set_baud(uint32_t) { return false; }
 };</code></pre>
 <ul>
-<li><code>write</code> / <code>read</code>: انتقال بایت‌ها؛ تعداد واقعی خوانده/نوشته‌شده را برمی‌گردانند (غیرمسدودکننده).</li>
+<li><code>write</code> / <code>read</code>: انتقال بایت ها؛ تعداد واقعی خوانده/نوشته شده را برمی گردانند (غیرمسدودکننده).</li>
 <li><code>available</code>: تعداد بایت آماده در بافر دریافت.</li>
-<li><code>drain_rx</code>: خالی‌کردن بافر دریافت؛ پیش از شروع هر فرمان AT فراخوانی می‌شود تا باقیماندهٔ دادهٔ قبلی مخل نشود.</li>
-<li><code>set_baud</code>: اختیاری؛ پیش‌فرض <code>false</code> (پشتیبانی نشده).</li>
+<li><code>drain_rx</code>: خالی کردن بافر دریافت؛ پیش از شروع هر فرمان AT فراخوانی می شود تا باقیماندهٔ دادهٔ قبلی مخل نشود.</li>
+<li><code>set_baud</code>: اختیاری؛ پیش فرض <code>false</code> (پشتیبانی نشده).</li>
 </ul>
 <h3><code>class hal::IClock</code></h3>
 <pre><code class="lang-cpp">class IClock
@@ -69,7 +69,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     virtual ~IClock()         = default;
     virtual uint32_t millis() = 0;
 };</code></pre>
-<p>منبع زمان مونوتونیک به میلی‌ثانیه با <strong>سرریز uint32</strong> (حدود ۴۹ روز). همهٔ تایمرهای کتابخانه بر همین مبنا کار می‌کنند.</p>
+<p>منبع زمان مونوتونیک به میلی ثانیه با <strong>سرریز uint32</strong> (حدود ۴۹ روز). همهٔ تایمرهای کتابخانه بر همین مبنا کار می کنند.</p>
 <h3><code>class hal::IPowerControl</code></h3>
 <pre><code class="lang-cpp">class IPowerControl
 {
@@ -80,15 +80,15 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     virtual bool status() { return true; }
 };</code></pre>
 <ul>
-<li><code>power_key</code>: پالس پین PWRKEY برای روشن/خاموش‌کردن ماژول.</li>
-<li><code>reset</code>: پین ریست سخت‌افزاری.</li>
-<li><code>status</code>: وضعیت روشن‌بودن ماژول (پیش‌فرض همیشه <code>true</code>).</li>
+<li><code>power_key</code>: پالس پین PWRKEY برای روشن/خاموش کردن ماژول.</li>
+<li><code>reset</code>: پین ریست سخت افزاری.</li>
+<li><code>status</code>: وضعیت روشن بودن ماژول (پیش فرض همیشه <code>true</code>).</li>
 </ul>
-<p>همهٔ متدها دارای پیش‌فرض بی‌اثرند؛ در <code>Modem</code> این اینترفیس اختیاری است (<code>nullptr</code> یعنی بدون کنترل تغذیه).</p>
+<p>همهٔ متدها دارای پیش فرض بی اثرند؛ در <code>Modem</code> این اینترفیس اختیاری است (<code>nullptr</code> یعنی بدون کنترل تغذیه).</p>
 <h3>تابع کمکی <code>elapsed</code></h3>
 <pre><code class="lang-cpp">inline bool elapsed(uint32_t now, uint32_t since, uint32_t span)
 { return static_cast&lt;uint32_t&gt;(now - since) &gt;= span; }</code></pre>
-<p>محاسبهٔ سپری‌شدن زمان به‌صورت <strong>مقاوم در برابر سرریز uint32</strong>: تفریق ماژولار <code>now - since</code> حتی بعد از پیچیدن ساعت هم درست کار می‌کند. الگوی استاندارد همهٔ تایمرهای کتابخانه.</p>
+<p>محاسبهٔ سپری شدن زمان به صورت <strong>مقاوم در برابر سرریز uint32</strong>: تفریق ماژولار <code>now - since</code> حتی بعد از پیچیدن ساعت هم درست کار می کند. الگوی استاندارد همهٔ تایمرهای کتابخانه.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">   Application / Board support
    +--------------------------------------+
@@ -107,16 +107,16 @@ gsm::hal::IClock&amp; clk  = my_clock;
 gsm::Modem modem(uart, clk, gsm::kSim800, &amp;my_power);</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه و بدون STL</strong>: تنها <code>&lt;cstdint&gt;</code>؛ همه‌چیز reference/pointer و virtual dispatch.</li>
-<li>متدها <strong>غیرمسدودکننده</strong> طراحی شده‌اند — <code>read</code> نباید منتظر داده بماند؛ حلقهٔ اصلی با <code>Modem::tick()</code> داده را می‌کشد.</li>
-<li><code>millis()</code> باید مونوتونیک باشد؛ از <code>elapsed()</code> برای مقایسه‌ها استفاده کنید نه مقایسهٔ مستقیم <code>now &gt; since</code> (مقاومت در برابر سرریز).</li>
-<li><code>drain_rx()</code> حیاتی است: باقیماندهٔ پاسخ فرمان قبلی در بافر، رفتار <code>AtEngine</code> را خراب می‌کند.</li>
-<li>اگر <code>IPowerControl</code> داده نشود، <code>Modem::has_power_control()</code> برمی‌گردد <code>false</code> و قابلیت‌های <code>pulse_pwrkey</code> / <code>power_cycle</code> عملاً غیرفعال‌اند.</li>
+<li><strong>بدون تخصیص حافظه و بدون STL</strong>: تنها <code>&lt;cstdint&gt;</code>؛ همه چیز reference/pointer و virtual dispatch.</li>
+<li>متدها <strong>غیرمسدودکننده</strong> طراحی شده اند — <code>read</code> نباید منتظر داده بماند؛ حلقهٔ اصلی با <code>Modem::tick()</code> داده را می کشد.</li>
+<li><code>millis()</code> باید مونوتونیک باشد؛ از <code>elapsed()</code> برای مقایسه ها استفاده کنید نه مقایسهٔ مستقیم <code>now &gt; since</code> (مقاومت در برابر سرریز).</li>
+<li><code>drain_rx()</code> حیاتی است: باقیماندهٔ پاسخ فرمان قبلی در بافر، رفتار <code>AtEngine</code> را خراب می کند.</li>
+<li>اگر <code>IPowerControl</code> داده نشود، <code>Modem::has_power_control()</code> برمی گردد <code>false</code> و قابلیت های <code>pulse_pwrkey</code> / <code>power_cycle</code> عملاً غیرفعال اند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>core/at_engine.hpp</code> — <code>AtEngine</code> مستقیماً <code>IUart&amp;</code> و <code>IClock&amp;</code> می‌گیرد</li>
-<li><code>modem/modem.hpp</code> — سازندهٔ <code>Modem</code> این اینترفیس‌ها را دریافت می‌کند (<code>IPowerControl*</code> اختیاری)</li>
-<li><code>tools/serial_bridge.hpp</code> و <code>cli/cli.hpp</code> — از <code>IUart</code> به‌عنوان کنسول/پل سریال استفاده می‌کنند</li>
-<li><code>core/line_reader.hpp</code> و <code>util/ring_buffer.hpp</code> — لایه‌های بافر بالای همین HAL</li>
+<li><code>core/at_engine.hpp</code> — <code>AtEngine</code> مستقیماً <code>IUart&amp;</code> و <code>IClock&amp;</code> می گیرد</li>
+<li><code>modem/modem.hpp</code> — سازندهٔ <code>Modem</code> این اینترفیس ها را دریافت می کند (<code>IPowerControl*</code> اختیاری)</li>
+<li><code>tools/serial_bridge.hpp</code> و <code>cli/cli.hpp</code> — از <code>IUart</code> به عنوان کنسول/پل سریال استفاده می کنند</li>
+<li><code>core/line_reader.hpp</code> و <code>util/ring_buffer.hpp</code> — لایه های بافر بالای همین HAL</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

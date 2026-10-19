@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/core/line_reader.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/core/line_reader.hpp</h1>
 <h2>نقش فایل</h2>
-<p>تبدیل جریان بایت‌های دریافتی از UART به واحدهای معنادار پروتکل AT: یک <strong>خط کامل</strong> (با <code>\r</code> یا <code>\n</code> جدا شده) یا نشان <strong>prompt</strong> (کاراکتر <code>&gt;</code> که مودم برای دریافت payload پیامک/USSD می‌فرستد). این کلاس بافر جمع‌آوری خطوط <code>AtEngine</code> است.</p>
+<p>تبدیل جریان بایت های دریافتی از UART به واحدهای معنادار پروتکل AT: یک <strong>خط کامل</strong> (با <code>\r</code> یا <code>\n</code> جدا شده) یا نشان <strong>prompt</strong> (کاراکتر <code>&gt;</code> که مودم برای دریافت payload پیامک/USSD می فرستد). این کلاس بافر جمع آوری خطوط <code>AtEngine</code> است.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>enum class Token : uint8_t</code></h3>
 <pre><code class="lang-cpp">enum class Token : uint8_t
@@ -66,10 +66,10 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     StaticString&lt;GSM_LINE_MAX&gt; buf_;
 };</code></pre>
 <ul>
-<li><code>feed</code>: به‌ازای هر بایت یک <code>Token</code> برمی‌گرداند؛ با دریافت terminator خط، محتوای <code>line()</code> معتبر است.</li>
-<li><code>line()</code> / <code>length()</code>: محتوای خط جاری/تکمیل‌شده (رشتهٔ null-terminated).</li>
-<li><code>reset</code>: پاک‌سازی بافر (پس از مصرف خط یا در شروع تراکنش جدید).</li>
-<li><code>Overflow</code>: خط از <code>GSM_LINE_MAX</code> (پیش‌فرض ۵۱۲) بلندتر شده؛ بافر ریست می‌شود تا خط خراب به تراکنش نشت نکند.</li>
+<li><code>feed</code>: به ازای هر بایت یک <code>Token</code> برمی گرداند؛ با دریافت terminator خط، محتوای <code>line()</code> معتبر است.</li>
+<li><code>line()</code> / <code>length()</code>: محتوای خط جاری/تکمیل شده (رشتهٔ null-terminated).</li>
+<li><code>reset</code>: پاک سازی بافر (پس از مصرف خط یا در شروع تراکنش جدید).</li>
+<li><code>Overflow</code>: خط از <code>GSM_LINE_MAX</code> (پیش فرض ۵۱۲) بلندتر شده؛ بافر ریست می شود تا خط خراب به تراکنش نشت نکند.</li>
 </ul>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">uart.read() bytes
@@ -91,16 +91,16 @@ switch (reader_.feed(b)) {
 }</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه</strong>: بافر از نوع <code>StaticString&lt;GSM_LINE_MAX&gt;</code> و روی خود object قرار دارد؛ اندازه با ماکروی <code>GSM_LINE_MAX</code> از <code>gsm_config.hpp</code> کنترل می‌شود.</li>
+<li><strong>بدون تخصیص حافظه</strong>: بافر از نوع <code>StaticString&lt;GSM_LINE_MAX&gt;</code> و روی خود object قرار دارد؛ اندازه با ماکروی <code>GSM_LINE_MAX</code> از <code>gsm_config.hpp</code> کنترل می شود.</li>
 <li><strong>بدون STL</strong>: فقط <code>&lt;cstdint&gt;</code> و <code>StaticString</code>.</li>
-<li>overflow آشکارسازی می‌شود (<code>Token::Overflow</code>)؛ خطوط خراب بی‌صدا حذف می‌شوند نه اینکه نصفه تحویل شوند.</li>
-<li>تفکیک URC از پاسخ فرمان بر عهدهٔ این کلاس نیست؛ <code>LineReader</code> فقط قاب‌بندی خط را انجام می‌دهد و <code>AtEngine</code> تصمیم می‌گیرد خط به <code>UrcRouter</code> برود یا به observer.</li>
-<li><code>&gt;</code> بدون terminator به‌عنوان prompt شناخته می‌شود (برای حالت <code>+CMGS</code> / <code>+CUSD</code>).</li>
+<li>overflow آشکارسازی می شود (<code>Token::Overflow</code>)؛ خطوط خراب بی صدا حذف می شوند نه اینکه نصفه تحویل شوند.</li>
+<li>تفکیک URC از پاسخ فرمان بر عهدهٔ این کلاس نیست؛ <code>LineReader</code> فقط قاب بندی خط را انجام می دهد و <code>AtEngine</code> تصمیم می گیرد خط به <code>UrcRouter</code> برود یا به observer.</li>
+<li><code>&gt;</code> بدون terminator به عنوان prompt شناخته می شود (برای حالت <code>+CMGS</code> / <code>+CUSD</code>).</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>core/at_engine.hpp</code> — مالک یک <code>LineReader</code> به‌نام <code>reader_</code></li>
+<li><code>core/at_engine.hpp</code> — مالک یک <code>LineReader</code> به نام <code>reader_</code></li>
 <li><code>util/static_string.hpp</code> — بافر زیرساختی</li>
 <li><code>gsm_config.hpp</code> — <code>GSM_LINE_MAX</code></li>
-<li><code>core/urc_router.hpp</code> — مصرف‌کنندهٔ خطوط کامل خروجی</li>
+<li><code>core/urc_router.hpp</code> — مصرف کنندهٔ خطوط کامل خروجی</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

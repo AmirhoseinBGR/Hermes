@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-انواع دادهٔ حوزهٔ پیامک: رمزگذاری متن (`SmsEncoding`)، ساختار پیام دریافتی (`SmsMessage`)، گزارش ارسال (`SmsSendReport`) و یک صندوق ورودی حلقوی ایستا (`SmsInbox`). این فایل قرارداد داده‌ای مشترک بین `SmsService`، Jobها و کاربر نهایی است.
+انواع دادهٔ حوزهٔ پیامک: رمزگذاری متن (`SmsEncoding`)، ساختار پیام دریافتی (`SmsMessage`)، گزارش ارسال (`SmsSendReport`) و یک صندوق ورودی حلقوی ایستا (`SmsInbox`). این فایل قرارداد داده ای مشترک بین `SmsService`، Jobها و کاربر نهایی است.
 
 ## ساختارهای کلیدی
 
@@ -29,9 +29,9 @@ struct SmsMessage
     void                               clear();
 };
 ```
-- `storage_index`: ایندکس در حافظهٔ سیم‌کارت/ماژول (برای حذف بعد از خواندن).
+- `storage_index`: ایندکس در حافظهٔ سیم کارت/ماژول (برای حذف بعد از خواندن).
 - `timestamp`: رشتهٔ خام `+CMGL/+CMGR` (فرمت سرویس مرکز پیام).
-- `clear()` همه را به حالت اولیه برمی‌گرداند.
+- `clear()` همه را به حالت اولیه برمی گرداند.
 
 ### `struct SmsSendReport`
 ```cpp
@@ -51,8 +51,8 @@ static constexpr uint8_t capacity() { return N; }
 const SmsMessage&        at(uint8_t i) const;   // i=0 is the newest
 void clear();
 ```
-- الگوی ring buffer: `acquire` سر `head_` را جلو می‌برد و قدیمی‌ترین پیام بازنویسی می‌شود.
-- `at(i)` از **جدیدترین** به قدیمی‌ترین ایندکس‌دهی می‌کند (`at(0)` = آخرین پیام).
+- الگوی ring buffer: `acquire` سر `head_` را جلو می برد و قدیمی ترین پیام بازنویسی می شود.
+- `at(i)` از **جدیدترین** به قدیمی ترین ایندکس دهی می کند (`at(0)` = آخرین پیام).
 
 ## جریان کاری
 
@@ -78,16 +78,16 @@ SmsService::start_send(number, utf8, enc)
 
 ## نکات فنی
 
-- **بدون تخصیص حافظه**: همهٔ رشته‌ها `StaticString`؛ `SmsInbox` آرایهٔ ایستا از `SmsMessage`.
-- متن UTF-8 نگهداری می‌شود (فارسی به‌صورت UCS2 روی سیم منتقل می‌شود ولی در حافظه UTF-8 است) — تبدیل بر عهدهٔ `codec/ucs2.hpp`.
-- `SmsMessage::text` سقف `GSM_SMS_TEXT_BYTES` (پیش‌فرض ۵۱۲ بایت) دارد.
+- **بدون تخصیص حافظه**: همهٔ رشته ها `StaticString`؛ `SmsInbox` آرایهٔ ایستا از `SmsMessage`.
+- متن UTF-8 نگهداری می شود (فارسی به صورت UCS2 روی سیم منتقل می شود ولی در حافظه UTF-8 است) — تبدیل بر عهدهٔ `codec/ucs2.hpp`.
+- `SmsMessage::text` سقف `GSM_SMS_TEXT_BYTES` (پیش فرض ۵۱۲ بایت) دارد.
 - `timestamp` عمداً `StaticString<24>` ثابت است (فرمت استاندارد `yy/MM/dd,hh:mm:ss±zz`).
-- `SmsInbox::at` ایندکس‌گذاری معکوس دارد؛ برای ترتیب زمانی قدیمی‌به‌جدید باید از `count()-1` به ۰ بروید.
+- `SmsInbox::at` ایندکس گذاری معکوس دارد؛ برای ترتیب زمانی قدیمی به جدید باید از `count()-1` به ۰ بروید.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
-- `codec/phone_number.hpp` — شمارهٔ فرستنده/گیرنده در سرویس (الگوی نرمال‌سازی E.164)
-- `codec/ucs2.hpp` — تبدیل‌های رمزگذاری
+- `codec/phone_number.hpp` — شمارهٔ فرستنده/گیرنده در سرویس (الگوی نرمال سازی E.164)
+- `codec/ucs2.hpp` — تبدیل های رمزگذاری
 - `sms/sms_service.hpp` — تولید و مصرف این انواع
 - `queue/job.hpp` — فیلدهای `SmsEncoding`، `number`، `text` در Job
 - `gsm_config.hpp` — `GSM_SMS_TEXT_BYTES`، `GSM_SMS_NUMBER_BYTES`

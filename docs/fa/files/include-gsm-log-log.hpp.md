@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-سامانهٔ ثبت وقایع (لاگ) سبک‌وزن و بدون تخصیص حافظه کتابخانه: سطح‌بندی، کانال‌های تگ‌دار، خروجی قابل تعویض (sink)، رنگ ANSI و نشانگر زمان. این سامانه عمداً جایگزین `printf` خام و `std::ostream` شده تا روی میکروکنترلرها هم قابل استفاده باشد و در عین حال در تست‌های میزبانی به‌راحتی قابل capture باشد.
+سامانهٔ ثبت وقایع (لاگ) سبک وزن و بدون تخصیص حافظه کتابخانه: سطح بندی، کانال های تگ دار، خروجی قابل تعویض (sink)، رنگ ANSI و نشانگر زمان. این سامانه عمداً جایگزین `printf` خام و `std::ostream` شده تا روی میکروکنترلرها هم قابل استفاده باشد و در عین حال در تست های میزبانی به راحتی قابل capture باشد.
 
 ## ساختارهای کلیدی
 
@@ -10,7 +10,7 @@
 ```cpp
 enum class Level : uint8_t { Off = 0, Error, Warn, Info, Debug, Trace };
 ```
-سقف کامپایل‌تایم با `GSM_LOG_LEVEL_MAX` (پیش‌فرض ۴ = Debug).
+سقف کامپایل تایم با `GSM_LOG_LEVEL_MAX` (پیش فرض ۴ = Debug).
 
 ### `struct Record`
 ```cpp
@@ -43,7 +43,7 @@ using ClockHook = uint32_t (*)();
 ```
 
 ### `class Channel`
-کانال تگ‌دار برای هر جزء کتابخانه (مثلاً `"sms"`, `"call"`):
+کانال تگ دار برای هر جزء کتابخانه (مثلاً `"sms"`, `"call"`):
 ```cpp
 constexpr explicit Channel(const char* tag, Level level = Level::Info, bool enabled = true);
 
@@ -65,7 +65,7 @@ bool wants(Level l) const;  // enabled && l <= GSM_LOG_LEVEL_MAX && l <= channel
 explicit ScopedSink(Sink sink, void* ctx = nullptr);
 ~ScopedSink();   // restores previous sink + ctx
 ```
-تعویض موقت sink (مثلاً در تست‌ها) با تضمین بازگشت در destructor — غیرقابل کپی.
+تعویض موقت sink (مثلاً در تست ها) با تضمین بازگشت در destructor — غیرقابل کپی.
 
 ### sinkهای آماده
 ```cpp
@@ -111,16 +111,16 @@ log_sms.info("send ok ref=%d", ref);
 
 ## نکات فنی
 
-- **بدون heap / بدون STL**: فقط `<cstdio>`/`<cstdarg>`؛ بافر قالب‌بندی داخلی و ایستا.
-- گیت سه‌سطحه در `wants()` — سطح کانال، سطح سراسری و `GSM_LOG_LEVEL_MAX` کامپایل‌تایم؛ پیام‌های بالاتر از سقف حتی قالب‌بندی هم نمی‌شوند.
+- **بدون heap / بدون STL**: فقط `<cstdio>`/`<cstdarg>`؛ بافر قالب بندی داخلی و ایستا.
+- گیت سه سطحه در `wants()` — سطح کانال، سطح سراسری و `GSM_LOG_LEVEL_MAX` کامپایل تایم؛ پیام های بالاتر از سقف حتی قالب بندی هم نمی شوند.
 - `__attribute__((format(printf, 2, 3)))` برای بررسی قالب رشته در زمان کامپایل.
-- `Registry` همه‌static است؛ در چند context (مثلاً چند instance از Modem) یک sink سراسری مشترک دارید — با `ScopedSink` در تست‌ها ایزوله کنید.
-- رنگ ANSI با `set_color`/`GSM_LOG_COLOR_DEFAULT` کنترل می‌شود؛ برای خروجی‌های غیرترمینالی غیرفعالش کنید.
-- متن رکورد فقط تا `GSM_LOG_BUFFER_SIZE` (پیش‌فرض ۱۸۰) بایت؛ پیام‌های بلند بریده می‌شوند.
+- `Registry` همه static است؛ در چند context (مثلاً چند instance از Modem) یک sink سراسری مشترک دارید — با `ScopedSink` در تست ها ایزوله کنید.
+- رنگ ANSI با `set_color`/`GSM_LOG_COLOR_DEFAULT` کنترل می شود؛ برای خروجی های غیرترمینالی غیرفعالش کنید.
+- متن رکورد فقط تا `GSM_LOG_BUFFER_SIZE` (پیش فرض ۱۸۰) بایت؛ پیام های بلند بریده می شوند.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `gsm_config.hpp` — `GSM_LOG_LEVEL_MAX`، `GSM_LOG_BUFFER_SIZE`، `GSM_LOG_COLOR_DEFAULT`
 - `cli/cli.hpp` — `install_log_mirror()` و `WriterSink` برای انتقال لاگ به کنسول/وب
 - `tools/serial_bridge.hpp` — نمایش ترافیک در حالت bridge
-- همهٔ سرویس‌ها و `AtEngine` — کانال‌های تگ‌دار برای ردیابی جریان AT
+- همهٔ سرویس ها و `AtEngine` — کانال های تگ دار برای ردیابی جریان AT

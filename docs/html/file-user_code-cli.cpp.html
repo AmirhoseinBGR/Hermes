@@ -41,19 +41,19 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/user_code/cli.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/user_code/cli.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی «چسب سخت‌افزاری» (hardware glue) کنسول تعاملی روی STM32. این فایل فقط سخت‌افزار (UART مودم، UART دیباگ، زمان‌سنج، کنترل تغذیه) و نمونه‌ی مودم <code>kQuectelM08R</code> را می‌سازد و آن‌ها را به کنسول کتابخانه <code>gsm::cli::Console</code> وصل می‌کند. تمام منطق کنسول (منو، وضعیت زنده، دستورات، پاس‌ترو) در خود کتابخانه است؛ این فایل عمداً نازک نگه داشته شده است.</p>
+<p>پیاده سازی «چسب سخت افزاری» (hardware glue) کنسول تعاملی روی STM32. این فایل فقط سخت افزار (UART مودم، UART دیباگ، زمان سنج، کنترل تغذیه) و نمونه ی مودم <code>kQuectelM08R</code> را می سازد و آن ها را به کنسول کتابخانه <code>gsm::cli::Console</code> وصل می کند. تمام منطق کنسول (منو، وضعیت زنده، دستورات، پاس ترو) در خود کتابخانه است؛ این فایل عمداً نازک نگه داشته شده است.</p>
 <h2>ساختارها/توابع کلیدی</h2>
-<p>نمونه‌های ایستا (static) در سطح فایل:</p>
+<p>نمونه های ایستا (static) در سطح فایل:</p>
 <ul>
 <li><code>static port::Stm32Uart&lt;512&gt; s_gsm_uart(&amp;huart7)</code> — UART مودم (UART7) با بافر DMA ۵۱۲ بایتی.</li>
 <li><code>static port::Stm32Uart&lt;256&gt; s_dbg_uart(&amp;huart1)</code> — UART دیباگ/کنسول (USART1) با بافر DMA ۲۵۶ بایتی.</li>
-<li><code>static port::Stm32Clock s_clk</code> — زمان‌سنج مبتنی بر <code>HAL_GetTick</code>.</li>
+<li><code>static port::Stm32Clock s_clk</code> — زمان سنج مبتنی بر <code>HAL_GetTick</code>.</li>
 <li><code>static port::Stm32PowerControl s_gsmpwr(...)</code> — (شرطی، فقط اگر <code>GSM_PWR_GPIO_Port</code>/<code>GSM_PWR_Pin</code> تعریف شده باشند) کنترل PWRKEY مودم.</li>
-<li><code>static Modem s_modem(s_gsm_uart, s_clk, kQuectelM08R, ...)</code> — نمونه‌ی مودم M08R؛ اگر پین تغذیه تعریف نشده باشد، <code>nullptr</code> برای کنترل تغذیه می‌گیرد.</li>
-<li><code>static gsm::cli::Console s_console(s_modem, s_clk)</code> — کنسول کتابخانه متصل به مودم و زمان‌سنج.</li>
-<li><code>static void uart_write(void<em>, const char</em> data, uint16_t len)</code> — متن خروجی کنسول را روی UART دیباگ می‌نویسد (به‌عنوان <code>TextSink</code>).</li>
+<li><code>static Modem s_modem(s_gsm_uart, s_clk, kQuectelM08R, ...)</code> — نمونه ی مودم M08R؛ اگر پین تغذیه تعریف نشده باشد، <code>nullptr</code> برای کنترل تغذیه می گیرد.</li>
+<li><code>static gsm::cli::Console s_console(s_modem, s_clk)</code> — کنسول کتابخانه متصل به مودم و زمان سنج.</li>
+<li><code>static void uart_write(void<em>, const char</em> data, uint16_t len)</code> — متن خروجی کنسول را روی UART دیباگ می نویسد (به عنوان <code>TextSink</code>).</li>
 </ul>
 <p>توابع عمومی <code>namespace cli</code>:</p>
 <ul>
@@ -65,39 +65,39 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 </ul>
 <ul>
 <li><code>void tick()</code></li>
-<li><code>s_modem.tick()</code> و <code>s_console.tick()</code> را در هر چرخه صدا می‌زند.</li>
+<li><code>s_modem.tick()</code> و <code>s_console.tick()</code> را در هر چرخه صدا می زند.</li>
 </ul>
 <ul>
 <li><code>void on_uart_rx(UART_HandleTypeDef* huart, uint16_t size)</code></li>
-<li>اگر <code>huart-&gt;Instance == UART7</code> → <code>s_gsm_uart.on_rx_event(size)</code> (داده‌ی مودم).</li>
-<li>اگر <code>USART1</code> → <code>s_dbg_uart.on_rx_event(size)</code> سپس بایت‌ها یکی‌یکی با <code>s_console.feed(b)</code> به کنسول داده می‌شوند.</li>
+<li>اگر <code>huart-&gt;Instance == UART7</code> → <code>s_gsm_uart.on_rx_event(size)</code> (داده ی مودم).</li>
+<li>اگر <code>USART1</code> → <code>s_dbg_uart.on_rx_event(size)</code> سپس بایت ها یکی یکی با <code>s_console.feed(b)</code> به کنسول داده می شوند.</li>
 </ul>
 <ul>
 <li><code>void on_uart_error(UART_HandleTypeDef* huart)</code></li>
-<li>خطای هر UART را به <code>on_error()</code> همان پُرت ارجاع می‌دهد تا دریافت بازیابی شود.</li>
+<li>خطای هر UART را به <code>on_error()</code> همان پُرت ارجاع می دهد تا دریافت بازیابی شود.</li>
 </ul>
 <h2>جریان کاری</h2>
 <ol>
-<li><strong>راه‌اندازی:</strong> <code>cli::init()</code> → شروع UARTها → تنظیم خروجی کنسول → تنظیم housekeeping → <code>modem.begin()</code> → <code>console.init()</code> (ثبت کال‌بک‌ها و رسم منو).</li>
-<li><strong>حلقه‌ی اصلی:</strong> <code>cli::tick()</code> → <code>modem.tick()</code> (پیشرفت ماشین حالت AT) + <code>console.tick()</code> (به‌روزرسانی نمایش/پاسخ).</li>
-<li><strong>ورودی کاربر:</strong> وقفه‌ی USART1 → <code>on_uart_rx</code> → <code>s_console.feed(b)</code> برای هر بایت → کنسول خط فرمان را کامل و اجرا می‌کند.</li>
-<li><strong>خروجی:</strong> کنسول متن را از طریق <code>uart_write</code> روی USART1 چاپ می‌کند.</li>
+<li><strong>راه اندازی:</strong> <code>cli::init()</code> → شروع UARTها → تنظیم خروجی کنسول → تنظیم housekeeping → <code>modem.begin()</code> → <code>console.init()</code> (ثبت کال بک ها و رسم منو).</li>
+<li><strong>حلقه ی اصلی:</strong> <code>cli::tick()</code> → <code>modem.tick()</code> (پیشرفت ماشین حالت AT) + <code>console.tick()</code> (به روزرسانی نمایش/پاسخ).</li>
+<li><strong>ورودی کاربر:</strong> وقفه ی USART1 → <code>on_uart_rx</code> → <code>s_console.feed(b)</code> برای هر بایت → کنسول خط فرمان را کامل و اجرا می کند.</li>
+<li><strong>خروجی:</strong> کنسول متن را از طریق <code>uart_write</code> روی USART1 چاپ می کند.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li>این فایل فقط «سیم‌کشی» است؛ هیچ منطق کنسول یا تجاری در آن نیست. منطق در <code>gsm::cli::Console</code> (کتابخانه) است.</li>
-<li><code>s_gsm_uart</code> و <code>s_dbg_uart</code> اندازه‌ی DMA متفاوت (۵۱۲ / ۲۵۶) دارند؛ بسته به حجم ترافیک مودم در برابر کنسول.</li>
-<li>پین تغذیه با <code>#if defined(GSM_PWR_GPIO_Port) &amp;&amp; defined(GSM_PWR_Pin)</code> اختیاری است؛ در نبود آن مودم بدون کنترل تغذیه ساخته می‌شود.</li>
-<li><code>kQuectelM08R</code> نوع دستگاه (device trait) مودم را مشخص می‌کند؛ برخلاف مثال آردوینو که <code>kSim800</code> است.</li>
-<li>فواصل housekeeping (سیگنال، اسکن پیامک، جاروب کامل، پاک‌سازی) به میلی‌ثانیه و قابل تنظیم‌اند.</li>
-<li><code>tick</code> باید مرتباً و بدون وقفه‌ی طولانی صدا زده شود تا هم مودم و هم کنسول پاسخ‌گو بمانند.</li>
+<li>این فایل فقط «سیم کشی» است؛ هیچ منطق کنسول یا تجاری در آن نیست. منطق در <code>gsm::cli::Console</code> (کتابخانه) است.</li>
+<li><code>s_gsm_uart</code> و <code>s_dbg_uart</code> اندازه ی DMA متفاوت (۵۱۲ / ۲۵۶) دارند؛ بسته به حجم ترافیک مودم در برابر کنسول.</li>
+<li>پین تغذیه با <code>#if defined(GSM_PWR_GPIO_Port) &amp;&amp; defined(GSM_PWR_Pin)</code> اختیاری است؛ در نبود آن مودم بدون کنترل تغذیه ساخته می شود.</li>
+<li><code>kQuectelM08R</code> نوع دستگاه (device trait) مودم را مشخص می کند؛ برخلاف مثال آردوینو که <code>kSim800</code> است.</li>
+<li>فواصل housekeeping (سیگنال، اسکن پیامک، جاروب کامل، پاک سازی) به میلی ثانیه و قابل تنظیم اند.</li>
+<li><code>tick</code> باید مرتباً و بدون وقفه ی طولانی صدا زده شود تا هم مودم و هم کنسول پاسخ گو بمانند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>gsm/user_code/cli.hpp</code> — رابط عمومی که این فایل پیاده می‌کند.</li>
+<li><code>gsm/user_code/cli.hpp</code> — رابط عمومی که این فایل پیاده می کند.</li>
 <li><code>gsm/include/gsm/cli/cli.hpp</code> — کلاس <code>gsm::cli::Console</code> (منطق کنسول).</li>
 <li><code>gsm/ports/stm32/gsm_port_stm32.hpp</code> — <code>Stm32Uart</code>/<code>Stm32Clock</code>/<code>Stm32PowerControl</code>.</li>
 <li><code>gsm/modem/modem.hpp</code> — کلاس <code>Modem</code> و ثابت <code>kQuectelM08R</code>.</li>
-<li><code>gsm/examples/stm32_main.cpp</code> — نقطه‌ی ورودی که <code>cli::init</code>/<code>cli::tick</code>/<code>cli::on_uart_rx</code>/<code>cli::on_uart_error</code> را صدا می‌زند.</li>
-<li><code>App/gsm_cli/cli.cpp</code> — نسخه‌ی مشابه برای اپلیکیشن کامل که افزون بر این‌ها پل وب (web bridge) هم دارد.</li>
+<li><code>gsm/examples/stm32_main.cpp</code> — نقطه ی ورودی که <code>cli::init</code>/<code>cli::tick</code>/<code>cli::on_uart_rx</code>/<code>cli::on_uart_error</code> را صدا می زند.</li>
+<li><code>App/gsm_cli/cli.cpp</code> — نسخه ی مشابه برای اپلیکیشن کامل که افزون بر این ها پل وب (web bridge) هم دارد.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

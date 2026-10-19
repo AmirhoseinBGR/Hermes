@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-قرارداد مشترک همهٔ «سرویس‌ها» (ماشین‌های حالت چندمرحله‌ای AT مثل SMS، تماس، وضعیت و USSD) و همچنین ثبت وضعیت مشترک نشست با مودم (`SessionState`). هر سرویس یک `IAtObserver` است که مراحل خود را با `pump()` جلو می‌برد و نتیجه را در قالب `AtResult` عرضه می‌کند.
+قرارداد مشترک همهٔ «سرویس ها» (ماشین های حالت چندمرحله ای AT مثل SMS، تماس، وضعیت و USSD) و همچنین ثبت وضعیت مشترک نشست با مودم (`SessionState`). هر سرویس یک `IAtObserver` است که مراحل خود را با `pump()` جلو می برد و نتیجه را در قالب `AtResult` عرضه می کند.
 
 ## ساختارهای کلیدی
 
@@ -17,7 +17,7 @@ enum class Charset : uint8_t
 ```
 
 ### `struct SessionState`
-وضعیت نشست جاری AT که بین سرویس‌ها مشترک است و از اجرای دستبارهٔ دستورهای تنظیمی جلوگیری می‌کند:
+وضعیت نشست جاری AT که بین سرویس ها مشترک است و از اجرای دستبارهٔ دستورهای تنظیمی جلوگیری می کند:
 ```cpp
 struct SessionState
 {
@@ -29,7 +29,7 @@ struct SessionState
     void    invalidate() { *this = SessionState{}; }
 };
 ```
-`invalidate()` (مثلاً بعد از ریست ماژول یا قطع ارتباط) همه را به حالت ناشناخته برمی‌گرداند تا سرویس‌ها دوباره پیکربندی کنند.
+`invalidate()` (مثلاً بعد از ریست ماژول یا قطع ارتباط) همه را به حالت ناشناخته برمی گرداند تا سرویس ها دوباره پیکربندی کنند.
 
 ### `class IService : public IAtObserver`
 ```cpp
@@ -43,7 +43,7 @@ class IService : public IAtObserver
     virtual const AtResult& result() const    = 0;  // final result of last run
 };
 ```
-پیاده‌سازی‌های مشخص: `SmsService`، `CallService`، `StatusService`، `UssdService` — همگی `final` و با الگوی ماشین حالت گام‌به‌گام (`SmsStep`، `CallStep`، …).
+پیاده سازی های مشخص: `SmsService`، `CallService`، `StatusService`، `UssdService` — همگی `final` و با الگوی ماشین حالت گام به گام (`SmsStep`، `CallStep`، …).
 
 ## جریان کاری
 
@@ -61,7 +61,7 @@ Modem::pump_services()
          advance_step() -> next state ... -> Done
 ```
 
-الگوی معمول پیاده‌سازی یک سرویس:
+الگوی معمول پیاده سازی یک سرویس:
 
 ```cpp
 // A service is a step machine driven by pump(); each step issues at most
@@ -79,15 +79,15 @@ void SmsService::pump()
 
 ## نکات فنی
 
-- **بدون تخصیص حافظه / بدون STL**: `SessionState` یک POD کوچک است؛ سرویس‌ها همگی به‌صورت عضو `Modem` (نه اشاره‌گر پویا) نگهداری می‌شوند.
-- هم‌زمان فقط **یک سرویس فعال** می‌تواند باشد؛ هماهنگی با `JobQueue` و `Modem::service_for()` انجام می‌شود.
+- **بدون تخصیص حافظه / بدون STL**: `SessionState` یک POD کوچک است؛ سرویس ها همگی به صورت عضو `Modem` (نه اشاره گر پویا) نگهداری می شوند.
+- هم زمان فقط **یک سرویس فعال** می تواند باشد؛ هماهنگی با `JobQueue` و `Modem::service_for()` انجام می شود.
 - `active()` مبنای «آیا موتور درگیر است» برای صف و gate تماس است.
-- `SessionState` عمداً بین سرویس‌ها مشترک است تا مثلاً `SetCharset` فقط یک بار اجرا شود؛ اما هر سرویسی که به پیکربندی قطعی نیاز دارد باید خودش اعتبارسنجی کند.
-- `IAtObserver` پیش‌فرض‌های no-op دارد؛ سرویس‌ها فقط متدهای موردنیازشان را override می‌کنند.
+- `SessionState` عمداً بین سرویس ها مشترک است تا مثلاً `SetCharset` فقط یک بار اجرا شود؛ اما هر سرویسی که به پیکربندی قطعی نیاز دارد باید خودش اعتبارسنجی کند.
+- `IAtObserver` پیش فرض های no-op دارد؛ سرویس ها فقط متدهای موردنیازشان را override می کنند.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `core/at_engine.hpp` و `core/at_types.hpp` — موتور اجرا و اینترفیس observer
-- `sms/sms_service.hpp`، `voice/call_service.hpp`، `status/status_service.hpp`، `ussd/ussd_service.hpp` — پیاده‌سازی‌های `IService`
-- `modem/modem.hpp` — مالک سرویس‌ها و `SessionState`؛ صدازدن `pump()` در هر تیک
-- `queue/job.hpp` — نوع Job که به هر سرویس نگاشت می‌شود
+- `sms/sms_service.hpp`، `voice/call_service.hpp`، `status/status_service.hpp`، `ussd/ussd_service.hpp` — پیاده سازی های `IService`
+- `modem/modem.hpp` — مالک سرویس ها و `SessionState`؛ صدازدن `pump()` در هر تیک
+- `queue/job.hpp` — نوع Job که به هر سرویس نگاشت می شود

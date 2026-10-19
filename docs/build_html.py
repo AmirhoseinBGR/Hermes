@@ -155,9 +155,9 @@ def page(title: str, body: str, home: bool = False) -> str:
            '<a href="guide-architecture.html">معماری</a>'
            '<a href="guide-call_management.html">مدیریت تماس</a>'
            '<a href="guide-sms_policy.html">سیاست پیامک</a>'
-           '<a href="guide-watchdog.html">واچ‌داگ‌ها</a>'
+           '<a href="guide-watchdog.html">واچ داگ ها</a>'
            '<a href="guide-cli.html">کنسول CLI</a>'
-           '<a href="files-index.html">فایل‌به‌فایل</a>'
+           '<a href="files-index.html">فایل به فایل</a>'
            '</nav>')
     foot = '<footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer>'
     return (f"<!doctype html><html lang=\"fa\" dir=\"rtl\"><head>"
@@ -172,7 +172,7 @@ GUIDES = {
     "COMPREHENSIVE_GUIDE.md": ("guide-comprehensive", "راهنمای جامع"),
     "CALL_MANAGEMENT.md": ("guide-call_management", "مدیریت تماس"),
     "SMS_POLICY.md": ("guide-sms_policy", "سیاست پیامک"),
-    "WATCHDOG.md": ("guide-watchdog", "واچ‌داگ‌ها"),
+    "WATCHDOG.md": ("guide-watchdog", "واچ داگ ها"),
     "CLI.md": ("guide-cli", "کنسول CLI"),
     "QUIRKS.md": ("guide-quirks", "نکات عملی"),
     "INDUSTRIAL_RECOVERY.md": ("guide-industrial", "بازیابی صنعتی"),
@@ -208,10 +208,10 @@ def main() -> int:
     # per-file index page
     rows = "".join(f'<tr><td><a href="{slug}.html">{html.escape(name)}</a></td></tr>'
                    for name, slug in entries)
-    idx_body = ("<h1>راهنمای فایل‌به‌فایل</h1>"
+    idx_body = ("<h1>راهنمای فایل به فایل</h1>"
                 "<p>برای هر فایل از کد، یک راهنمای کامل فارسی نوشته شده است:</p>"
                 f"<table><tbody>{rows}</tbody></table>")
-    (OUT / "files-index.html").write_text(page("فایل‌به‌فایل", idx_body), encoding="utf-8")
+    (OUT / "files-index.html").write_text(page("فایل به فایل", idx_body), encoding="utf-8")
 
     # enrich the main index with links to per-file docs
     print(f"generated {len(generated)} guide pages + files index in {OUT}")

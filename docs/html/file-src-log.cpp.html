@@ -41,36 +41,36 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/log.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/log.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی زیرسیستم لاگ کتابخانه در فضای نام <code>gsm::log</code>: ثبت سراسری (<code>Registry</code>) با سینک قابل‌تعویض، کانال‌های چندسطحی (<code>Channel</code>) با فرمت‌دهی printf-مانند، دامپ بایتی/هگز برای ترافیک AT، و سینک‌های آماده (<code>stdio</code>، <code>null</code>، <code>writer</code> برای ارسال به سریال/وب). همه پیام‌ها با بافر ثابت ساخته می‌شوند؛ هیچ تخصیص حافظه پویا در مسیر لاگ وجود ندارد.</p>
+<p>پیاده سازی زیرسیستم لاگ کتابخانه در فضای نام <code>gsm::log</code>: ثبت سراسری (<code>Registry</code>) با سینک قابل تعویض، کانال های چندسطحی (<code>Channel</code>) با فرمت دهی printf-مانند، دامپ بایتی/هگز برای ترافیک AT، و سینک های آماده (<code>stdio</code>، <code>null</code>، <code>writer</code> برای ارسال به سریال/وب). همه پیام ها با بافر ثابت ساخته می شوند؛ هیچ تخصیص حافظه پویا در مسیر لاگ وجود ندارد.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3>ایستاهای <code>Registry</code> و مدیریت سینک</h3>
-<pre><code class="lang-cpp">Sink      Registry::sink_       = &amp;stdio_sink;   // پیش‌فرض: printf
+<pre><code class="lang-cpp">Sink      Registry::sink_       = &amp;stdio_sink;   // پیش فرض: printf
 ClockHook Registry::clock_      = nullptr;
 Level     Registry::global_     = Level::Trace;
 bool      Registry::color_      = (GSM_LOG_COLOR_DEFAULT != 0);
 bool      Registry::timestamps_ = true;</code></pre>
 <ul>
-<li><code>set_sink(Sink, void* ctx)</code> — تعویض سینک؛ اگر <code>nullptr</code> بدهید به <code>stdio_sink</code> بازمی‌گردد (fail-safe).</li>
+<li><code>set_sink(Sink, void* ctx)</code> — تعویض سینک؛ اگر <code>nullptr</code> بدهید به <code>stdio_sink</code> بازمی گردد (fail-safe).</li>
 <li><code>emit(const Record&amp;)</code> — ارسال یک رکورد به سینک جاری.</li>
-<li><code>level_name(Level)</code> → <code>"E" | "W" | "I" | "D" | "T"</code>؛ <code>level_color(Level)</code> → کدهای ANSI متناظر (قرمز/زرد/فیروزه‌ای/سفید/کم‌رنگ).</li>
+<li><code>level_name(Level)</code> → <code>"E" | "W" | "I" | "D" | "T"</code>؛ <code>level_color(Level)</code> → کدهای ANSI متناظر (قرمز/زرد/فیروزه ای/سفید/کم رنگ).</li>
 </ul>
 <h3><code>void Channel::vlog(Level, const char* fmt, va_list) const</code></h3>
-<p>هسته فرمت‌دهی: متن با <code>vsnprintf</code> در بافر ثابت <code>GSM_LOG_BUFFER_SIZE</code> (پیش‌فرض ۱۸۰ بایت) ساخته، طول واقعی (برش‌خورده) در <code>Record</code> ثبت و با timestamp از <code>Registry::now_ms()</code> ارسال می‌شود. فیلتر سطح (<code>wants(level)</code>) <strong>قبل از</strong> فرمت‌دهی انجام می‌شود تا پیام‌های ناخواسته هزینه‌ای نداشته باشند.</p>
+<p>هسته فرمت دهی: متن با <code>vsnprintf</code> در بافر ثابت <code>GSM_LOG_BUFFER_SIZE</code> (پیش فرض ۱۸۰ بایت) ساخته، طول واقعی (برش خورده) در <code>Record</code> ثبت و با timestamp از <code>Registry::now_ms()</code> ارسال می شود. فیلتر سطح (<code>wants(level)</code>) <strong>قبل از</strong> فرمت دهی انجام می شود تا پیام های ناخواسته هزینه ای نداشته باشند.</p>
 <h3>متدهای سطح (تولیدشده با ماکرو <code>GSM_LOG_IMPL</code>)</h3>
-<p><code>error</code>، <code>warn</code>، <code>info</code>، <code>debug</code>، <code>trace</code> — همگی الگوی یکسان دارند: بررسی سطح، بازکردن <code>va_list</code>، فراخوانی <code>vlog</code>. ماکرو بعد از تولید <code>#undef</code> می‌شود.</p>
+<p><code>error</code>، <code>warn</code>، <code>info</code>، <code>debug</code>، <code>trace</code> — همگی الگوی یکسان دارند: بررسی سطح، بازکردن <code>va_list</code>، فراخوانی <code>vlog</code>. ماکرو بعد از تولید <code>#undef</code> می شود.</p>
 <h3><code>void Channel::bytes(Level, const char<em> prefix, const uint8_t</em> data, uint16_t len) const</code></h3>
-<p>نمایش ترافیک خام به‌صورت خوانا: چاپی‌های ASCII مستقیم، <code>\r</code> → <code>\r</code> متنی (<code>\\r</code>)، <code>\n</code> → <code>\\n</code>، <code>0x1A</code> → <code>&lt;CtrlZ&gt;</code>، <code>0x1B</code> → <code>&lt;ESC&gt;</code> و بقیه به <code>&lt;XX&gt;</code>. برای ردیابی payload پیامک و پاسخ‌های AT حیاتی است.</p>
+<p>نمایش ترافیک خام به صورت خوانا: چاپی های ASCII مستقیم، <code>\r</code> → <code>\r</code> متنی (<code>\\r</code>)، <code>\n</code> → <code>\\n</code>، <code>0x1A</code> → <code>&lt;CtrlZ&gt;</code>، <code>0x1B</code> → <code>&lt;ESC&gt;</code> و بقیه به <code>&lt;XX&gt;</code>. برای ردیابی payload پیامک و پاسخ های AT حیاتی است.</p>
 <h3><code>void Channel::hexdump(Level, const char<em> prefix, const uint8_t</em> data, uint16_t len) const</code></h3>
-<p>دامپ هگز ۱۶‌بایتی در هر خط با آفست: <code>"%s%04X: %02X %02X …"</code>؛ هر خط یک <code>Record</code> جداگانه است.</p>
+<p>دامپ هگز ۱۶ بایتی در هر خط با آفست: <code>"%s%04X: %02X %02X …"</code>؛ هر خط یک <code>Record</code> جداگانه است.</p>
 <h3><code>ScopedSink</code></h3>
-<p>RAII برای تعویض موقت سینک (مثلاً منحرف‌کردن لاگ به بافر تست)؛ در destructor سینک قبلی بازمی‌گردد.</p>
-<h3>سینک‌های آماده</h3>
+<p>RAII برای تعویض موقت سینک (مثلاً منحرف کردن لاگ به بافر تست)؛ در destructor سینک قبلی بازمی گردد.</p>
+<h3>سینک های آماده</h3>
 <ul>
 <li><strong><code>stdio_sink</code></strong> — خروجی <code>printf</code> با قالب <code>[%8lu][%s/%s] %s</code> (زمان اختیاری) و رنگ ANSI اختیاری.</li>
-<li><strong><code>null_sink</code></strong> — بی‌صدا؛ برای حذف کامل لاگ در محصول نهایی.</li>
-<li><strong><code>writer_sink</code></strong> — همان قالب را در یک بافر می‌سازد و به <code>WriterSink::write</code> (تابع ارجاعی کاربر، مثلاً پورت سریال <code>Console</code>) می‌دهد؛ این همان مسیری است که <code>cli::Console::install_log_mirror</code> استفاده می‌کند.</li>
+<li><strong><code>null_sink</code></strong> — بی صدا؛ برای حذف کامل لاگ در محصول نهایی.</li>
+<li><strong><code>writer_sink</code></strong> — همان قالب را در یک بافر می سازد و به <code>WriterSink::write</code> (تابع ارجاعی کاربر، مثلاً پورت سریال <code>Console</code>) می دهد؛ این همان مسیری است که <code>cli::Console::install_log_mirror</code> استفاده می کند.</li>
 </ul>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">kLog.info(&quot;sent, ref=%d&quot;, ref)                 // هر فایل: static const Channel
@@ -84,19 +84,19 @@ Registry::emit ──► sink_(rec, ctx)
                     └─ null_sink    → حذف</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>فیلتر زودهنگام:</strong> <code>wants(level)</code> قبل از هر کاری اجرا می‌شود؛ لاگ در سطح بالاتر (مثلاً Error در production) تقریباً رایگان است.</li>
-<li><strong>برش بافر:</strong> پیام‌های بلندتر از <code>GSM_LOG_BUFFER_SIZE</code> بی‌صدا بریده می‌شوند (<code>vsnprintf</code> مقدار برگشتی بالاتر از ظرفیت را نادیده می‌گیرد).</li>
-<li><strong><code>Channel</code> ثابت‌های محلی هر فایل:</strong> هر فایل <code>.cpp</code> یک <code>static const log::Channel kLog{"tag", Level::Debug}</code> دارد؛ tag در خروجی <code>[tag]</code> دیده می‌شود و سطح پیش‌فرض هر زیرسیستم مستقل است.</li>
-<li><strong>timestamp از <code>ClockHook</code>:</strong> <code>Registry::set_clock</code> تابع بازگشتی <code>uint32_t</code> می‌گیرد؛ <code>Modem::begin</code> آن را به <code>millis()</code> سخت‌افزار وصل می‌کند (قبل از آن، زمان‌ها 0 است).</li>
-<li><strong><code>bytes</code> برای <code>AtEngine::write_raw</code> در حالت trace</strong> استفاده می‌شود (<code>TX&lt; </code>)؛ <code>hexdump</code> بیشتر برای دیباگ لایه انتقال.</li>
-<li><strong>قالب یکسان در همه سینک‌ها:</strong> <code>writer_sink</code> و <code>stdio_sink</code> هر دو <code>[%time][LEVEL/tag] text</code> می‌سازند؛ تفاوت فقط مقصد است.</li>
-<li><strong>بدون heap و thread-safe نبودن:</strong> <code>Registry</code> ایستاهای سراسری ساده دارد (برای سیستم‌های single-threaded مانند حلقه اصلی <code>Modem::tick</code> طراحی شده).</li>
+<li><strong>فیلتر زودهنگام:</strong> <code>wants(level)</code> قبل از هر کاری اجرا می شود؛ لاگ در سطح بالاتر (مثلاً Error در production) تقریباً رایگان است.</li>
+<li><strong>برش بافر:</strong> پیام های بلندتر از <code>GSM_LOG_BUFFER_SIZE</code> بی صدا بریده می شوند (<code>vsnprintf</code> مقدار برگشتی بالاتر از ظرفیت را نادیده می گیرد).</li>
+<li><strong><code>Channel</code> ثابت های محلی هر فایل:</strong> هر فایل <code>.cpp</code> یک <code>static const log::Channel kLog{"tag", Level::Debug}</code> دارد؛ tag در خروجی <code>[tag]</code> دیده می شود و سطح پیش فرض هر زیرسیستم مستقل است.</li>
+<li><strong>timestamp از <code>ClockHook</code>:</strong> <code>Registry::set_clock</code> تابع بازگشتی <code>uint32_t</code> می گیرد؛ <code>Modem::begin</code> آن را به <code>millis()</code> سخت افزار وصل می کند (قبل از آن، زمان ها 0 است).</li>
+<li><strong><code>bytes</code> برای <code>AtEngine::write_raw</code> در حالت trace</strong> استفاده می شود (<code>TX&lt; </code>)؛ <code>hexdump</code> بیشتر برای دیباگ لایه انتقال.</li>
+<li><strong>قالب یکسان در همه سینک ها:</strong> <code>writer_sink</code> و <code>stdio_sink</code> هر دو <code>[%time][LEVEL/tag] text</code> می سازند؛ تفاوت فقط مقصد است.</li>
+<li><strong>بدون heap و thread-safe نبودن:</strong> <code>Registry</code> ایستاهای سراسری ساده دارد (برای سیستم های single-threaded مانند حلقه اصلی <code>Modem::tick</code> طراحی شده).</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/log/log.hpp</code> — تعریف <code>Level</code>، <code>Record</code>، <code>Channel</code>، <code>Registry</code>، <code>Sink</code>، <code>WriterSink</code>، <code>ScopedSink</code>.</li>
 <li><code>include/gsm/gsm_config.hpp</code> — <code>GSM_LOG_BUFFER_SIZE</code>، <code>GSM_LOG_LEVEL_MAX</code>، <code>GSM_LOG_COLOR_DEFAULT</code>.</li>
-<li>مصرف‌کننده‌ها: تقریباً همه فایل‌های <code>src/</code> (هرکدام <code>kLog</code> محلی دارند).</li>
-<li><code>src/cli.cpp</code> — نصب سینک <code>writer_sink</code> برای آینه‌سازی لاگ در کنسول/وب، و کنترل سطح/رنگ/زمان با دستورهای <code>L</code>/<code>T</code>/<code>C</code>.</li>
+<li>مصرف کننده ها: تقریباً همه فایل های <code>src/</code> (هرکدام <code>kLog</code> محلی دارند).</li>
+<li><code>src/cli.cpp</code> — نصب سینک <code>writer_sink</code> برای آینه سازی لاگ در کنسول/وب، و کنترل سطح/رنگ/زمان با دستورهای <code>L</code>/<code>T</code>/<code>C</code>.</li>
 <li><code>src/modem.cpp</code> — وصل کردن <code>ClockHook</code> به <code>millis()</code> در <code>begin()</code>.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

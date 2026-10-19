@@ -41,47 +41,47 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/examples/stm32_main.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/examples/stm32_main.cpp</h1>
 <h2>نقش فایل</h2>
-<p>نقطه‌ی ورود (entry point) نمونه‌ی اپلیکیشن STM32. این فایل عمداً حداقلی است: منطق اپ را کوتاه نگه می‌دارد و آزمون تعاملی را به ماژول <code>cli</code> (چسب سخت‌افزاری کنسول کتابخانه) واگذار می‌کند. همچنین کال‌بک‌های رویداد DMA و خطای UART ساخته‌شده توسط CubeMX را به ماژول <code>cli</code> پل می‌زند.</p>
+<p>نقطه ی ورود (entry point) نمونه ی اپلیکیشن STM32. این فایل عمداً حداقلی است: منطق اپ را کوتاه نگه می دارد و آزمون تعاملی را به ماژول <code>cli</code> (چسب سخت افزاری کنسول کتابخانه) واگذار می کند. همچنین کال بک های رویداد DMA و خطای UART ساخته شده توسط CubeMX را به ماژول <code>cli</code> پل می زند.</p>
 <h2>ساختارها/توابع کلیدی</h2>
-<p>همه به‌صورت <code>extern "C"</code> تعریف شده‌اند تا با چارچوب فراخوانی C سازگار باشند:</p>
+<p>همه به صورت <code>extern "C"</code> تعریف شده اند تا با چارچوب فراخوانی C سازگار باشند:</p>
 <ul>
 <li><code>int AppInit()</code></li>
-<li><code>cli::init()</code> را صدا می‌زند (راه‌اندازی UARTها، مودم، کنسول) و <code>0</code> برمی‌گرداند.</li>
+<li><code>cli::init()</code> را صدا می زند (راه اندازی UARTها، مودم، کنسول) و <code>0</code> برمی گرداند.</li>
 </ul>
 <ul>
 <li><code>int AppRun()</code></li>
-<li><code>cli::tick()</code> را صدا می‌زند (یک تیک از مودم + کنسول) و <code>0</code> برمی‌گرداند. این تابع در حلقه‌ی اصلی فراخوانی می‌شود.</li>
+<li><code>cli::tick()</code> را صدا می زند (یک تیک از مودم + کنسول) و <code>0</code> برمی گرداند. این تابع در حلقه ی اصلی فراخوانی می شود.</li>
 </ul>
 <ul>
 <li><code>void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef* huart, uint16_t size)</code></li>
-<li>کال‌بک رویداد دریافت DMA (از HAL) → <code>cli::on_uart_rx(huart, size)</code>.</li>
+<li>کال بک رویداد دریافت DMA (از HAL) → <code>cli::on_uart_rx(huart, size)</code>.</li>
 </ul>
 <ul>
 <li><code>void HAL_UART_ErrorCallback(UART_HandleTypeDef* huart)</code></li>
-<li>کال‌بک خطای UART (از HAL) → <code>cli::on_uart_error(huart)</code>.</li>
+<li>کال بک خطای UART (از HAL) → <code>cli::on_uart_error(huart)</code>.</li>
 </ul>
 <h2>جریان کاری</h2>
 <ol>
-<li>سیستم/بوت‌لودر پروژه، <code>AppInit()</code> را یک بار صدا می‌زند → <code>cli::init()</code> سخت‌افزار و مودم را آماده می‌کند.</li>
-<li>در حلقه‌ی اصلی، <code>AppRun()</code> مرتباً صدا زده می‌شود → <code>cli::tick()</code> مودم و کنسول را جلو می‌برد.</li>
-<li>هنگام رسیدن داده به UART (مودم یا دیباگ)، HAL وقفه را مدیریت کرده و <code>HAL_UARTEx_RxEventCallback</code> را صدا می‌زند → <code>cli::on_uart_rx</code> داده را به پُرت/کنسول هدایت می‌کند.</li>
-<li>در صورت خطای UART، <code>HAL_UART_ErrorCallback</code> → <code>cli::on_uart_error</code> دریافت را بازیابی می‌کند.</li>
+<li>سیستم/بوت لودر پروژه، <code>AppInit()</code> را یک بار صدا می زند → <code>cli::init()</code> سخت افزار و مودم را آماده می کند.</li>
+<li>در حلقه ی اصلی، <code>AppRun()</code> مرتباً صدا زده می شود → <code>cli::tick()</code> مودم و کنسول را جلو می برد.</li>
+<li>هنگام رسیدن داده به UART (مودم یا دیباگ)، HAL وقفه را مدیریت کرده و <code>HAL_UARTEx_RxEventCallback</code> را صدا می زند → <code>cli::on_uart_rx</code> داده را به پُرت/کنسول هدایت می کند.</li>
+<li>در صورت خطای UART، <code>HAL_UART_ErrorCallback</code> → <code>cli::on_uart_error</code> دریافت را بازیابی می کند.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li>این فایل هیچ منطق تجاری/کنسول ندارد؛ همه‌چیز به ماژول <code>cli</code> و کتابخانه <code>gsm_modem</code> تفویض شده است.</li>
-<li>توابع <code>extern "C"</code> برای این است که CubeMX/HAL بتواند مستقیماً آن‌ها را به‌عنوان کال‌بک صدا بزند (بدون name mangling).</li>
-<li><code>AppInit</code>/<code>AppRun</code> قرارداد نام‌گذاری چارچوب اپ (<code>app.hpp</code>) هستند؛ مقدار بازگشتی <code>0</code> به معنای موفقیت است.</li>
-<li><code>HAL_UARTEx_RxEventCallback</code> مربوط به دریافت «تا بی‌کار» (Receive-To-Idle) با DMA است؛ همان مکانیزمی که <code>Stm32Uart::on_rx_event</code> انتظار دارد.</li>
-<li>تفکیک UART مودم (UART7) در برابر UART دیباگ (USART1) داخل <code>cli.cpp</code> انجام می‌شود، نه اینجا.</li>
+<li>این فایل هیچ منطق تجاری/کنسول ندارد؛ همه چیز به ماژول <code>cli</code> و کتابخانه <code>gsm_modem</code> تفویض شده است.</li>
+<li>توابع <code>extern "C"</code> برای این است که CubeMX/HAL بتواند مستقیماً آن ها را به عنوان کال بک صدا بزند (بدون name mangling).</li>
+<li><code>AppInit</code>/<code>AppRun</code> قرارداد نام گذاری چارچوب اپ (<code>app.hpp</code>) هستند؛ مقدار بازگشتی <code>0</code> به معنای موفقیت است.</li>
+<li><code>HAL_UARTEx_RxEventCallback</code> مربوط به دریافت «تا بی کار» (Receive-To-Idle) با DMA است؛ همان مکانیزمی که <code>Stm32Uart::on_rx_event</code> انتظار دارد.</li>
+<li>تفکیک UART مودم (UART7) در برابر UART دیباگ (USART1) داخل <code>cli.cpp</code> انجام می شود، نه اینجا.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>gsm/user_code/cli.hpp</code> / <code>gsm/user_code/cli.cpp</code> — ماژول <code>cli</code> که این فایل آن را صدا می‌زند.</li>
-<li><code>app.hpp</code> — چارچوب اپلیکیشن که قرارداد <code>AppInit</code>/<code>AppRun</code> را تعریف می‌کند.</li>
-<li><code>usart.h</code> (CubeMX) — تعریف هندل‌های UART و کال‌بک‌های HAL.</li>
-<li><code>gsm/ports/stm32/gsm_port_stm32.hpp</code> — پُرت UART/Clock/Power که به‌صورت غیرمستقیم از طریق <code>cli.cpp</code> استفاده می‌شود.</li>
-<li><code>App/gsm_cli/cli.cpp</code> — نسخه‌ی اپلیکیشن کامل‌تر همین الگو (با پل وب).</li>
+<li><code>gsm/user_code/cli.hpp</code> / <code>gsm/user_code/cli.cpp</code> — ماژول <code>cli</code> که این فایل آن را صدا می زند.</li>
+<li><code>app.hpp</code> — چارچوب اپلیکیشن که قرارداد <code>AppInit</code>/<code>AppRun</code> را تعریف می کند.</li>
+<li><code>usart.h</code> (CubeMX) — تعریف هندل های UART و کال بک های HAL.</li>
+<li><code>gsm/ports/stm32/gsm_port_stm32.hpp</code> — پُرت UART/Clock/Power که به صورت غیرمستقیم از طریق <code>cli.cpp</code> استفاده می شود.</li>
+<li><code>App/gsm_cli/cli.cpp</code> — نسخه ی اپلیکیشن کامل تر همین الگو (با پل وب).</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-سرویس جمع‌آوری وضعیت مودم: سیگنال، ثبت شبکه، وضعیت سیم‌کارت، فضای ذخیرهٔ پیامک و اپراتور. نتایج در ساختار اشتراکی `ModemStatus` نوشته می‌شوند که هم `Modem` و هم CLI/کاربر از آن می‌خوانند. enumهای این فایل وضعیت شبکه/SIM/اپراتور را (از جمله اپراتورهای ایرانی) مدل می‌کنند.
+سرویس جمع آوری وضعیت مودم: سیگنال، ثبت شبکه، وضعیت سیم کارت، فضای ذخیرهٔ پیامک و اپراتور. نتایج در ساختار اشتراکی `ModemStatus` نوشته می شوند که هم `Modem` و هم CLI/کاربر از آن می خوانند. enumهای این فایل وضعیت شبکه/SIM/اپراتور را (از جمله اپراتورهای ایرانی) مدل می کنند.
 
 ## ساختارهای کلیدی
 
@@ -32,7 +32,7 @@ const char* to_string(SimState s);
 const char* to_string(Operator op);
 Operator    detect_operator(const char* name);
 ```
-`detect_operator` نام اپراتور خوانده‌شده از `+COPS`/`+QSPN` را به enum نگاشت می‌کند (کاربرد اصلی: انتخاب خودکار کد تعادل USSD).
+`detect_operator` نام اپراتور خوانده شده از `+COPS`/`+QSPN` را به enum نگاشت می کند (کاربرد اصلی: انتخاب خودکار کد تعادل USSD).
 
 ### `struct ModemStatus`
 ```cpp
@@ -82,7 +82,7 @@ bool start_full_sweep();                            // all steps (JobKind::Statu
 void on_line(const char* line, uint16_t len) override;
 void on_final(const AtResult& res) override;
 ```
-فیلد `sweep_` مشخص می‌کند اجرا کامل است یا تک‌مرحله‌ای.
+فیلد `sweep_` مشخص می کند اجرا کامل است یا تک مرحله ای.
 
 ## جریان کاری
 
@@ -103,19 +103,19 @@ updated_at_ms = now  -> ModemStatus ready for CLI/status bar / watchdog health
 
 ## نکات فنی
 
-- **بدون تخصیص حافظه**: `ModemStatus` یک POD با `StaticString<32>`؛ به‌صورت ارجاع در `Modem` نگهداری و درجا به‌روز می‌شود.
-- `csq_raw = 99` یعنی «نامشخص» و نباید به dBm تبدیل شود؛ `signal_bars()` همین را به ۰ نگاشت می‌کند.
-- مقادیر `RegState` عمداً با کدهای `+CREG` یکی‌اند (0..5) تا نگاشت بدون تبدیل باشد.
-- `detect_operator` برای اپراتورهای ایرانی بهینه شده؛ نام‌های ناشناخته به `Operator::Unknown` می‌رسند.
+- **بدون تخصیص حافظه**: `ModemStatus` یک POD با `StaticString<32>`؛ به صورت ارجاع در `Modem` نگهداری و درجا به روز می شود.
+- `csq_raw = 99` یعنی «نامشخص» و نباید به dBm تبدیل شود؛ `signal_bars()` همین را به ۰ نگاشت می کند.
+- مقادیر `RegState` عمداً با کدهای `+CREG` یکی اند (0..5) تا نگاشت بدون تبدیل باشد.
+- `detect_operator` برای اپراتورهای ایرانی بهینه شده؛ نام های ناشناخته به `Operator::Unknown` می رسند.
 - نتایج این سرویس ورودی `MaintenanceWatchdog::bind_status` هستند (بررسی سلامت SIM/شبکه).
-- `start()` با `first` دلخواه اجازه می‌دهد فقط بخشی (مثلاً فقط سیگنال) تازه‌سازی شود — بهینه‌سازی housekeeping دوره‌ای.
+- `start()` با `first` دلخواه اجازه می دهد فقط بخشی (مثلاً فقط سیگنال) تازه سازی شود — بهینه سازی housekeeping دوره ای.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `core/service.hpp` — پایهٔ `IService`
 - `core/at_engine.hpp` — اجرای `AT+CSQ/CREG/CPIN/CPMS/COPS`
 - `device/device_traits.hpp` — `storage_cmd` برای انتخاب مسیر ذخیره
-- `modem/modem.hpp` — مالک `ModemStatus status_` و زمان‌بند housekeeping
+- `modem/modem.hpp` — مالک `ModemStatus status_` و زمان بند housekeeping
 - `maintenance/watchdog.hpp` — `bind_status(const ModemStatus*)` برای health check
 - `ussd/ussd_service.hpp` — `Operator` برای `start_balance_query`
 - `cli/cli.hpp` — نمایش status bar و signal bars

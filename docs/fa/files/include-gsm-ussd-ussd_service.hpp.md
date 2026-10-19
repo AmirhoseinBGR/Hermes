@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-سرویس USSD: اجرای کدهای دستوری مثل `#123#` (موجودی، بسته، منوی اپراتور) و مدیریت **نشست تعاملی** — وقتی شبکه برای ورودی بیشتر درخواست می‌دهد، سرویس در حالت `SessionOpen` می‌ماند تا کاربر پاسخ بفرستد (`send_reply`) یا نشست را ببندد (`end_session`). امکان پرس‌وجوی خودکار موجودی بر اساس اپراتور شناسایی‌شده هم وجود دارد.
+سرویس USSD: اجرای کدهای دستوری مثل `#123#` (موجودی، بسته، منوی اپراتور) و مدیریت **نشست تعاملی** — وقتی شبکه برای ورودی بیشتر درخواست می دهد، سرویس در حالت `SessionOpen` می ماند تا کاربر پاسخ بفرستد (`send_reply`) یا نشست را ببندد (`end_session`). امکان پرس وجوی خودکار موجودی بر اساس اپراتور شناسایی شده هم وجود دارد.
 
 ## ساختارهای کلیدی
 
@@ -89,14 +89,14 @@ modem.check_balance();   // Job wrapper -> start_balance_query(status.op)
 
 ## نکات فنی
 
-- **بدون تخصیص حافظه**: پاسخ در `StaticString<GSM_USSD_RESPONSE_BYTES>` (پیش‌فرض ۵۱۲ بایت)؛ کد USSD در `StaticString<32>`.
-- پاسخ USSD معمولاً با DCS آمده و ممکن است UCS2 باشد؛ رمزگشایی متن بر عهدهٔ لایهٔ `codec` و مصرف‌کننده است — `response` همان رشتهٔ خام داخل `+CUSD` است.
+- **بدون تخصیص حافظه**: پاسخ در `StaticString<GSM_USSD_RESPONSE_BYTES>` (پیش فرض ۵۱۲ بایت)؛ کد USSD در `StaticString<32>`.
+- پاسخ USSD معمولاً با DCS آمده و ممکن است UCS2 باشد؛ رمزگشایی متن بر عهدهٔ لایهٔ `codec` و مصرف کننده است — `response` همان رشتهٔ خام داخل `+CUSD` است.
 - `notify_cusd` مستقل از جریان `pump` است: URC ممکن است در هر لحظه (حتی بیرون از WaitUrc) برسد.
-- حالت `SessionOpen` یعنی نشست شبکه باز است؛ بی‌توجهی به آن باعث قفل‌شدن نشست USSD اپراتور می‌شود — یا `send_reply` یا `end_session` اجباری است.
-- timeout پیش‌فرض `GSM_AT_USSD_TIMEOUT` (۱۰ ثانیه)؛ برخی اپراتورها کندند — در صورت نیاز `wait_start_`/timeout را در سطح Job تنظیم کنید.
-- `default_balance_code(Operator)` برای Irancell/MCI/Rightel کدهای استاندارد تعادل را برمی‌گرداند (وابسته به `detect_operator` در `status_service.hpp`).
+- حالت `SessionOpen` یعنی نشست شبکه باز است؛ بی توجهی به آن باعث قفل شدن نشست USSD اپراتور می شود — یا `send_reply` یا `end_session` اجباری است.
+- timeout پیش فرض `GSM_AT_USSD_TIMEOUT` (۱۰ ثانیه)؛ برخی اپراتورها کندند — در صورت نیاز `wait_start_`/timeout را در سطح Job تنظیم کنید.
+- `default_balance_code(Operator)` برای Irancell/MCI/Rightel کدهای استاندارد تعادل را برمی گرداند (وابسته به `detect_operator` در `status_service.hpp`).
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `core/service.hpp` — پایهٔ `IService` و `SessionState`
 - `core/at_engine.hpp` — اجرای `AT+CUSD`

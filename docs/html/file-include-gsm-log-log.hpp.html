@@ -41,13 +41,13 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/log/log.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/log/log.hpp</h1>
 <h2>نقش فایل</h2>
-<p>سامانهٔ ثبت وقایع (لاگ) سبک‌وزن و بدون تخصیص حافظه کتابخانه: سطح‌بندی، کانال‌های تگ‌دار، خروجی قابل تعویض (sink)، رنگ ANSI و نشانگر زمان. این سامانه عمداً جایگزین <code>printf</code> خام و <code>std::ostream</code> شده تا روی میکروکنترلرها هم قابل استفاده باشد و در عین حال در تست‌های میزبانی به‌راحتی قابل capture باشد.</p>
+<p>سامانهٔ ثبت وقایع (لاگ) سبک وزن و بدون تخصیص حافظه کتابخانه: سطح بندی، کانال های تگ دار، خروجی قابل تعویض (sink)، رنگ ANSI و نشانگر زمان. این سامانه عمداً جایگزین <code>printf</code> خام و <code>std::ostream</code> شده تا روی میکروکنترلرها هم قابل استفاده باشد و در عین حال در تست های میزبانی به راحتی قابل capture باشد.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>enum class Level : uint8_t</code></h3>
 <pre><code class="lang-cpp">enum class Level : uint8_t { Off = 0, Error, Warn, Info, Debug, Trace };</code></pre>
-<p>سقف کامپایل‌تایم با <code>GSM_LOG_LEVEL_MAX</code> (پیش‌فرض ۴ = Debug).</p>
+<p>سقف کامپایل تایم با <code>GSM_LOG_LEVEL_MAX</code> (پیش فرض ۴ = Debug).</p>
 <h3><code>struct Record</code></h3>
 <pre><code class="lang-cpp">struct Record
 {
@@ -71,7 +71,7 @@ static const char* level_color(Level l);</code></pre>
 <pre><code class="lang-cpp">using Sink      = void (*)(const Record&amp; rec, void* ctx);
 using ClockHook = uint32_t (*)();</code></pre>
 <h3><code>class Channel</code></h3>
-<p>کانال تگ‌دار برای هر جزء کتابخانه (مثلاً <code>"sms"</code>, <code>"call"</code>):</p>
+<p>کانال تگ دار برای هر جزء کتابخانه (مثلاً <code>"sms"</code>, <code>"call"</code>):</p>
 <pre><code class="lang-cpp">constexpr explicit Channel(const char* tag, Level level = Level::Info, bool enabled = true);
 
 void error(const char* fmt, ...) const;  // __attribute__((format(printf, 2, 3)))
@@ -88,7 +88,7 @@ bool wants(Level l) const;  // enabled &amp;&amp; l &lt;= GSM_LOG_LEVEL_MAX &amp
 <h3><code>class ScopedSink</code></h3>
 <pre><code class="lang-cpp">explicit ScopedSink(Sink sink, void* ctx = nullptr);
 ~ScopedSink();   // restores previous sink + ctx</code></pre>
-<p>تعویض موقت sink (مثلاً در تست‌ها) با تضمین بازگشت در destructor — غیرقابل کپی.</p>
+<p>تعویض موقت sink (مثلاً در تست ها) با تضمین بازگشت در destructor — غیرقابل کپی.</p>
 <h3>sinkهای آماده</h3>
 <pre><code class="lang-cpp">void stdio_sink(const Record&amp; rec, void* ctx);   // printf-based
 void null_sink(const Record&amp; rec, void* ctx);    // discard
@@ -123,17 +123,17 @@ static gsm::log::Channel log_sms{&quot;sms&quot;, gsm::log::Level::Debug};
 log_sms.info(&quot;send ok ref=%d&quot;, ref);</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون heap / بدون STL</strong>: فقط <code>&lt;cstdio&gt;</code>/<code>&lt;cstdarg&gt;</code>؛ بافر قالب‌بندی داخلی و ایستا.</li>
-<li>گیت سه‌سطحه در <code>wants()</code> — سطح کانال، سطح سراسری و <code>GSM_LOG_LEVEL_MAX</code> کامپایل‌تایم؛ پیام‌های بالاتر از سقف حتی قالب‌بندی هم نمی‌شوند.</li>
+<li><strong>بدون heap / بدون STL</strong>: فقط <code>&lt;cstdio&gt;</code>/<code>&lt;cstdarg&gt;</code>؛ بافر قالب بندی داخلی و ایستا.</li>
+<li>گیت سه سطحه در <code>wants()</code> — سطح کانال، سطح سراسری و <code>GSM_LOG_LEVEL_MAX</code> کامپایل تایم؛ پیام های بالاتر از سقف حتی قالب بندی هم نمی شوند.</li>
 <li><code>__attribute__((format(printf, 2, 3)))</code> برای بررسی قالب رشته در زمان کامپایل.</li>
-<li><code>Registry</code> همه‌static است؛ در چند context (مثلاً چند instance از Modem) یک sink سراسری مشترک دارید — با <code>ScopedSink</code> در تست‌ها ایزوله کنید.</li>
-<li>رنگ ANSI با <code>set_color</code>/<code>GSM_LOG_COLOR_DEFAULT</code> کنترل می‌شود؛ برای خروجی‌های غیرترمینالی غیرفعالش کنید.</li>
-<li>متن رکورد فقط تا <code>GSM_LOG_BUFFER_SIZE</code> (پیش‌فرض ۱۸۰) بایت؛ پیام‌های بلند بریده می‌شوند.</li>
+<li><code>Registry</code> همه static است؛ در چند context (مثلاً چند instance از Modem) یک sink سراسری مشترک دارید — با <code>ScopedSink</code> در تست ها ایزوله کنید.</li>
+<li>رنگ ANSI با <code>set_color</code>/<code>GSM_LOG_COLOR_DEFAULT</code> کنترل می شود؛ برای خروجی های غیرترمینالی غیرفعالش کنید.</li>
+<li>متن رکورد فقط تا <code>GSM_LOG_BUFFER_SIZE</code> (پیش فرض ۱۸۰) بایت؛ پیام های بلند بریده می شوند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm_config.hpp</code> — <code>GSM_LOG_LEVEL_MAX</code>، <code>GSM_LOG_BUFFER_SIZE</code>، <code>GSM_LOG_COLOR_DEFAULT</code></li>
 <li><code>cli/cli.hpp</code> — <code>install_log_mirror()</code> و <code>WriterSink</code> برای انتقال لاگ به کنسول/وب</li>
 <li><code>tools/serial_bridge.hpp</code> — نمایش ترافیک در حالت bridge</li>
-<li>همهٔ سرویس‌ها و <code>AtEngine</code> — کانال‌های تگ‌دار برای ردیابی جریان AT</li>
+<li>همهٔ سرویس ها و <code>AtEngine</code> — کانال های تگ دار برای ردیابی جریان AT</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

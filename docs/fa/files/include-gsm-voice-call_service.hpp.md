@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-سرویس مدیریت تماس صوتی: شماره‌گیری، پاسخ، قطع تماس و مهم‌تر از همه **نظارت خودران بر تماس (supervision)** در نسخهٔ v0.4 — تایمرهای قطع/رد خودکار، polling متناوب `+CLCC` به‌عنوان تور ایمنی (و مرجع اصلی در ماژول‌های M08R) و ثبت دلیل پایان تماس. هدف این است که تماس‌های نیمه‌کاره هرگز صف Jobها را قفل نکنند و مودم در وضعیت تماس معلق نماند.
+سرویس مدیریت تماس صوتی: شماره گیری، پاسخ، قطع تماس و مهم تر از همه **نظارت خودران بر تماس (supervision)** در نسخهٔ v0.4 — تایمرهای قطع/رد خودکار، polling متناوب `+CLCC` به عنوان تور ایمنی (و مرجع اصلی در ماژول های M08R) و ثبت دلیل پایان تماس. هدف این است که تماس های نیمه کاره هرگز صف Jobها را قفل نکنند و مودم در وضعیت تماس معلق نماند.
 
 ## ساختارهای کلیدی
 
@@ -89,7 +89,7 @@ CallPolicy&       policy();
 const CallPolicy& policy() const;
 ```
 
-فیلدهای نظارتی داخلی: `dial_since_ms_`، `ring_since_ms_`، `active_since_ms_`، `state_since_ms_`، `last_clcc_ms_`، `clcc_misses_`، `clcc_seen_`، `clcc_seen_before_` — تایمرها و شمارندهٔ پروب‌های `+CLCC`.
+فیلدهای نظارتی داخلی: `dial_since_ms_`، `ring_since_ms_`، `active_since_ms_`، `state_since_ms_`، `last_clcc_ms_`، `clcc_misses_`، `clcc_seen_`، `clcc_seen_before_` — تایمرها و شمارندهٔ پروب های `+CLCC`.
 
 ## جریان کاری
 
@@ -122,21 +122,21 @@ modem.dial("+98912xxxxxxx", cb);
 ## نکات فنی
 
 - **بدون تخصیص حافظه**: `PhoneNumber peer_` از نوع `StaticString`؛ همهٔ تایمرها `uint32_t` با الگوی `hal::elapsed`.
-- **`clcc_authoritative`** (از `DeviceTraits`): برای M08R اعتماد اصلی به `+CLCC` است نه URCهای `NO CARRIER`/`BUSY` — این URCها در این ماژول نامطمئن‌اند و ماژول ممکن است بعد از payload پیامکی قطع‌شده گیر کند.
-- `monitor` عمداً **جدا از Job** کار می‌کند: تماس ورودی بین دو Job پیامک هم دیده می‌شود؛ `Modem::call_gate()` بر اساس `engaged()` جلوی Jobهای غیرتماسی را می‌گیرد تا صف خراب نشود.
-- `clcc_misses_` با آستانهٔ `GSM_CALL_CLCC_MISSES` (پیش‌فرض ۲) مرگ تماس را اعلام می‌کند — پاسخ به URCهای از‌دست‌رفته.
-- `fallback_` تضمین می‌کند برای هر قطع فقط یک بار fallback انجام شود؛ `HangupFallback` از حلقهٔ بی‌نهایت جلوگیری می‌کند.
-- پایان با `kErrCallTimeout` (خطای سطح کتابخانه) به‌همراه `CallEndReason::Timeout` گزارش می‌شود.
-- `CallPolicy` در زمان اجرا قابل تنظیم است؛ همهٔ مقادیر پیش‌فرض از `gsm_config.hpp` می‌آیند.
-- `enable_clip` (خودکار با `set_auto_clip`) شمارهٔ تماس‌گیرنده را از `+CLIP` می‌گیرد؛ `peer()` فقط بعد از دریافت CLIP یا شماره‌گیری معتبر است.
+- **`clcc_authoritative`** (از `DeviceTraits`): برای M08R اعتماد اصلی به `+CLCC` است نه URCهای `NO CARRIER`/`BUSY` — این URCها در این ماژول نامطمئن اند و ماژول ممکن است بعد از payload پیامکی قطع شده گیر کند.
+- `monitor` عمداً **جدا از Job** کار می کند: تماس ورودی بین دو Job پیامک هم دیده می شود؛ `Modem::call_gate()` بر اساس `engaged()` جلوی Jobهای غیرتماسی را می گیرد تا صف خراب نشود.
+- `clcc_misses_` با آستانهٔ `GSM_CALL_CLCC_MISSES` (پیش فرض ۲) مرگ تماس را اعلام می کند — پاسخ به URCهای از دست رفته.
+- `fallback_` تضمین می کند برای هر قطع فقط یک بار fallback انجام شود؛ `HangupFallback` از حلقهٔ بی نهایت جلوگیری می کند.
+- پایان با `kErrCallTimeout` (خطای سطح کتابخانه) به همراه `CallEndReason::Timeout` گزارش می شود.
+- `CallPolicy` در زمان اجرا قابل تنظیم است؛ همهٔ مقادیر پیش فرض از `gsm_config.hpp` می آیند.
+- `enable_clip` (خودکار با `set_auto_clip`) شمارهٔ تماس گیرنده را از `+CLIP` می گیرد؛ `peer()` فقط بعد از دریافت CLIP یا شماره گیری معتبر است.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `core/service.hpp` — پایهٔ `IService`
 - `core/at_engine.hpp` — اجرای `ATD`/`ATA`/`AT+CHUP`/`ATH`/`AT+CLCC`
 - `core/urc_router.hpp` — `Ring`/`CallerId`/`CallEnded`/`CallBusy` به `notify_*`
 - `device/device_traits.hpp` — `hangup_cmd`، `supports_clcc`، `clcc_authoritative`
 - `codec/phone_number.hpp` — `PhoneNumber peer_`
-- `gsm_config.hpp` — `GSM_CALL_*` (پیش‌فرض‌های `CallPolicy`)، `kErrCallTimeout` در `at_types.hpp`
+- `gsm_config.hpp` — `GSM_CALL_*` (پیش فرض های `CallPolicy`)، `kErrCallTimeout` در `at_types.hpp`
 - `modem/modem.hpp` — Jobهای `CallDial/CallAnswer/CallHangup`، `call_gate()` و `preempt_for_call`
 - `cli/cli.hpp` — نمایش وضعیت تماس و `CallEndReason`

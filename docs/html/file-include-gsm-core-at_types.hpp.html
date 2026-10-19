@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/core/at_types.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/core/at_types.hpp</h1>
 <h2>نقش فایل</h2>
-<p>انواع پایهٔ زبان AT کتابخانه را تعریف می‌کند: وضعیت نتیجهٔ یک فرمان AT، ساختار نتیجه، کدهای خطای سطح کتابخانه و اینترفیس مشاهده‌گر (<code>IAtObserver</code>) که همهٔ سرویس‌ها از طریق آن خروجی موتور AT را دریافت می‌کنند. این فایل قرارداد مشترک بین <code>AtEngine</code> و تمام سرویس‌هاست.</p>
+<p>انواع پایهٔ زبان AT کتابخانه را تعریف می کند: وضعیت نتیجهٔ یک فرمان AT، ساختار نتیجه، کدهای خطای سطح کتابخانه و اینترفیس مشاهده گر (<code>IAtObserver</code>) که همهٔ سرویس ها از طریق آن خروجی موتور AT را دریافت می کنند. این فایل قرارداد مشترک بین <code>AtEngine</code> و تمام سرویس هاست.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>enum class AtStatus : uint8_t</code></h3>
 <p>وضعیت پایانی یک تراکنش AT:</p>
@@ -62,9 +62,9 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     NoAnswer,
 };</code></pre>
 <ul>
-<li><code>Ok</code> / <code>Error</code>: پاسخ‌های استاندارد <code>OK</code> / <code>ERROR</code></li>
+<li><code>Ok</code> / <code>Error</code>: پاسخ های استاندارد <code>OK</code> / <code>ERROR</code></li>
 <li><code>CmeError</code> / <code>CmsError</code>: خطاهای <code>+CME ERROR: n</code> و <code>+CMS ERROR: n</code> (کد عددی در <code>code</code>)</li>
-<li><code>NoDialtone</code> / <code>Busy</code> / <code>NoCarrier</code> / <code>NoAnswer</code>: پاسخ‌های پایانی مربوط به تماس</li>
+<li><code>NoDialtone</code> / <code>Busy</code> / <code>NoCarrier</code> / <code>NoAnswer</code>: پاسخ های پایانی مربوط به تماس</li>
 <li><code>Timeout</code> / <code>Aborted</code>: اتمام زمان یا لغو دستی</li>
 </ul>
 <h3><code>struct AtResult</code></h3>
@@ -90,7 +90,7 @@ const char* cms_error_hint(int16_t code);
 const char* cme_error_hint(int16_t code);</code></pre>
 <ul>
 <li><code>to_string</code>: نام متنی وضعیت برای لاگ/CLI</li>
-<li><code>cms_error_hint</code> / <code>cme_error_hint</code>: توضیح انسان‌خوان برای کدهای خطای پیامک/تجهیز</li>
+<li><code>cms_error_hint</code> / <code>cme_error_hint</code>: توضیح انسان خوان برای کدهای خطای پیامک/تجهیز</li>
 </ul>
 <h3><code>class IAtObserver</code></h3>
 <pre><code class="lang-cpp">class IAtObserver
@@ -102,11 +102,11 @@ const char* cme_error_hint(int16_t code);</code></pre>
     virtual void on_final(const AtResult&amp; res) { ... }
 };</code></pre>
 <ul>
-<li><code>on_line</code>: هر خط پاسخ (به‌جز خطوط نهایی و URC)</li>
+<li><code>on_line</code>: هر خط پاسخ (به جز خطوط نهایی و URC)</li>
 <li><code>on_prompt</code>: دریافت نشان <code>&gt;</code> برای ورود به حالت payload (پیامک/USSD)</li>
 <li><code>on_final</code>: نتیجهٔ نهایی تراکنش (OK/ERROR/Timeout/…)</li>
 </ul>
-<p>همهٔ سرویس‌ها (<code>IService</code>) و ابزارهایی مثل <code>SerialBridge</code> و <code>cli::Console</code> این اینترفیس را پیاده می‌کنند.</p>
+<p>همهٔ سرویس ها (<code>IService</code>) و ابزارهایی مثل <code>SerialBridge</code> و <code>cli::Console</code> این اینترفیس را پیاده می کنند.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">AtEngine.execute(req, observer)
         |
@@ -122,16 +122,16 @@ const char* cme_error_hint(int16_t code);</code></pre>
  observer-&gt;on_final(AtResult)  // transaction finished</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><code>AtResult</code> و <code>AtStatus</code> نوع‌های POD و کم‌حجم (<code>uint8_t</code> + <code>int16_t</code>)؛ مناسب میکروکنترلر، بدون تخصیص حافظه.</li>
-<li><code>on_line</code> با <code>len</code> صدا زده می‌شود؛ خط لزوماً null-terminated نیست (اگرچه در عمل <code>LineReader</code> رشتهٔ null-terminated می‌دهد).</li>
-<li>کدهای <code>kErr*</code> از -۱۰۰ به پایین‌اند تا با کدهای مثبت CME/CMS تداخل نکنند؛ <code>code = -1</code> یعنی «بدون کد».</li>
+<li><code>AtResult</code> و <code>AtStatus</code> نوع های POD و کم حجم (<code>uint8_t</code> + <code>int16_t</code>)؛ مناسب میکروکنترلر، بدون تخصیص حافظه.</li>
+<li><code>on_line</code> با <code>len</code> صدا زده می شود؛ خط لزوماً null-terminated نیست (اگرچه در عمل <code>LineReader</code> رشتهٔ null-terminated می دهد).</li>
+<li>کدهای <code>kErr*</code> از -۱۰۰ به پایین اند تا با کدهای مثبت CME/CMS تداخل نکنند؛ <code>code = -1</code> یعنی «بدون کد».</li>
 <li><code>Pending</code> فقط برای مقداردهی اولیه است و نباید در <code>on_final</code> دیده شود.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/at_engine.hpp</code> — تولیدکنندهٔ رویدادهای <code>IAtObserver</code> و مالک <code>classify_final</code></li>
-<li><code>core/service.hpp</code> — <code>IService</code> از <code>IAtObserver</code> ارث می‌برد</li>
+<li><code>core/service.hpp</code> — <code>IService</code> از <code>IAtObserver</code> ارث می برد</li>
 <li><code>queue/job.hpp</code> — فیلد <code>AtResult result</code> در هر Job</li>
-<li><code>sms/sms_service.hpp</code>، <code>ussd/ussd_service.hpp</code>، <code>voice/call_service.hpp</code> — مصرف‌کنندگان <code>kErrSmsTooLong</code> / <code>kErrCallTimeout</code></li>
+<li><code>sms/sms_service.hpp</code>، <code>ussd/ussd_service.hpp</code>، <code>voice/call_service.hpp</code> — مصرف کنندگان <code>kErrSmsTooLong</code> / <code>kErrCallTimeout</code></li>
 <li><code>tools/serial_bridge.hpp</code>، <code>cli/cli.hpp</code> — نمایش <code>to_string(res.status)</code></li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

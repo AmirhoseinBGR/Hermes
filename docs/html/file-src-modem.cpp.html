@@ -41,48 +41,48 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/modem.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/modem.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی <code>gsm::Modem</code>؛ هسته مرکزی کتابخانه که همه چیز را کنار هم می‌نشاند: ماشین وضعیت بوت/ثبت شبکه، صف jobها (<code>JobQueue</code>)، سرویس‌های SMS/تماس/وضعیت/USSD، مسیریاب URC، سگ نگهبان صنعتی و watchdog نگهداری. این فایل در v0.4 چهار قابلیت کلیدی گرفته است: <strong>گیت تماس</strong> (نگه‌داشتن jobهای غیر-تماسی بدون از‌بین‌رفتن صف)، <strong>رفع گیرکردن <code>pump_services</code></strong> (jobهایی که start نمی‌شوند بعد از چند تلاش fail می‌شوند به‌جای قفل‌کردن صف)، <strong><code>preempt_for_call</code></strong> (لغو ESC-safe ارسال پیامک در جریان هنگام ورود تماس) و <strong><code>maintenance_service</code> / <code>full_restart</code></strong> (reset کامل زمان‌بندی‌شده که صف jobها را حفظ می‌کند).</p>
+<p>پیاده سازی <code>gsm::Modem</code>؛ هسته مرکزی کتابخانه که همه چیز را کنار هم می نشاند: ماشین وضعیت بوت/ثبت شبکه، صف jobها (<code>JobQueue</code>)، سرویس های SMS/تماس/وضعیت/USSD، مسیریاب URC، سگ نگهبان صنعتی و watchdog نگهداری. این فایل در v0.4 چهار قابلیت کلیدی گرفته است: <strong>گیت تماس</strong> (نگه داشتن jobهای غیر-تماسی بدون از بین رفتن صف)، <strong>رفع گیرکردن <code>pump_services</code></strong> (jobهایی که start نمی شوند بعد از چند تلاش fail می شوند به جای قفل کردن صف)، <strong><code>preempt_for_call</code></strong> (لغو ESC-safe ارسال پیامک در جریان هنگام ورود تماس) و <strong><code>maintenance_service</code> / <code>full_restart</code></strong> (reset کامل زمان بندی شده که صف jobها را حفظ می کند).</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3>جدول بوت <code>kBoot</code></h3>
-<p>ترتیب فرمان‌های راه‌اندازی بعد از ثبت شبکه:</p>
+<p>ترتیب فرمان های راه اندازی بعد از ثبت شبکه:</p>
 <pre><code class="lang-cpp">{&quot;ATE0&quot;, 1000, false},      {&quot;AT+CMEE=2&quot;, 1000, true},   // optional
 {&quot;AT+CLIP=1&quot;, 1000, true},  {&quot;AT+CNMI=2,1,0,0,0&quot;, 1000, true},
 {&quot;AT+CMGF=1&quot;, 1000, false}, {&quot;AT+CSCS=\&quot;UCS2\&quot;&quot;, 1000, false},
 {nullptr, 0, false},   // → traits_.csmp_ucs2
 {nullptr, 0, false},   // → traits_.storage_cmd</code></pre>
-<p>دو مورد <code>nullptr</code> در <code>tick</code> از <code>DeviceTraits</code> پر می‌شوند؛ اگر دستگاهی چنین فرمانی نداشته باشد، همان لحظه نتیجه موفق مصنوعی می‌گیرد و جلو می‌رود. فرمان‌های non-optional در صورت شکست FSM را به <code>Fault</code> می‌برند.</p>
+<p>دو مورد <code>nullptr</code> در <code>tick</code> از <code>DeviceTraits</code> پر می شوند؛ اگر دستگاهی چنین فرمانی نداشته باشد، همان لحظه نتیجه موفق مصنوعی می گیرد و جلو می رود. فرمان های non-optional در صورت شکست FSM را به <code>Fault</code> می برند.</p>
 <h3><code>to_string(ModemState)</code></h3>
 <p><code>"off" | "booting" | "pwrkey-pulsing" | "waiting-reg" | "configuring" | "ready" | "working" | "ringing" | "in-call" | "sim-missing" | "fault"</code>.</p>
 <h3>چرخه حیات: <code>begin()</code> / <code>reset()</code> / <code>power_cycle()</code> / <code>full_restart(...)</code></h3>
 <ul>
-<li><code>begin()</code> — صفر کردن شمارنده‌های بازیابی، ثبت زمان در watchdog (<code>on_reset_started</code>)، ورود به <code>Booting</code>.</li>
-<li><code>reset()</code> — <code>at_.abort()</code> + <code>stop_all(false)</code> + <code>begin()</code> (نرم، صف پاک می‌شود).</li>
+<li><code>begin()</code> — صفر کردن شمارنده های بازیابی، ثبت زمان در watchdog (<code>on_reset_started</code>)، ورود به <code>Booting</code>.</li>
+<li><code>reset()</code> — <code>at_.abort()</code> + <code>stop_all(false)</code> + <code>begin()</code> (نرم، صف پاک می شود).</li>
 <li><code>power_cycle()</code> — پالس PWRKEY در صورت وجود <code>IPowerControl</code>، سپس <code>reset()</code>.</li>
-<li><strong><code>full_restart(bool hardware, bool keep_jobs)</code> (v0.4):</strong> راه‌اندازی مجدد کامل با انتخاب سیاست صف:</li>
+<li><strong><code>full_restart(bool hardware, bool keep_jobs)</code> (v0.4):</strong> راه اندازی مجدد کامل با انتخاب سیاست صف:</li>
 </ul>
 <pre><code class="lang-cpp">at_.abort();
 if (keep_jobs) {
-    // فقط job در حال اجرا لغو و نهایی می‌شود؛ صف انتظار دست‌نخورده می‌ماند
+    // فقط job در حال اجرا لغو و نهایی می شود؛ صف انتظار دست نخورده می ماند
     if (current_.state == JobState::Running) { svc-&gt;cancel(); finish_job({Aborted,-1}); }
 } else {
-    stop_all(false);   // پاک‌سازی کامل صف
+    stop_all(false);   // پاک سازی کامل صف
 }
 if (hardware &amp;&amp; power_) power_-&gt;power_key(true), power_-&gt;power_key(false);
 begin();</code></pre>
 <h3>گیت تماس (v0.4)</h3>
 <pre><code class="lang-cpp">bool Modem::is_call_job(JobKind kind);   // CallDial | CallAnswer | CallHangup
 bool Modem::call_gate() const            // call_.state() != CallState::Idle</code></pre>
-<p>هر job غیر-تماسی وقتی تماسی در جریان است (<code>engaged</code>) <strong>نگه‌داشته</strong> می‌شود — نه لغو، نه حذف؛ صف بعد از پایان تماس ادامه می‌یابد.</p>
+<p>هر job غیر-تماسی وقتی تماسی در جریان است (<code>engaged</code>) <strong>نگه داشته</strong> می شود — نه لغو، نه حذف؛ صف بعد از پایان تماس ادامه می یابد.</p>
 <h3><code>void Modem::preempt_for_call()</code> (v0.4)</h3>
-<p>هنگام ورود تماس (URC <code>RING</code>/<code>+CLIP</code>) روی job در حال اجرا صدا زده می‌شود:</p>
+<p>هنگام ورود تماس (URC <code>RING</code>/<code>+CLIP</code>) روی job در حال اجرا صدا زده می شود:</p>
 <pre><code class="lang-cpp">if (current_.state != JobState::Running || is_call_job(current_.kind)) return;
 IService* svc = service_for(current_.kind);
 if (svc) svc-&gt;cancel();              // ESC-safe abort of any pending SMS payload
 current_.deferred = true;
 current_.state    = JobState::Queued; // بازگشت به صف برای اجرای مجدد بعد از تماس</code></pre>
-<p>به‌لطف <code>SmsService::cancel</code> → <code>at_.abort()</code> → <code>write_escape()</code>، مودمی که در پرامپت <code>CMGS</code> گیر کرده بدون خراب‌شدن payload از حالت داده خارج می‌شود. پرچم <code>deferred</code> در <code>start_job</code> باعث می‌شود بودجه تلاش (<code>attempts</code>) برای این اجرای مجدد مصرف نشود.</p>
+<p>به لطف <code>SmsService::cancel</code> → <code>at_.abort()</code> → <code>write_escape()</code>، مودمی که در پرامپت <code>CMGS</code> گیر کرده بدون خراب شدن payload از حالت داده خارج می شود. پرچم <code>deferred</code> در <code>start_job</code> باعث می شود بودجه تلاش (<code>attempts</code>) برای این اجرای مجدد مصرف نشود.</p>
 <h3><code>void Modem::maintenance_service()</code> (v0.4)</h3>
 <p>پل بین <code>MaintenanceWatchdog</code> و اجرای واقعی reset:</p>
 <pre><code class="lang-cpp">watchdog_.tick(clock_.millis());
@@ -91,11 +91,11 @@ const bool safe = call_.state() == CallState::Idle &amp;&amp; at_.idle() &amp;&a
 const bool forced = hal::elapsed(now, maintenance_since_, watchdog_.policy().grace_ms);
 if (!safe &amp;&amp; !forced) return;
 full_restart(hardware_power_cycle, /*keep_jobs*/ true);</code></pre>
-<p>اگر پنجره امن پیدا نشود، حداکثر به اندازه <code>grace_ms</code> (پیش‌فرض ۱۰s) صبر می‌کند و بعد reset «اجباری» انجام می‌شود. در هر دو حالت صف jobها حفظ می‌شود.</p>
-<h3>صف‌بندی: <code>enqueue</code> و متدهای عمومی</h3>
-<p><code>enqueue(Job&amp;, JobCallback)</code> شماره یکتای <code>JobId</code> (از ۱، بدون صفر)، زمان ورود و وضعیت <code>Queued</code> ثبت می‌کند؛ صف پُر → <code>kInvalidJob</code>. متدهای راحتی: <code>send_sms</code> (با <strong>محافظ طول</strong> — پایین‌تر)، <code>read_sms</code>، <code>scan_sms</code>، <code>delete_read_sms</code>، <code>dial</code>، <code>answer</code> (urgent)، <code>hang_up</code> (urgent)، <code>refresh_status</code>، <code>ussd</code>، <code>check_balance</code> (کد پیش‌فرض اپراتور ایرانی از <code>UssdService::default_balance_code</code>).</p>
-<h3><code>JobId Modem::send_sms(...)</code> — محافظ سخت‌گیرانه طول (v0.4)</h3>
-<p>قبل از ورود به صف، متن با <code>SmsService::count_chars</code> شمرده و با <code>sms_.max_chars()</code> (پیش‌فرض <code>GSM_SMS_MAX_CHARS = 60</code>) مقایسه می‌شود؛ در صورت تجاوز، job بلافاصله <code>Failed</code> با <code>kErrSmsTooLong</code> به callback گزارش و <code>kInvalidJob</code> برمی‌گردد (بدون اشغال صف):</p>
+<p>اگر پنجره امن پیدا نشود، حداکثر به اندازه <code>grace_ms</code> (پیش فرض ۱۰s) صبر می کند و بعد reset «اجباری» انجام می شود. در هر دو حالت صف jobها حفظ می شود.</p>
+<h3>صف بندی: <code>enqueue</code> و متدهای عمومی</h3>
+<p><code>enqueue(Job&amp;, JobCallback)</code> شماره یکتای <code>JobId</code> (از ۱، بدون صفر)، زمان ورود و وضعیت <code>Queued</code> ثبت می کند؛ صف پُر → <code>kInvalidJob</code>. متدهای راحتی: <code>send_sms</code> (با <strong>محافظ طول</strong> — پایین تر)، <code>read_sms</code>، <code>scan_sms</code>، <code>delete_read_sms</code>، <code>dial</code>، <code>answer</code> (urgent)، <code>hang_up</code> (urgent)، <code>refresh_status</code>، <code>ussd</code>، <code>check_balance</code> (کد پیش فرض اپراتور ایرانی از <code>UssdService::default_balance_code</code>).</p>
+<h3><code>JobId Modem::send_sms(...)</code> — محافظ سخت گیرانه طول (v0.4)</h3>
+<p>قبل از ورود به صف، متن با <code>SmsService::count_chars</code> شمرده و با <code>sms_.max_chars()</code> (پیش فرض <code>GSM_SMS_MAX_CHARS = 60</code>) مقایسه می شود؛ در صورت تجاوز، job بلافاصله <code>Failed</code> با <code>kErrSmsTooLong</code> به callback گزارش و <code>kInvalidJob</code> برمی گردد (بدون اشغال صف):</p>
 <pre><code class="lang-cpp">if (limit &amp;&amp; chars &gt; limit) {
     job.state  = JobState::Failed;
     job.result = AtResult{AtStatus::Error, kErrSmsTooLong};
@@ -103,17 +103,17 @@ full_restart(hardware_power_cycle, /*keep_jobs*/ true);</code></pre>
     return kInvalidJob;
 }</code></pre>
 <h3><code>bool Modem::start_job(Job&amp;)</code></h3>
-<p>اعلام شروع به سرویس متناظر (<code>service_for</code>)؛ برای job برگشتی از <code>preempt_for_call</code> بودجه تلاش مصرف نمی‌شود (<code>deferred</code>)، وگرنه <code>attempts++</code>. در موفقیت: <code>JobState::Running</code> + <code>enter(Working)</code>.</p>
+<p>اعلام شروع به سرویس متناظر (<code>service_for</code>)؛ برای job برگشتی از <code>preempt_for_call</code> بودجه تلاش مصرف نمی شود (<code>deferred</code>)، وگرنه <code>attempts++</code>. در موفقیت: <code>JobState::Running</code> + <code>enter(Working)</code>.</p>
 <h3><code>void Modem::finish_job(const AtResult&amp;)</code> — سیاست تلاش مجدد</h3>
 <ul>
-<li><code>SmsSend</code> شماره مرجع (<code>reference</code>) و <code>UssdQuery</code> پاسخ (<code>ussd_response</code>) را در job کپی می‌کند.</li>
-<li>timeout پیاپی شمرده می‌شود؛ از <code>GSM_CONSECUTIVE_TIMEOUTS_RESET</code> (۳) بیشتر → <code>check_watchdog()</code> (بازیابی سخت‌افزاری).</li>
-<li><strong>سیاست‌های رد (<code>kErrSmsTooLong</code> / <code>kErrJobStalled</code>) و لغو (<code>Aborted</code>) هرگز retry نمی‌شوند.</strong></li>
-<li>خطای retry‌پذیر تا <code>max_attempts</code> (برای SMS دو) دوباره به صف برمی‌گردد (<code>JobState::Queued</code>).</li>
-<li>پس از نهایی‌شدن: <code>watchdog_.note_operation()</code> (تغذیه بودجه عملیات watchdog)، وضعیت نهایی <code>Succeeded/Cancelled/Failed</code>، فراخوانی callback و <code>on_job_</code>، و تعیین وضعیت FSM (<code>InCall</code>/<code>Ringing</code>/<code>Ready</code>).</li>
+<li><code>SmsSend</code> شماره مرجع (<code>reference</code>) و <code>UssdQuery</code> پاسخ (<code>ussd_response</code>) را در job کپی می کند.</li>
+<li>timeout پیاپی شمرده می شود؛ از <code>GSM_CONSECUTIVE_TIMEOUTS_RESET</code> (۳) بیشتر → <code>check_watchdog()</code> (بازیابی سخت افزاری).</li>
+<li><strong>سیاست های رد (<code>kErrSmsTooLong</code> / <code>kErrJobStalled</code>) و لغو (<code>Aborted</code>) هرگز retry نمی شوند.</strong></li>
+<li>خطای retry پذیر تا <code>max_attempts</code> (برای SMS دو) دوباره به صف برمی گردد (<code>JobState::Queued</code>).</li>
+<li>پس از نهایی شدن: <code>watchdog_.note_operation()</code> (تغذیه بودجه عملیات watchdog)، وضعیت نهایی <code>Succeeded/Cancelled/Failed</code>، فراخوانی callback و <code>on_job_</code>، و تعیین وضعیت FSM (<code>InCall</code>/<code>Ringing</code>/<code>Ready</code>).</li>
 </ul>
 <h3><code>void Modem::handle_urc(const UrcEvent&amp;)</code></h3>
-<p>مرکز فرمان‌دهی رویدادهای ناخواسته:</p>
+<p>مرکز فرمان دهی رویدادهای ناخواسته:</p>
 <table><thead><tr><th>رویداد</th><th>اقدام</th></tr></thead><tbody>
 <tr><td><code>Ring</code> / <code>CallerId</code></td><td><code>preempt_for_call()</code> + <code>call_.notify_ring(...)</code> + <code>enter(Ringing)</code></td></tr>
 <tr><td><code>CallEnded</code> / <code>NoAnswer</code></td><td><code>call_.notify_hangup()</code> + بازگشت به <code>Ready</code></td></tr>
@@ -123,47 +123,47 @@ full_restart(hardware_power_cycle, /*keep_jobs*/ true);</code></pre>
 <tr><td><code>SimRemoved</code></td><td><code>enter(SimMissing)</code> + callback بحرانی</td></tr>
 <tr><td><code>NetworkReg</code> (کد 1/5)</td><td><code>network_ready=true</code> و ورود به <code>Configuring</code></td></tr>
 <tr><td><code>Ussd</code></td><td><code>ussd_.notify_cusd(line)</code></td></tr>
-<tr><td><code>PowerDown</code></td><td>باطل‌سازی جلسه + <code>enter(Off)</code></td></tr>
+<tr><td><code>PowerDown</code></td><td>باطل سازی جلسه + <code>enter(Off)</code></td></tr>
 </tbody></table>
-<p>در پایان، هر URC به <code>user_urc_(ev)</code> هم داده می‌شود تا اپلیکیشن بتواند گوش کند.</p>
+<p>در پایان، هر URC به <code>user_urc_(ev)</code> هم داده می شود تا اپلیکیشن بتواند گوش کند.</p>
 <h3><code>void Modem::on_line(...)</code> / <code>on_final(...)</code></h3>
 <ul>
-<li>در <code>WaitingRegistration</code> پاسخ <code>+CREG?</code>/<code>+CGREG</code> پارس و با ثبت شبکه به <code>Configuring</code> می‌رویم (timeout ثبت: <code>GSM_REGISTRATION_TIMEOUT = 45s</code> → <code>Fault</code>).</li>
-<li>در <code>SimMissing</code> خط <code>+CPIN: READY</code> یعنی بازگشت سیم‌کارت → <code>WaitingRegistration</code>.</li>
+<li>در <code>WaitingRegistration</code> پاسخ <code>+CREG?</code>/<code>+CGREG</code> پارس و با ثبت شبکه به <code>Configuring</code> می رویم (timeout ثبت: <code>GSM_REGISTRATION_TIMEOUT = 45s</code> → <code>Fault</code>).</li>
+<li>در <code>SimMissing</code> خط <code>+CPIN: READY</code> یعنی بازگشت سیم کارت → <code>WaitingRegistration</code>.</li>
 <li><code>on_final</code> در <code>Booting</code>: موفق → <code>WaitingRegistration</code>؛ سه پاسخ ناموفق <code>AT</code> → <code>PowerPulsing</code> (حداکثر ۲ پالس PWRKEY) و سپس <code>Fault</code>.</li>
-<li>در <code>Configuring</code>: نتیجه هر گام بوت در پرچم‌های <code>session_</code> (<code>echo_off</code>، <code>text_mode</code>، <code>charset</code>، <code>csmp_ucs2</code>، <code>storage_ready</code>) ثبت می‌شود تا سرویس‌ها فرمان تکراری نفرستند؛ پایان جدول → <code>Ready</code> + <code>refresh_status()</code>.</li>
+<li>در <code>Configuring</code>: نتیجه هر گام بوت در پرچم های <code>session_</code> (<code>echo_off</code>، <code>text_mode</code>، <code>charset</code>، <code>csmp_ucs2</code>، <code>storage_ready</code>) ثبت می شود تا سرویس ها فرمان تکراری نفرستند؛ پایان جدول → <code>Ready</code> + <code>refresh_status()</code>.</li>
 </ul>
 <h3><code>void Modem::pump_services()</code> — رفع گیرکردن صف (v0.4)</h3>
 <p>سه شاخه:</p>
 <pre><code class="lang-text">1) job جاری Running؟ ──► svc-&gt;pump()  یا  finish_job(svc-&gt;result())
 2) job جاری Queued؟
-      ├─ گیت تماس و job غیر-تماسی؟ ──► return (نگه‌داشته می‌شود؛ صف زنده است)
+      ├─ گیت تماس و job غیر-تماسی؟ ──► return (نگه داشته می شود؛ صف زنده است)
       ├─ start_job موفق؟ ──► شروع اجرا (start_failures_ = 0)
       └─ شکست: ++start_failures_ تا GSM_JOB_START_RETRIES (3)
-             ──► fail با نتیجه سرویس یا kErrJobStalled؛ صف دوباره آزاد می‌شود
+             ──► fail با نتیجه سرویس یا kErrJobStalled؛ صف دوباره آزاد می شود
 3) job جاری None؟ ──► queue_.pop → گیت تماس؟ (بازگشت به Queued) : start_job</code></pre>
-<p>قبل از این اصلاح، jobی که سرویسش (مثلاً به‌دلیل state ناسازگار) حاضر به شروع نبود برای همیشه جلوی صف را می‌گرفت؛ حالا حداکثر ۳ تلاش و سپس <code>kErrJobStalled</code> (<code>-102</code>) و ادامه کار صف.</p>
+<p>قبل از این اصلاح، jobی که سرویسش (مثلاً به دلیل state ناسازگار) حاضر به شروع نبود برای همیشه جلوی صف را می گرفت؛ حالا حداکثر ۳ تلاش و سپس <code>kErrJobStalled</code> (<code>-102</code>) و ادامه کار صف.</p>
 <h3><code>void Modem::pump_housekeeping()</code></h3>
-<p>کارهای دوره‌ای (فقط وقتی گیت تماس باز است): <code>full_sweep_ms</code> (وضعیت کامل)، <code>signal_ms</code> (CSQ)، <code>sms_scan_ms</code> (اسکن پیامک‌های خوانده‌نشده)، <code>cleanup_ms</code> (حذف پیامک‌های خوانده‌شده اگر مخزن پر باشد).</p>
+<p>کارهای دوره ای (فقط وقتی گیت تماس باز است): <code>full_sweep_ms</code> (وضعیت کامل)، <code>signal_ms</code> (CSQ)، <code>sms_scan_ms</code> (اسکن پیامک های خوانده نشده)، <code>cleanup_ms</code> (حذف پیامک های خوانده شده اگر مخزن پر باشد).</p>
 <h3><code>void Modem::check_watchdog()</code> — سگ نگهبان صنعتی</h3>
 <ol>
-<li><strong>پاک‌سازی jobهای کهنه:</strong> <code>purge_stale(now, GSM_JOB_MAX_AGE_MS=45s)</code>؛ jobهای معلق مانده بیش از ۴۵ ثانیه با callback لغو حذف می‌شوند.</li>
+<li><strong>پاک سازی jobهای کهنه:</strong> <code>purge_stale(now, GSM_JOB_MAX_AGE_MS=45s)</code>؛ jobهای معلق مانده بیش از ۴۵ ثانیه با callback لغو حذف می شوند.</li>
 <li><strong>بازیابی پس از timeout پیاپی (≥۳):</strong> <code>stop_all</code> + <code>power_cycle()</code> (یا <code>reset()</code> بدون PWRKEY).</li>
-<li><strong>گیرکردگی در <code>Fault</code>/<code>SimMissing</code> بیش از <code>GSM_HARDWARE_REBOOT_TIMEOUT_MS</code> (۹۰s):</strong> power-cycle کامل سخت‌افزاری.</li>
+<li><strong>گیرکردگی در <code>Fault</code>/<code>SimMissing</code> بیش از <code>GSM_HARDWARE_REBOOT_TIMEOUT_MS</code> (۹۰s):</strong> power-cycle کامل سخت افزاری.</li>
 </ol>
 <h3><code>void Modem::handle_sim_recovery()</code></h3>
-<p>ماشین بازیابی سیم‌کارت در وضعیت <code>SimMissing</code>:</p>
+<p>ماشین بازیابی سیم کارت در وضعیت <code>SimMissing</code>:</p>
 <ul>
 <li>هر <code>GSM_SIM_RETRY_INTERVAL_MS</code> (۱۰s): پروب <code>AT+CPIN?</code>.</li>
-<li>هر <code>GSM_CFUN_CYCLE_INTERVAL_MS</code> (۲۵s): چرخه <code>AT+CFUN=0</code> (فاز ۱) سپس <code>AT+CFUN=1</code> (فاز ۲) برای راه‌اندازی مجدد لایه RF/SIM.</li>
+<li>هر <code>GSM_CFUN_CYCLE_INTERVAL_MS</code> (۲۵s): چرخه <code>AT+CFUN=0</code> (فاز ۱) سپس <code>AT+CFUN=1</code> (فاز ۲) برای راه اندازی مجدد لایه RF/SIM.</li>
 </ul>
 <h3><code>void Modem::tick()</code> — حلقه اصلی</h3>
 <p>هر بار فراخوانی در حلقه اپلیکیشن:</p>
-<pre><code class="lang-text">at_.tick()                    ← پردازش بایت‌ها/خط‌ها/نتایج
+<pre><code class="lang-text">at_.tick()                    ← پردازش بایت ها/خط ها/نتایج
 flush_cancelled()             ← تحویل callback های لغوشده
-check_watchdog()              ← پاک‌سازی کهنه + بازیابی خطای صنعتی
+check_watchdog()              ← پاک سازی کهنه + بازیابی خطای صنعتی
 call_.monitor(now, at_.idle()) + call_.pump()   ← سرپرستی تماس (مستقل از صف)
-maintenance_service()         ← بازنشاننده‌های دوگانه watchdog
+maintenance_service()         ← بازنشاننده های دوگانه watchdog
 ┌─ FSM ────────────────────────────────────────────────┐
 │ Off/Fault        → return                            │
 │ SimMissing       → handle_sim_recovery()             │
@@ -174,12 +174,12 @@ maintenance_service()         ← بازنشاننده‌های دوگانه wat
 └──────────────────────────────────────────────────────┘
 if (at_.idle()):
     stat_.pump() / pump_services()
-    به‌روزرسانی وضعیت FSM (InCall/Ringing/Ready) + pump_housekeeping()
-    watchdog_.pump(...)      ← پروب‌های سلامت فقط در idle کامل</code></pre>
+    به روزرسانی وضعیت FSM (InCall/Ringing/Ready) + pump_housekeeping()
+    watchdog_.pump(...)      ← پروب های سلامت فقط در idle کامل</code></pre>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">        enqueue(job) ──► JobQueue ──► pop ──► current_
                                              │
-                          ┌── call_gate() و job غیر-تماسی؟ ──► نگه‌داشته (Queued)
+                          ┌── call_gate() و job غیر-تماسی؟ ──► نگه داشته (Queued)
                           │
                           ▼
                      start_job() ──► سرویس (SMS/Call/Stat/USSD).pump()
@@ -196,24 +196,24 @@ if (at_.idle()):
         watchdog budgets ──► maintenance_service ──► full_restart(keep_jobs=true)</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>گیت تماس ≠ توقف صف:</strong> jobهای متوقف‌شده با <code>deferred</code> علامت می‌خورند و بعد از تماس بدون مصرف بودجه تلاش از سر گرفته می‌شوند؛ callback هرگز گم نمی‌شود.</li>
-<li><strong><code>kErrJobStalled = -102</code>:</strong> کد داخلی برای «job قابل شروع نبود»؛ مثل <code>kErrSmsTooLong</code> retry نمی‌شود تا صف هرگز wedge نشود.</li>
-<li><strong><code>preempt_for_call</code> فقط job جاری را لغو می‌کند</strong> نه صف را؛ ترکیب با گیت تماس یعنی «تماس وسط ارسال پیامک» هم امن است (payload با ESC لغو می‌شود و بعداً دوباره ارسال می‌شود).</li>
-<li><strong><code>full_restart(keep_jobs=true)</code></strong> با reset کامل watchdog سازگار است: budgetهای زمانی/عملیاتی صفر می‌شوند ولی درخواست‌های کاربر از بین نمی‌روند.</li>
-<li><strong><code>session_</code> (SessionState):</strong> کش وضعیت مودم (echo/CMGF/CSCS/CSMP/CPMS) که با هر reset یا <code>fail</code> سرویس SMS باطل می‌شود؛ از فرمان‌های تنظیمی تکراری جلوگیری می‌کند.</li>
-<li><strong>ترتیب در tick مهم است:</strong> سرپرستی تماس قبل از FSM و <code>pump_services</code> صدا زده می‌شود تا تایمرهای قطع/<code>+CLCC</code> همیشه به‌موقع برسند حتی وقتی صف شلوغ است.</li>
-<li><strong>شماره‌گذاری JobId:</strong> از ۱ شروع می‌شود و صفر (<code>kInvalidJob</code>) هرگز برنمی‌گردد؛ پس از سرریز <code>uint16_t</code> به ۱ می‌پرد.</li>
-<li><strong><code>GSM_JOB_MAX_AGE_MS = 45000</code>:</strong> جلوی انباشت صف وقتی مودم آفلاین است را می‌گیرد؛ jobهای کهنه با حالت <code>Cancelled</code> به callback گزارش می‌شوند.</li>
+<li><strong>گیت تماس ≠ توقف صف:</strong> jobهای متوقف شده با <code>deferred</code> علامت می خورند و بعد از تماس بدون مصرف بودجه تلاش از سر گرفته می شوند؛ callback هرگز گم نمی شود.</li>
+<li><strong><code>kErrJobStalled = -102</code>:</strong> کد داخلی برای «job قابل شروع نبود»؛ مثل <code>kErrSmsTooLong</code> retry نمی شود تا صف هرگز wedge نشود.</li>
+<li><strong><code>preempt_for_call</code> فقط job جاری را لغو می کند</strong> نه صف را؛ ترکیب با گیت تماس یعنی «تماس وسط ارسال پیامک» هم امن است (payload با ESC لغو می شود و بعداً دوباره ارسال می شود).</li>
+<li><strong><code>full_restart(keep_jobs=true)</code></strong> با reset کامل watchdog سازگار است: budgetهای زمانی/عملیاتی صفر می شوند ولی درخواست های کاربر از بین نمی روند.</li>
+<li><strong><code>session_</code> (SessionState):</strong> کش وضعیت مودم (echo/CMGF/CSCS/CSMP/CPMS) که با هر reset یا <code>fail</code> سرویس SMS باطل می شود؛ از فرمان های تنظیمی تکراری جلوگیری می کند.</li>
+<li><strong>ترتیب در tick مهم است:</strong> سرپرستی تماس قبل از FSM و <code>pump_services</code> صدا زده می شود تا تایمرهای قطع/<code>+CLCC</code> همیشه به موقع برسند حتی وقتی صف شلوغ است.</li>
+<li><strong>شماره گذاری JobId:</strong> از ۱ شروع می شود و صفر (<code>kInvalidJob</code>) هرگز برنمی گردد؛ پس از سرریز <code>uint16_t</code> به ۱ می پرد.</li>
+<li><strong><code>GSM_JOB_MAX_AGE_MS = 45000</code>:</strong> جلوی انباشت صف وقتی مودم آفلاین است را می گیرد؛ jobهای کهنه با حالت <code>Cancelled</code> به callback گزارش می شوند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/modem/modem.hpp</code> — تعریف <code>ModemState</code>، <code>Modem</code> و API عمومی.</li>
 <li><code>gsm/queue/job.hpp</code> + <code>src/job_queue.cpp</code> — ساختار <code>Job</code>، <code>JobKind</code>، <code>JobState</code> و صف حلقوی.</li>
 <li><code>src/at_engine.cpp</code> — موتور فرمان AT (عضو <code>at_</code>).</li>
-<li><code>src/sms_service.cpp</code>، <code>src/call_service.cpp</code>، <code>src/status_service.cpp</code>، <code>src/ussd_service.cpp</code> — سرویس‌های تخصصی.</li>
-<li><code>src/urc_router.cpp</code> — دسته‌بندی URCها (<code>UrcEvent</code>) که به <code>handle_urc</code> می‌رسند.</li>
-<li><code>src/watchdog.cpp</code> — <code>MaintenanceWatchdog</code> (بودجه‌های reset + بررسی سلامت).</li>
+<li><code>src/sms_service.cpp</code>، <code>src/call_service.cpp</code>، <code>src/status_service.cpp</code>، <code>src/ussd_service.cpp</code> — سرویس های تخصصی.</li>
+<li><code>src/urc_router.cpp</code> — دسته بندی URCها (<code>UrcEvent</code>) که به <code>handle_urc</code> می رسند.</li>
+<li><code>src/watchdog.cpp</code> — <code>MaintenanceWatchdog</code> (بودجه های reset + بررسی سلامت).</li>
 <li><code>gsm/hal/hal.hpp</code> — <code>IUart</code>، <code>IClock</code>، <code>IPowerControl</code> (PWRKEY).</li>
 <li><code>gsm/device/device_traits.hpp</code> — دستورهای اختصاصی هر مودم (CSMP، storage، hangup و …).</li>
-<li><code>include/gsm/gsm_config.hpp</code> — همه ثابت‌های زمان‌بندی و ظرفیت.</li>
+<li><code>include/gsm/gsm_config.hpp</code> — همه ثابت های زمان بندی و ظرفیت.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

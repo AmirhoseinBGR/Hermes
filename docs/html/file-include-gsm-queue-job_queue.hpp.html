@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/queue/job_queue.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/queue/job_queue.hpp</h1>
 <h2>نقش فایل</h2>
-<p>صف FIFO ایستا و کم‌حجم برای Jobها با قابلیت لغو، تعلیق (pause) و پاک‌سازی Jobهای کهنه. این کلاس مکانیزم جلوگیری از انباشت و گیرافتادن صف را فراهم می‌کند (<code>purge_stale</code>) و فضای جداگانه‌ای برای Jobهای لغوشده دارد تا callback آن‌ها بی‌صدا حذف نشود.</p>
+<p>صف FIFO ایستا و کم حجم برای Jobها با قابلیت لغو، تعلیق (pause) و پاک سازی Jobهای کهنه. این کلاس مکانیزم جلوگیری از انباشت و گیرافتادن صف را فراهم می کند (<code>purge_stale</code>) و فضای جداگانه ای برای Jobهای لغوشده دارد تا callback آن ها بی صدا حذف نشود.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>class JobQueue</code></h3>
 <pre><code class="lang-cpp">class JobQueue
@@ -83,9 +83,9 @@ bool    paused_;</code></pre>
 <ul>
 <li><code>push</code>: درج در انتهای صف؛ اگر صف پر باشد <code>false</code>.</li>
 <li><code>pop</code> / <code>peek</code>: برداشتن/دیدن سر صف.</li>
-<li><code>cancel</code>: درآوردن Job با شناسهٔ مشخص و انتقال آن به بافر <code>cancelled_</code> تا <code>take_cancelled</code> (که <code>Modem::flush_cancelled</code> صدا می‌زند) callback لغو را اجرا کند.</li>
-<li><code>purge_stale(now, max_age_ms)</code>: حذف Jobهایی که بیش از <code>GSM_JOB_MAX_AGE_MS</code> (پیش‌فرض ۴۵ ثانیه) در صف مانده‌اند؛ تعداد حذف‌شده را برمی‌گرداند.</li>
-<li><code>at(i)</code>: دسترسی فقط‌خواندنی برای نمایش صف در CLI.</li>
+<li><code>cancel</code>: درآوردن Job با شناسهٔ مشخص و انتقال آن به بافر <code>cancelled_</code> تا <code>take_cancelled</code> (که <code>Modem::flush_cancelled</code> صدا می زند) callback لغو را اجرا کند.</li>
+<li><code>purge_stale(now, max_age_ms)</code>: حذف Jobهایی که بیش از <code>GSM_JOB_MAX_AGE_MS</code> (پیش فرض ۴۵ ثانیه) در صف مانده اند؛ تعداد حذف شده را برمی گرداند.</li>
+<li><code>at(i)</code>: دسترسی فقط خواندنی برای نمایش صف در CLI.</li>
 </ul>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">Modem::enqueue()  --push--&gt;  slots_[head ... head+count)
@@ -99,14 +99,14 @@ bool    paused_;</code></pre>
    Modem::cancel(id) ----------&gt; cancelled_[] -&gt; flush_cancelled() -&gt; cb(job)</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه</strong>: آرایه‌های ایستای <code>GSM_QUEUE_DEPTH</code> (پیش‌فرض ۶) از <code>Slot</code>؛ هر Slot شامل کل Job (با بافرهایش) است — اندازهٔ حافظه را با <code>GSM_SMS_TEXT_BYTES</code>/<code>GSM_USSD_RESPONSE_BYTES</code> در نظر بگیرید.</li>
-<li>دو صف موازی <code>slots_</code> و <code>cancelled_</code> هم‌اندازه‌اند؛ حداکثر تعداد Jobهای لغوشدهٔ معلق = ظرفیت صف.</li>
-<li><strong>حالت pause</strong>: پرچم <code>paused_</code> جریان برداشتن از صف را کنترل می‌کند؛ API سطح بالاتر آن <code>Modem::pause_queue</code>/<code>resume_queue</code> است (برای مثال هنگام تعلیق عمدی سرویس‌دهی).</li>
+<li><strong>بدون تخصیص حافظه</strong>: آرایه های ایستای <code>GSM_QUEUE_DEPTH</code> (پیش فرض ۶) از <code>Slot</code>؛ هر Slot شامل کل Job (با بافرهایش) است — اندازهٔ حافظه را با <code>GSM_SMS_TEXT_BYTES</code>/<code>GSM_USSD_RESPONSE_BYTES</code> در نظر بگیرید.</li>
+<li>دو صف موازی <code>slots_</code> و <code>cancelled_</code> هم اندازه اند؛ حداکثر تعداد Jobهای لغوشدهٔ معلق = ظرفیت صف.</li>
+<li><strong>حالت pause</strong>: پرچم <code>paused_</code> جریان برداشتن از صف را کنترل می کند؛ API سطح بالاتر آن <code>Modem::pause_queue</code>/<code>resume_queue</code> است (برای مثال هنگام تعلیق عمدی سرویس دهی).</li>
 <li><code>purge_stale</code> با الگوی <code>hal::elapsed</code> (تفریق ماژولار <code>uint32</code>) در برابر سرریز ساعت مقاوم است.</li>
-<li>FIFO ساده است؛ اولویت‌دهی <code>urgent</code> در لایهٔ <code>Modem</code> انجام می‌شود نه در این کلاس.</li>
+<li>FIFO ساده است؛ اولویت دهی <code>urgent</code> در لایهٔ <code>Modem</code> انجام می شود نه در این کلاس.</li>
 <li>callback لغو عمداً از مسیر <code>take_cancelled</code> جدا شده تا در میانهٔ پردازش صف، فراخوانی callback باعث بازگشت بازگشتی (reentrancy) نشود.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>queue/job.hpp</code> — نوع <code>Job</code>، <code>JobId</code>، <code>JobCallback</code></li>
 <li><code>gsm_config.hpp</code> — <code>GSM_QUEUE_DEPTH</code>، <code>GSM_JOB_MAX_AGE_MS</code>، <code>GSM_JOB_START_RETRIES</code></li>

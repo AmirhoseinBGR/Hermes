@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-نگهبان تعمیراتی ماژول GSM با **دو بازنشان مستقل** (resetter): یکی بر مبنای زمان (هر چند وقت یک‌بار ریست کامل دوره‌ای) و دیگری بر مبنای بودجهٔ عملیات (هر N عملیات موفق). بعد از هر بازنشانی یک **بررسی سلامت** (AT / CPIN / CREG / CSQ) صحت بازگشت ماژول را تأیید می‌کند. این سازوکار برای کاربردهای صنعتی طراحی شده که مودم باید ماه‌ها بدون دخالت انسان کار کند.
+نگهبان تعمیراتی ماژول GSM با **دو بازنشان مستقل** (resetter): یکی بر مبنای زمان (هر چند وقت یک بار ریست کامل دوره ای) و دیگری بر مبنای بودجهٔ عملیات (هر N عملیات موفق). بعد از هر بازنشانی یک **بررسی سلامت** (AT / CPIN / CREG / CSQ) صحت بازگشت ماژول را تأیید می کند. این سازوکار برای کاربردهای صنعتی طراحی شده که مودم باید ماه ها بدون دخالت انسان کار کند.
 
 ## ساختارهای کلیدی
 
@@ -91,7 +91,7 @@ uint32_t           resets_done() const;
 uint32_t           since_reset_ms(uint32_t now) const;
 ```
 
-فیلدهای خصوصی: `last_reset_ms_`، `ops_`، `resets_`، `started_`، `pending_` (درخواست بازنشانی معلق)، `probe_index_`/`issued_`/`check_pending_` (ماشین حالت بررسی سلامت)، `status_` (اشاره‌گر به `ModemStatus` زنده)، `health_`، `on_health_`.
+فیلدهای خصوصی: `last_reset_ms_`، `ops_`، `resets_`، `started_`، `pending_` (درخواست بازنشانی معلق)، `probe_index_`/`issued_`/`check_pending_` (ماشین حالت بررسی سلامت)، `status_` (اشاره گر به `ModemStatus` زنده)، `health_`، `on_health_`.
 
 ## جریان کاری
 
@@ -128,20 +128,20 @@ modem.set_on_health([](const gsm::HealthReport& r) {
 
 ## نکات فنی
 
-- **بدون heap / بدون STL**: فقط PODها، `Delegate` و `StaticString`؛ مناسب اجرای ماه‌ها بدون پراکندگی حافظه.
-- **دو بازنشان مستقل**: `periodic_ms` (پیش‌فرض ۱ ساعت) و `ops_period` (پیش‌فرض ۵۰ عملیات)؛ مقدار ۰ هر کدام را خاموش می‌کند. هر دو بعد از بازنشانی صفر می‌شوند (`on_reset_started`).
-- **`grace_ms`** (پیش‌فرض ۱۰ ثانیه): اگر پنجرهٔ امن برای بازنشانی (موتور بیکار/مودم آماده) پیدا نشود، بازنشانی به‌زور اجرا می‌شود — جلوگیری از تعویق بی‌نهایت ریست دوره‌ای.
+- **بدون heap / بدون STL**: فقط PODها، `Delegate` و `StaticString`؛ مناسب اجرای ماه ها بدون پراکندگی حافظه.
+- **دو بازنشان مستقل**: `periodic_ms` (پیش فرض ۱ ساعت) و `ops_period` (پیش فرض ۵۰ عملیات)؛ مقدار ۰ هر کدام را خاموش می کند. هر دو بعد از بازنشانی صفر می شوند (`on_reset_started`).
+- **`grace_ms`** (پیش فرض ۱۰ ثانیه): اگر پنجرهٔ امن برای بازنشانی (موتور بیکار/مودم آماده) پیدا نشود، بازنشانی به زور اجرا می شود — جلوگیری از تعویق بی نهایت ریست دوره ای.
 - `request_reset(Manual)` برای درخواست دستی از CLI/کاربر؛ `FaultRecovery` برای بازنشانی ناشی از شکست بررسی سلامت.
-- `bind_status` اشاره‌گر به `ModemStatus` زنده است (مالکیتی ندارد)؛ `rssi_dbm` در گزارش از همین‌جا می‌آید.
-- `pump(at, engine_idle, modem_ready)` فقط در پنجرهٔ امن اجرا می‌شود؛ `cancel_check` برای لغو بررسی نیمه‌کاره (مثلاً هنگام ورود تماس).
-- `check_busy()` مانع هم‌پوشانی دو بررسی می‌شود؛ `probe_index_` ترتیب پروب‌ها را نگه می‌دارد.
-- هماهنگی با `Modem`: `Modem::check_watchdog` و `Modem::maintenance_service` این APIها را اورکستریت می‌کنند؛ `set_on_health` در `Modem` هم در دسترس است.
-- `IAtObserver` بودن کلاس یعنی پاسخ‌های پروب سلامت (مثلاً `+CPIN: READY`) مستقیم به `on_line`/`on_final` می‌آیند.
+- `bind_status` اشاره گر به `ModemStatus` زنده است (مالکیتی ندارد)؛ `rssi_dbm` در گزارش از همین جا می آید.
+- `pump(at, engine_idle, modem_ready)` فقط در پنجرهٔ امن اجرا می شود؛ `cancel_check` برای لغو بررسی نیمه کاره (مثلاً هنگام ورود تماس).
+- `check_busy()` مانع هم پوشانی دو بررسی می شود؛ `probe_index_` ترتیب پروب ها را نگه می دارد.
+- هماهنگی با `Modem`: `Modem::check_watchdog` و `Modem::maintenance_service` این APIها را اورکستریت می کنند؛ `set_on_health` در `Modem` هم در دسترس است.
+- `IAtObserver` بودن کلاس یعنی پاسخ های پروب سلامت (مثلاً `+CPIN: READY`) مستقیم به `on_line`/`on_final` می آیند.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `gsm_config.hpp` — `GSM_PERIODIC_RESET_MS`، `GSM_OPS_RESET_COUNT`، `GSM_WATCHDOG_GRACE_MS`
-- `core/at_engine.hpp` — اجرای پروب‌های سلامت
+- `core/at_engine.hpp` — اجرای پروب های سلامت
 - `core/at_types.hpp` — `IAtObserver`، `AtResult`
 - `status/status_service.hpp` — `ModemStatus` (SIM/شبکه/RSSI زنده)
 - `modem/modem.hpp` — اورکستراسیون `tick`/`full_restart`، `set_on_health`، `maintenance()`

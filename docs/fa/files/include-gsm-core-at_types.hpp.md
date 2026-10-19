@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-انواع پایهٔ زبان AT کتابخانه را تعریف می‌کند: وضعیت نتیجهٔ یک فرمان AT، ساختار نتیجه، کدهای خطای سطح کتابخانه و اینترفیس مشاهده‌گر (`IAtObserver`) که همهٔ سرویس‌ها از طریق آن خروجی موتور AT را دریافت می‌کنند. این فایل قرارداد مشترک بین `AtEngine` و تمام سرویس‌هاست.
+انواع پایهٔ زبان AT کتابخانه را تعریف می کند: وضعیت نتیجهٔ یک فرمان AT، ساختار نتیجه، کدهای خطای سطح کتابخانه و اینترفیس مشاهده گر (`IAtObserver`) که همهٔ سرویس ها از طریق آن خروجی موتور AT را دریافت می کنند. این فایل قرارداد مشترک بین `AtEngine` و تمام سرویس هاست.
 
 ## ساختارهای کلیدی
 
@@ -24,9 +24,9 @@ enum class AtStatus : uint8_t
     NoAnswer,
 };
 ```
-- `Ok` / `Error`: پاسخ‌های استاندارد `OK` / `ERROR`
+- `Ok` / `Error`: پاسخ های استاندارد `OK` / `ERROR`
 - `CmeError` / `CmsError`: خطاهای `+CME ERROR: n` و `+CMS ERROR: n` (کد عددی در `code`)
-- `NoDialtone` / `Busy` / `NoCarrier` / `NoAnswer`: پاسخ‌های پایانی مربوط به تماس
+- `NoDialtone` / `Busy` / `NoCarrier` / `NoAnswer`: پاسخ های پایانی مربوط به تماس
 - `Timeout` / `Aborted`: اتمام زمان یا لغو دستی
 
 ### `struct AtResult`
@@ -57,7 +57,7 @@ const char* cms_error_hint(int16_t code);
 const char* cme_error_hint(int16_t code);
 ```
 - `to_string`: نام متنی وضعیت برای لاگ/CLI
-- `cms_error_hint` / `cme_error_hint`: توضیح انسان‌خوان برای کدهای خطای پیامک/تجهیز
+- `cms_error_hint` / `cme_error_hint`: توضیح انسان خوان برای کدهای خطای پیامک/تجهیز
 
 ### `class IAtObserver`
 ```cpp
@@ -70,11 +70,11 @@ class IAtObserver
     virtual void on_final(const AtResult& res) { ... }
 };
 ```
-- `on_line`: هر خط پاسخ (به‌جز خطوط نهایی و URC)
+- `on_line`: هر خط پاسخ (به جز خطوط نهایی و URC)
 - `on_prompt`: دریافت نشان `>` برای ورود به حالت payload (پیامک/USSD)
 - `on_final`: نتیجهٔ نهایی تراکنش (OK/ERROR/Timeout/…)
 
-همهٔ سرویس‌ها (`IService`) و ابزارهایی مثل `SerialBridge` و `cli::Console` این اینترفیس را پیاده می‌کنند.
+همهٔ سرویس ها (`IService`) و ابزارهایی مثل `SerialBridge` و `cli::Console` این اینترفیس را پیاده می کنند.
 
 ## جریان کاری
 
@@ -95,15 +95,15 @@ AtEngine.execute(req, observer)
 
 ## نکات فنی
 
-- `AtResult` و `AtStatus` نوع‌های POD و کم‌حجم (`uint8_t` + `int16_t`)؛ مناسب میکروکنترلر، بدون تخصیص حافظه.
-- `on_line` با `len` صدا زده می‌شود؛ خط لزوماً null-terminated نیست (اگرچه در عمل `LineReader` رشتهٔ null-terminated می‌دهد).
-- کدهای `kErr*` از -۱۰۰ به پایین‌اند تا با کدهای مثبت CME/CMS تداخل نکنند؛ `code = -1` یعنی «بدون کد».
+- `AtResult` و `AtStatus` نوع های POD و کم حجم (`uint8_t` + `int16_t`)؛ مناسب میکروکنترلر، بدون تخصیص حافظه.
+- `on_line` با `len` صدا زده می شود؛ خط لزوماً null-terminated نیست (اگرچه در عمل `LineReader` رشتهٔ null-terminated می دهد).
+- کدهای `kErr*` از -۱۰۰ به پایین اند تا با کدهای مثبت CME/CMS تداخل نکنند؛ `code = -1` یعنی «بدون کد».
 - `Pending` فقط برای مقداردهی اولیه است و نباید در `on_final` دیده شود.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `core/at_engine.hpp` — تولیدکنندهٔ رویدادهای `IAtObserver` و مالک `classify_final`
-- `core/service.hpp` — `IService` از `IAtObserver` ارث می‌برد
+- `core/service.hpp` — `IService` از `IAtObserver` ارث می برد
 - `queue/job.hpp` — فیلد `AtResult result` در هر Job
-- `sms/sms_service.hpp`، `ussd/ussd_service.hpp`، `voice/call_service.hpp` — مصرف‌کنندگان `kErrSmsTooLong` / `kErrCallTimeout`
+- `sms/sms_service.hpp`، `ussd/ussd_service.hpp`، `voice/call_service.hpp` — مصرف کنندگان `kErrSmsTooLong` / `kErrCallTimeout`
 - `tools/serial_bridge.hpp`، `cli/cli.hpp` — نمایش `to_string(res.status)`

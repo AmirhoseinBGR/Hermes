@@ -41,12 +41,12 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/at_engine.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/at_engine.cpp</h1>
 <h2>نقش فایل</h2>
-<p>این فایل پیاده‌سازی <code>gsm::AtEngine</code> است؛ موتور اجرای فرمان‌های AT که به‌صورت غیرهمزمان (event-driven) روی یک رابط UART کار می‌کند. موتور فقط یک فرمان در حال اجرا (in-flight) را نگه می‌دارد، پاسخ‌ها را خط‌به‌خط از <code>LineReader</code> می‌گیرد، نتیجه نهایی (<code>OK</code>، <code>ERROR</code>، <code>+CME ERROR</code>، …) را دسته‌بندی می‌کند و از طریق رابط <code>IAtObserver</code> به سرویس فراخوان (SMS، تماس، وضعیت و …) اطلاع می‌دهد. تشخیص URCها (پیام‌های ناخواسته مودم) بر عهده <code>UrcRouter</code> است و این موتور فقط خط‌های باقی‌مانده را به observer می‌رساند.</p>
+<p>این فایل پیاده سازی <code>gsm::AtEngine</code> است؛ موتور اجرای فرمان های AT که به صورت غیرهمزمان (event-driven) روی یک رابط UART کار می کند. موتور فقط یک فرمان در حال اجرا (in-flight) را نگه می دارد، پاسخ ها را خط به خط از <code>LineReader</code> می گیرد، نتیجه نهایی (<code>OK</code>، <code>ERROR</code>، <code>+CME ERROR</code>، …) را دسته بندی می کند و از طریق رابط <code>IAtObserver</code> به سرویس فراخوان (SMS، تماس، وضعیت و …) اطلاع می دهد. تشخیص URCها (پیام های ناخواسته مودم) بر عهده <code>UrcRouter</code> است و این موتور فقط خط های باقی مانده را به observer می رساند.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3><code>bool AtEngine::execute(const AtRequest&amp; req, IAtObserver* observer)</code></h3>
-<p>شروع یک فرمان AT. اگر موتور مشغول باشد (<code>busy()</code>) یا هنوز زمان نگهبانی <code>GSM_AT_GUARD_TIME</code> (پیش‌فرض ۳۰ms) از پایان فرمان قبلی نگذشته باشد، <code>false</code> برمی‌گرداند. در حالت موفق، observer، مهلت (<code>timeout_ms</code>)، و انتظار پرامپت (<code>expect_prompt</code>) را ثبت می‌کند، بافر خواندن را <code>reset</code> می‌کند و فرمان را به‌همراه <code>\r\n</code> روی UART می‌نویسد:</p>
+<p>شروع یک فرمان AT. اگر موتور مشغول باشد (<code>busy()</code>) یا هنوز زمان نگهبانی <code>GSM_AT_GUARD_TIME</code> (پیش فرض ۳۰ms) از پایان فرمان قبلی نگذشته باشد، <code>false</code> برمی گرداند. در حالت موفق، observer، مهلت (<code>timeout_ms</code>)، و انتظار پرامپت (<code>expect_prompt</code>) را ثبت می کند، بافر خواندن را <code>reset</code> می کند و فرمان را به همراه <code>\r\n</code> روی UART می نویسد:</p>
 <pre><code class="lang-cpp">if (busy()) return false;
 if (!hal::elapsed(clock_.millis(), last_done_, GSM_AT_GUARD_TIME)) return false;
 // ...
@@ -55,15 +55,15 @@ uart_.write(reinterpret_cast&lt;const uint8_t*&gt;(sent_.c_str()), sent_.size())
 const uint8_t crlf[2] = {&#x27;\r&#x27;, &#x27;\n&#x27;};
 uart_.write(crlf, 2);</code></pre>
 <h3><code>bool AtEngine::execute(const char<em> cmd, uint32_t timeout_ms, IAtObserver</em> observer)</code></h3>
-<p>نسخه ساده‌شده که یک <code>AtRequest</code> موقت می‌سازد و به نسخه اصلی پاس می‌دهد.</p>
+<p>نسخه ساده شده که یک <code>AtRequest</code> موقت می سازد و به نسخه اصلی پاس می دهد.</p>
 <h3><code>bool AtEngine::await_final(uint32_t timeout_ms, IAtObserver* observer)</code></h3>
-<p>بدون ارسال فرمان، فقط منتظر نتیجه نهایی می‌ماند. برای «فاز payload» کاربرد دارد (مثلاً بعد از نوشتن متن پیامک و Ctrl+Z که فقط باید <code>+CMGS: …</code> و <code>OK</code> دریافت شود). چون فرمانی ارسال نمی‌شود، <code>sent_</code> خالی می‌ماند و echo-killer غیرفعال است.</p>
+<p>بدون ارسال فرمان، فقط منتظر نتیجه نهایی می ماند. برای «فاز payload» کاربرد دارد (مثلاً بعد از نوشتن متن پیامک و Ctrl+Z که فقط باید <code>+CMGS: …</code> و <code>OK</code> دریافت شود). چون فرمانی ارسال نمی شود، <code>sent_</code> خالی می ماند و echo-killer غیرفعال است.</p>
 <h3><code>uint16_t AtEngine::write_raw(const uint8_t<em> data, uint16_t len)</code> / <code>write_raw(const char</em> text)</code></h3>
-<p>نوشتن خام روی UART برای payloadها (هگز UCS2 یا متن خام). در حالت trace با پیشوند <code>TX&lt;</code> لاگ بایتی می‌شود. نسخه <code>const char*</code> طول رشته را با <code>strlen</code> می‌گیرد و برای <code>nullptr</code> مقدار 0 برمی‌گرداند.</p>
+<p>نوشتن خام روی UART برای payloadها (هگز UCS2 یا متن خام). در حالت trace با پیشوند <code>TX&lt;</code> لاگ بایتی می شود. نسخه <code>const char*</code> طول رشته را با <code>strlen</code> می گیرد و برای <code>nullptr</code> مقدار 0 برمی گرداند.</p>
 <h3><code>void AtEngine::abort()</code></h3>
-<p>لغو فرمان در حال اجرا. اگر موتر در وضعیت انتظار پرامپت (<code>expect_prompt_</code>) باشد ابتدا <code>write_escape()</code> (ارسال ESC / بایت 0x1B) می‌فرستد تا مودم از حالت ورود داده خارج شود، سپس نتیجه را <code>AtStatus::Aborted</code> می‌کند. برای مودم‌هایی مثل M08R که با گیر کردن در پرامپت <code>&gt;</code> مشکل‌ساز می‌شوند حیاتی است.</p>
+<p>لغو فرمان در حال اجرا. اگر موتر در وضعیت انتظار پرامپت (<code>expect_prompt_</code>) باشد ابتدا <code>write_escape()</code> (ارسال ESC / بایت 0x1B) می فرستد تا مودم از حالت ورود داده خارج شود، سپس نتیجه را <code>AtStatus::Aborted</code> می کند. برای مودم هایی مثل M08R که با گیر کردن در پرامپت <code>&gt;</code> مشکل ساز می شوند حیاتی است.</p>
 <h3><code>bool AtEngine::classify_final(const char* line, AtStatus&amp; status, int16_t&amp; code) const</code></h3>
-<p>یک خط را در برابر پاسخ‌های نهایی استاندارد AT می‌سنجد و در صورت تطابق <code>true</code> برمی‌گرداند:</p>
+<p>یک خط را در برابر پاسخ های نهایی استاندارد AT می سنجد و در صورت تطابق <code>true</code> برمی گرداند:</p>
 <table><thead><tr><th>خط پاسخ</th><th><code>AtStatus</code></th><th>کد</th></tr></thead><tbody>
 <tr><td><code>OK</code></td><td><code>Ok</code></td><td>-1</td></tr>
 <tr><td><code>ERROR</code></td><td><code>Error</code></td><td>-1</td></tr>
@@ -74,48 +74,48 @@ uart_.write(crlf, 2);</code></pre>
 <tr><td><code>NO ANSWER</code></td><td><code>NoAnswer</code></td><td>-1</td></tr>
 <tr><td><code>NO DIALTONE</code></td><td><code>NoDialtone</code></td><td>-1</td></tr>
 </tbody></table>
-<p>عدد خطا با <code>parse_int(line + 11, v)</code> (پس از پیشوند ۱۱ نویسه‌ای <code>"+CME ERROR:"</code> / <code>"+CMS ERROR:"</code>) استخراج می‌شود.</p>
+<p>عدد خطا با <code>parse_int(line + 11, v)</code> (پس از پیشوند ۱۱ نویسه ای <code>"+CME ERROR:"</code> / <code>"+CMS ERROR:"</code>) استخراج می شود.</p>
 <h3><code>void AtEngine::finish(AtStatus status, int16_t code)</code></h3>
-<p>پایان یک تراکنش: observer را پاک می‌کند (موتور دوباره <code>idle()</code> می‌شود)، زمان پایان را برای guard time ثبت می‌کند و <code>on_final(AtResult{status, code})</code> را روی observer قبلی فراخوانی می‌کند.</p>
+<p>پایان یک تراکنش: observer را پاک می کند (موتور دوباره <code>idle()</code> می شود)، زمان پایان را برای guard time ثبت می کند و <code>on_final(AtResult{status, code})</code> را روی observer قبلی فراخوانی می کند.</p>
 <h3><code>void AtEngine::tick()</code></h3>
-<p>قلب موتور؛ در هر چرخه <code>Modem::tick</code> صدا زده می‌شود:</p>
+<p>قلب موتور؛ در هر چرخه <code>Modem::tick</code> صدا زده می شود:</p>
 <pre><code class="lang-text">while (uart_.read(&amp;byte, 1) == 1)
     │
     ├─ LineReader::feed(byte)
-    │     ├─ Token::Overflow → هشدار، reader_.reset() (خط دور ریخته می‌شود)
+    │     ├─ Token::Overflow → هشدار، reader_.reset() (خط دور ریخته می شود)
     │     ├─ Token::Prompt (&#x27;&gt;&#x27;) → observer_-&gt;on_prompt()
     │     │      و اگر expect_prompt_ باشد → finish(Ok)   ← پایان فاز هدر CMGS
     │     └─ Token::Line → پردازش خط کامل:
-    │            ├─ خط اکوی فرمان ارسالی؟ → دور ریخته می‌شود
+    │            ├─ خط اکوی فرمان ارسالی؟ → دور ریخته می شود
     │            ├─ classify_final()؟ → لاگ راهنمای CME/CMS + finish()
-    │            ├─ urc_.dispatch()؟ → مصرف شد؛ به observer نمی‌رسد
+    │            ├─ urc_.dispatch()؟ → مصرف شد؛ به observer نمی رسد
     │            └─ در غیر این صورت → observer_-&gt;on_line(line, len)
     │
     └─ بررسی timeout: اگر observer فعال و مهلت سپری شده →
            هشدار، escape در صورت نیاز، finish(Timeout)</code></pre>
-<p>نکته ظریف: خطوط اکو (echo) با مقایسه دقیق با <code>sent_</code> حذف می‌شوند؛ برای همین <code>ATE0</code> در bootstrap اهمیت دارد ولی حتی با اکوی فعال هم موتور گمراه نمی‌شود.</p>
+<p>نکته ظریف: خطوط اکو (echo) با مقایسه دقیق با <code>sent_</code> حذف می شوند؛ برای همین <code>ATE0</code> در bootstrap اهمیت دارد ولی حتی با اکوی فعال هم موتور گمراه نمی شود.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">   سرویس (SMS/Call/…)                AtEngine                    مودم روی UART
    ──────────────────                ────────                    ──────────────
    execute(&quot;AT+CMGS=…&quot;)
         └────────────────────────►  ثبت observer/timeout
                                     write(cmd + CRLF) ──────────►  TX
-   on_line(...)  ◄────────────────  reader_: خط از بایت‌ها        ◄── RX
+   on_line(...)  ◄────────────────  reader_: خط از بایت ها        ◄── RX
    on_prompt()   ◄────────────────  دیدن &#x27;&gt;&#x27; (پرامپت داده)
    write_raw(hex) / write_ctrl_z ─►  write_raw مستقیم ──────────►  TX payload
    await_final(timeout) ─────────►  انتظار نتیجه
    on_final(Ok/CmeError/…) ◄──────  finish() پس از OK/ERROR       ◄── RX</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>تک‌فرمانی:</strong> هر لحظه فقط یک observer فعال است؛ <code>busy()</code> یعنی <code>observer_ != nullptr</code>. سرویس‌ها باید قبل از <code>execute</code> مطمئن شوند موتور آزاد است (خود موتور هم در صورت اشغال <code>false</code> برمی‌گرداند).</li>
-<li><strong>Guard time:</strong> فاصله حداقل ۳۰ms بین دو فرمان (<code>GSM_AT_GUARD_TIME</code>) از تداخل پاسخ‌های مودم‌های کند جلوگیری می‌کند؛ یک <code>execute</code> ممکن است به‌ظاهر بی‌دلیل <code>false</code> برگرداند!</li>
-<li><strong>پرامپت <code>&gt;</code>:</strong> فقط وقتی بافر خط خالی باشد <code>Token::Prompt</code> تولید می‌شود؛ بنابراین <code>&gt;</code> در میانه یک خط (مثلاً در متن پیامک) پرامپت تلقی نمی‌شود.</li>
-<li><strong>سرریز خط:</strong> بافر <code>LineReader</code> با <code>GSM_LINE_MAX</code> (۵۱۲) محدود است؛ خطوط بلندتر با <code>Token::Overflow</code> بی‌سروصدا دور ریخته و ریست می‌شوند.</li>
-<li><strong>کدهای خطا:</strong> <code>+CME/+CMS ERROR</code> هم به‌صورت عددی (<code>code</code>) و هم با متن راهنما (<code>cme_error_hint</code> / <code>cms_error_hint</code> از <code>at_types.cpp</code>) لاگ می‌شوند.</li>
-<li><strong>بدون تخصیص حافظه پویا:</strong> همه بافرها ثابت و روی پشته/اعضای کلاس هستند؛ مناسب محیط‌های embedded.</li>
-<li><strong>Timeout در فاز payload:</strong> وقتی <code>sent_</code> خالی است (یعنی <code>await_final</code>)، پیام timeout با <code>(payload phase)</code> چاپ می‌شود تا اشکال‌زابی ساده‌تر باشد.</li>
+<li><strong>تک فرمانی:</strong> هر لحظه فقط یک observer فعال است؛ <code>busy()</code> یعنی <code>observer_ != nullptr</code>. سرویس ها باید قبل از <code>execute</code> مطمئن شوند موتور آزاد است (خود موتور هم در صورت اشغال <code>false</code> برمی گرداند).</li>
+<li><strong>Guard time:</strong> فاصله حداقل ۳۰ms بین دو فرمان (<code>GSM_AT_GUARD_TIME</code>) از تداخل پاسخ های مودم های کند جلوگیری می کند؛ یک <code>execute</code> ممکن است به ظاهر بی دلیل <code>false</code> برگرداند!</li>
+<li><strong>پرامپت <code>&gt;</code>:</strong> فقط وقتی بافر خط خالی باشد <code>Token::Prompt</code> تولید می شود؛ بنابراین <code>&gt;</code> در میانه یک خط (مثلاً در متن پیامک) پرامپت تلقی نمی شود.</li>
+<li><strong>سرریز خط:</strong> بافر <code>LineReader</code> با <code>GSM_LINE_MAX</code> (۵۱۲) محدود است؛ خطوط بلندتر با <code>Token::Overflow</code> بی سروصدا دور ریخته و ریست می شوند.</li>
+<li><strong>کدهای خطا:</strong> <code>+CME/+CMS ERROR</code> هم به صورت عددی (<code>code</code>) و هم با متن راهنما (<code>cme_error_hint</code> / <code>cms_error_hint</code> از <code>at_types.cpp</code>) لاگ می شوند.</li>
+<li><strong>بدون تخصیص حافظه پویا:</strong> همه بافرها ثابت و روی پشته/اعضای کلاس هستند؛ مناسب محیط های embedded.</li>
+<li><strong>Timeout در فاز payload:</strong> وقتی <code>sent_</code> خالی است (یعنی <code>await_final</code>)، پیام timeout با <code>(payload phase)</code> چاپ می شود تا اشکال زابی ساده تر باشد.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/core/at_engine.hpp</code> — تعریف کلاس، <code>AtRequest</code>، <code>write_ctrl_z()</code> / <code>write_escape()</code> (اینلاین در هدر).</li>
 <li><code>gsm/core/line_reader.hpp</code> + <code>src/line_reader.cpp</code> — توکنایزر خط/پرامپت.</li>
@@ -123,5 +123,5 @@ uart_.write(crlf, 2);</code></pre>
 <li><code>gsm/core/urc_router.hpp</code> + <code>src/urc_router.cpp</code> — مسیریابی خطوط ناخواسته (URC) قبل از رسیدن به observer.</li>
 <li><code>gsm/util/static_string.hpp</code> — <code>str_starts_with</code>، <code>parse_int</code>.</li>
 <li><code>gsm/hal/hal.hpp</code> — <code>IUart</code>، <code>IClock</code> و <code>hal::elapsed</code> (محاسبه timeoutها بدون نگرانی از سرریز شمارنده).</li>
-<li>مصرف‌کننده‌ها: <code>src/sms_service.cpp</code>، <code>src/call_service.cpp</code>، <code>src/status_service.cpp</code>، <code>src/ussd_service.cpp</code>، <code>src/watchdog.cpp</code> و <code>Modem</code> (همگی <code>IAtObserver</code> هستند).</li>
+<li>مصرف کننده ها: <code>src/sms_service.cpp</code>، <code>src/call_service.cpp</code>، <code>src/status_service.cpp</code>، <code>src/ussd_service.cpp</code>، <code>src/watchdog.cpp</code> و <code>Modem</code> (همگی <code>IAtObserver</code> هستند).</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

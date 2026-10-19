@@ -41,60 +41,60 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>App/gsm_cli/cli.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>App/gsm_cli/cli.hpp</h1>
 <h2>نقش فایل</h2>
-<p>هدر «چسب» (glue) اپلیکیشن برای کنسول کتابخانه‌ی GSM روی STM32، به‌همراه پل وب/سریال (web/serial bridge). مانند <code>gsm/user_code/cli.hpp</code>، این فایل رابط نازکی برای مقداردهی، تیک، و کال‌بک‌های UART فراهم می‌کند؛ با این تفاوت که افزون بر آن، امکان آینه‌کردن لاگ/رویدادها به یک مصرف‌کننده‌ی بیرونی (کنسول وب) و اجرای دستور از پل وب را هم اعلام می‌کند. تمام منطق کنسول در <code>gsm::cli::Console</code> (کتابخانه) است.</p>
+<p>هدر «چسب» (glue) اپلیکیشن برای کنسول کتابخانه ی GSM روی STM32، به همراه پل وب/سریال (web/serial bridge). مانند <code>gsm/user_code/cli.hpp</code>، این فایل رابط نازکی برای مقداردهی، تیک، و کال بک های UART فراهم می کند؛ با این تفاوت که افزون بر آن، امکان آینه کردن لاگ/رویدادها به یک مصرف کننده ی بیرونی (کنسول وب) و اجرای دستور از پل وب را هم اعلام می کند. تمام منطق کنسول در <code>gsm::cli::Console</code> (کتابخانه) است.</p>
 <h2>ساختارها/توابع کلیدی</h2>
 <p>همه در <code>namespace cli</code>:</p>
 <ul>
 <li><code>void init()</code></li>
 </ul>
-<p>مقداردهی اولیه‌ی زیرسیستم CLI (سخت‌افزار، مودم، کال‌بک‌ها).</p>
+<p>مقداردهی اولیه ی زیرسیستم CLI (سخت افزار، مودم، کال بک ها).</p>
 <ul>
 <li><code>void tick()</code></li>
 </ul>
-<p>پردازش یک تیک CLI (از ححلقه‌ی اصلی).</p>
+<p>پردازش یک تیک CLI (از ححلقه ی اصلی).</p>
 <ul>
 <li><code>void on_uart_rx(UART_HandleTypeDef* huart, uint16_t size)</code></li>
 </ul>
-<p>کال‌بک رویداد دریافت UART (HAL)؛ داده‌ی مودم و دیباگ را به کنسول هدایت می‌کند.</p>
+<p>کال بک رویداد دریافت UART (HAL)؛ داده ی مودم و دیباگ را به کنسول هدایت می کند.</p>
 <ul>
 <li><code>void on_uart_error(UART_HandleTypeDef* huart)</code></li>
 </ul>
-<p>کال‌بک خطای UART (HAL)؛ برای بازیابی دریافت.</p>
+<p>کال بک خطای UART (HAL)؛ برای بازیابی دریافت.</p>
 <ul>
 <li><code>void set_web_output(void (<em>out)(const char</em> line, void<em> ud), void</em> ud)</code></li>
 </ul>
-<p>آینه‌کردن لاگ‌های مودم و رویدادها به یک مصرف‌کننده‌ی بیرونی (کنسول وب).</p>
+<p>آینه کردن لاگ های مودم و رویدادها به یک مصرف کننده ی بیرونی (کنسول وب).</p>
 <ul>
 <li><code>void exec_web(const char* line)</code></li>
 </ul>
-<p>اجرای یک دستور از پل وب/سریال؛ متن پاسخ به‌صورت خط‌به‌خط به خروجی وب ثبت‌شده می‌رود (ANSI در ادامه‌ی مسیر حذف می‌شود).</p>
+<p>اجرای یک دستور از پل وب/سریال؛ متن پاسخ به صورت خط به خط به خروجی وب ثبت شده می رود (ANSI در ادامه ی مسیر حذف می شود).</p>
 <ul>
 <li><code>void status_line(char* dst, unsigned cap)</code></li>
 </ul>
-<p>ساخت محموله‌ی فشرده‌ی وضعیت زنده برای پنل وب (قالب CSV).</p>
+<p>ساخت محموله ی فشرده ی وضعیت زنده برای پنل وب (قالب CSV).</p>
 <p>قالب: <code>fsm|act|step|ready|sim|net|op|rssi|bars|smsu|smst|paused|qsize|qcap|call|peer</code></p>
 <h2>جریان کاری</h2>
 <ol>
-<li>نقطه‌ی ورود اپلیکیشن <code>cli::init()</code> را صدا می‌زند؛ در هر ححلقه <code>cli::tick()</code>.</li>
-<li>وقفه‌های UART به <code>cli::on_uart_rx</code>/<code>cli::on_uart_error</code> وصل می‌شوند.</li>
-<li>پل وب: <code>set_web_output</code> یک مخاطب (consumer) برای لاگ/رویدادها ثبت می‌کند؛ <code>exec_web</code> دستورات ورودی وب را اجرا می‌کند؛ <code>status_line</code> وضعیت فشرده‌ی زنده را برای پنل وب می‌سازد.</li>
-<li>منطق واقعی کنسول در <code>gsm::cli::Console</code> انجام می‌شود؛ این فایل فقط API سیم‌کشی را در معرض قرار می‌دهد.</li>
+<li>نقطه ی ورود اپلیکیشن <code>cli::init()</code> را صدا می زند؛ در هر ححلقه <code>cli::tick()</code>.</li>
+<li>وقفه های UART به <code>cli::on_uart_rx</code>/<code>cli::on_uart_error</code> وصل می شوند.</li>
+<li>پل وب: <code>set_web_output</code> یک مخاطب (consumer) برای لاگ/رویدادها ثبت می کند؛ <code>exec_web</code> دستورات ورودی وب را اجرا می کند؛ <code>status_line</code> وضعیت فشرده ی زنده را برای پنل وب می سازد.</li>
+<li>منطق واقعی کنسول در <code>gsm::cli::Console</code> انجام می شود؛ این فایل فقط API سیم کشی را در معرض قرار می دهد.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li>این نسخه از <code>user_code/cli.hpp</code> کامل‌تر است: افزون بر کنسول سریال، پل وب (وب‌بریج) هم دارد.</li>
-<li><code>status_line</code> یک رشته‌ی CSV فشرده می‌سازد که فیلدهایش با <code>|</code> جدا شده‌اند؛ برای مصرف پنل وب طراحی شده.</li>
-<li><code>exec_web</code> پاسخ را «خط‌به‌خط» می‌دهد و «ANSI در ادامه‌ی مسیر حذف می‌شود»؛ یعنی رنگ‌های ترمینال به وب منتقل نمی‌شوند.</li>
+<li>این نسخه از <code>user_code/cli.hpp</code> کامل تر است: افزون بر کنسول سریال، پل وب (وب بریج) هم دارد.</li>
+<li><code>status_line</code> یک رشته ی CSV فشرده می سازد که فیلدهایش با <code>|</code> جدا شده اند؛ برای مصرف پنل وب طراحی شده.</li>
+<li><code>exec_web</code> پاسخ را «خط به خط» می دهد و «ANSI در ادامه ی مسیر حذف می شود»؛ یعنی رنگ های ترمینال به وب منتقل نمی شوند.</li>
 <li><code>UART_HandleTypeDef*</code> به <code>main.h</code> (CubeMX) وابسته است.</li>
-<li>توابع نازک‌اند؛ هیچ منطق تجاری/کنسول در این هدر نیست.</li>
+<li>توابع نازک اند؛ هیچ منطق تجاری/کنسول در این هدر نیست.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>App/gsm_cli/cli.cpp</code> — پیاده‌سازی این رابط (سخت‌افزار + کنسول + پل وب).</li>
-<li><code>gsm/include/gsm/cli/cli.hpp</code> — <code>gsm::cli::Console</code> که <code>set_web_output</code>/<code>exec_web</code>/<code>status_line</code> را پیاده می‌کند.</li>
-<li><code>App/port/drivers.cpp</code> — مصرف‌کننده‌ی پل وب (طبق توضیح هدر).</li>
+<li><code>App/gsm_cli/cli.cpp</code> — پیاده سازی این رابط (سخت افزار + کنسول + پل وب).</li>
+<li><code>gsm/include/gsm/cli/cli.hpp</code> — <code>gsm::cli::Console</code> که <code>set_web_output</code>/<code>exec_web</code>/<code>status_line</code> را پیاده می کند.</li>
+<li><code>App/port/drivers.cpp</code> — مصرف کننده ی پل وب (طبق توضیح هدر).</li>
 <li><code>gsm/ports/stm32/gsm_port_stm32.hpp</code> — پُرت UART/Clock/Power.</li>
-<li><code>gsm/user_code/cli.hpp</code> — نسخه‌ی ساده‌تر (بدون پل وب) برای نمونه‌ی کتابخانه.</li>
+<li><code>gsm/user_code/cli.hpp</code> — نسخه ی ساده تر (بدون پل وب) برای نمونه ی کتابخانه.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

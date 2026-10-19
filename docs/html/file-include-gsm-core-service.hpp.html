@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/core/service.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/core/service.hpp</h1>
 <h2>نقش فایل</h2>
-<p>قرارداد مشترک همهٔ «سرویس‌ها» (ماشین‌های حالت چندمرحله‌ای AT مثل SMS، تماس، وضعیت و USSD) و همچنین ثبت وضعیت مشترک نشست با مودم (<code>SessionState</code>). هر سرویس یک <code>IAtObserver</code> است که مراحل خود را با <code>pump()</code> جلو می‌برد و نتیجه را در قالب <code>AtResult</code> عرضه می‌کند.</p>
+<p>قرارداد مشترک همهٔ «سرویس ها» (ماشین های حالت چندمرحله ای AT مثل SMS، تماس، وضعیت و USSD) و همچنین ثبت وضعیت مشترک نشست با مودم (<code>SessionState</code>). هر سرویس یک <code>IAtObserver</code> است که مراحل خود را با <code>pump()</code> جلو می برد و نتیجه را در قالب <code>AtResult</code> عرضه می کند.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>enum class Charset : uint8_t</code></h3>
 <pre><code class="lang-cpp">enum class Charset : uint8_t
@@ -53,7 +53,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     Ucs2    // AT+CSCS=&quot;UCS2&quot;
 };</code></pre>
 <h3><code>struct SessionState</code></h3>
-<p>وضعیت نشست جاری AT که بین سرویس‌ها مشترک است و از اجرای دستبارهٔ دستورهای تنظیمی جلوگیری می‌کند:</p>
+<p>وضعیت نشست جاری AT که بین سرویس ها مشترک است و از اجرای دستبارهٔ دستورهای تنظیمی جلوگیری می کند:</p>
 <pre><code class="lang-cpp">struct SessionState
 {
     bool    text_mode     = false;  // AT+CMGF=1 applied
@@ -63,7 +63,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     bool    echo_off      = false;  // ATE0 applied
     void    invalidate() { *this = SessionState{}; }
 };</code></pre>
-<p><code>invalidate()</code> (مثلاً بعد از ریست ماژول یا قطع ارتباط) همه را به حالت ناشناخته برمی‌گرداند تا سرویس‌ها دوباره پیکربندی کنند.</p>
+<p><code>invalidate()</code> (مثلاً بعد از ریست ماژول یا قطع ارتباط) همه را به حالت ناشناخته برمی گرداند تا سرویس ها دوباره پیکربندی کنند.</p>
 <h3><code>class IService : public IAtObserver</code></h3>
 <pre><code class="lang-cpp">class IService : public IAtObserver
 {
@@ -74,7 +74,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     virtual const char*     step_name() const = 0;  // for logs / CLI
     virtual const AtResult&amp; result() const    = 0;  // final result of last run
 };</code></pre>
-<p>پیاده‌سازی‌های مشخص: <code>SmsService</code>، <code>CallService</code>، <code>StatusService</code>، <code>UssdService</code> — همگی <code>final</code> و با الگوی ماشین حالت گام‌به‌گام (<code>SmsStep</code>، <code>CallStep</code>، …).</p>
+<p>پیاده سازی های مشخص: <code>SmsService</code>، <code>CallService</code>، <code>StatusService</code>، <code>UssdService</code> — همگی <code>final</code> و با الگوی ماشین حالت گام به گام (<code>SmsStep</code>، <code>CallStep</code>، …).</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">Modem::pump_services()
     |
@@ -87,7 +87,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
              |
              v
          advance_step() -&gt; next state ... -&gt; Done</code></pre>
-<p>الگوی معمول پیاده‌سازی یک سرویس:</p>
+<p>الگوی معمول پیاده سازی یک سرویس:</p>
 <pre><code class="lang-cpp">// A service is a step machine driven by pump(); each step issues at most
 // one AT command and waits for on_final() to move on.
 void SmsService::pump()
@@ -101,16 +101,16 @@ void SmsService::pump()
 }</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه / بدون STL</strong>: <code>SessionState</code> یک POD کوچک است؛ سرویس‌ها همگی به‌صورت عضو <code>Modem</code> (نه اشاره‌گر پویا) نگهداری می‌شوند.</li>
-<li>هم‌زمان فقط <strong>یک سرویس فعال</strong> می‌تواند باشد؛ هماهنگی با <code>JobQueue</code> و <code>Modem::service_for()</code> انجام می‌شود.</li>
+<li><strong>بدون تخصیص حافظه / بدون STL</strong>: <code>SessionState</code> یک POD کوچک است؛ سرویس ها همگی به صورت عضو <code>Modem</code> (نه اشاره گر پویا) نگهداری می شوند.</li>
+<li>هم زمان فقط <strong>یک سرویس فعال</strong> می تواند باشد؛ هماهنگی با <code>JobQueue</code> و <code>Modem::service_for()</code> انجام می شود.</li>
 <li><code>active()</code> مبنای «آیا موتور درگیر است» برای صف و gate تماس است.</li>
-<li><code>SessionState</code> عمداً بین سرویس‌ها مشترک است تا مثلاً <code>SetCharset</code> فقط یک بار اجرا شود؛ اما هر سرویسی که به پیکربندی قطعی نیاز دارد باید خودش اعتبارسنجی کند.</li>
-<li><code>IAtObserver</code> پیش‌فرض‌های no-op دارد؛ سرویس‌ها فقط متدهای موردنیازشان را override می‌کنند.</li>
+<li><code>SessionState</code> عمداً بین سرویس ها مشترک است تا مثلاً <code>SetCharset</code> فقط یک بار اجرا شود؛ اما هر سرویسی که به پیکربندی قطعی نیاز دارد باید خودش اعتبارسنجی کند.</li>
+<li><code>IAtObserver</code> پیش فرض های no-op دارد؛ سرویس ها فقط متدهای موردنیازشان را override می کنند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/at_engine.hpp</code> و <code>core/at_types.hpp</code> — موتور اجرا و اینترفیس observer</li>
-<li><code>sms/sms_service.hpp</code>، <code>voice/call_service.hpp</code>، <code>status/status_service.hpp</code>، <code>ussd/ussd_service.hpp</code> — پیاده‌سازی‌های <code>IService</code></li>
-<li><code>modem/modem.hpp</code> — مالک سرویس‌ها و <code>SessionState</code>؛ صدازدن <code>pump()</code> در هر تیک</li>
-<li><code>queue/job.hpp</code> — نوع Job که به هر سرویس نگاشت می‌شود</li>
+<li><code>sms/sms_service.hpp</code>، <code>voice/call_service.hpp</code>، <code>status/status_service.hpp</code>، <code>ussd/ussd_service.hpp</code> — پیاده سازی های <code>IService</code></li>
+<li><code>modem/modem.hpp</code> — مالک سرویس ها و <code>SessionState</code>؛ صدازدن <code>pump()</code> در هر تیک</li>
+<li><code>queue/job.hpp</code> — نوع Job که به هر سرویس نگاشت می شود</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

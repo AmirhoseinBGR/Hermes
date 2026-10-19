@@ -41,65 +41,65 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/ports/stm32/gsm_port_stm32.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/ports/stm32/gsm_port_stm32.hpp</h1>
 <h2>نقش فایل</h2>
-<p>این فایل «پُرت STM32» برای کتابخانه‌ی GSM است و رابط‌های انتزاعی سخت‌افزاری (HAL) را روی میکروکنترلرهای STM32 با کتابخانه‌ی HAL شرکت ST پیاده‌سازی می‌کند. سه بخش اصلی دارد: UART مبتنی بر DMA، زمان‌سنج مبتنی بر <code>HAL_GetTick</code>، و کنترل پین‌های تغذیه/ریست مودم (PWRKEY / RESET). این فایل به <code>main.h</code> (تولیدشده توسط CubeMX) وابسته است تا به هندل‌های UART و GPIO دسترسی داشته باشد.</p>
+<p>این فایل «پُرت STM32» برای کتابخانه ی GSM است و رابط های انتزاعی سخت افزاری (HAL) را روی میکروکنترلرهای STM32 با کتابخانه ی HAL شرکت ST پیاده سازی می کند. سه بخش اصلی دارد: UART مبتنی بر DMA، زمان سنج مبتنی بر <code>HAL_GetTick</code>، و کنترل پین های تغذیه/ریست مودم (PWRKEY / RESET). این فایل به <code>main.h</code> (تولیدشده توسط CubeMX) وابسته است تا به هندل های UART و GPIO دسترسی داشته باشد.</p>
 <h2>ساختارها/توابع کلیدی</h2>
 <ul>
 <li><code>template &lt;uint16_t DmaSize = 256, uint16_t RingSize = GSM_RX_RING_SIZE&gt; class Stm32Uart final : public hal::IUart</code></li>
 </ul>
-<p>UART دریافتی مبتنی بر DMA با حلقه‌ی بافر (<code>RingBuffer&lt;RingSize&gt;</code>) برای تخلیه‌ی داده‌ها.</p>
+<p>UART دریافتی مبتنی بر DMA با حلقه ی بافر (<code>RingBuffer&lt;RingSize&gt;</code>) برای تخلیه ی داده ها.</p>
 <ul>
 <li><code>explicit Stm32Uart(UART_HandleTypeDef* huart, uint32_t tx_timeout_ms = 100)</code> — سازنده با هندل UART و مهلت ارسال.</li>
-<li><code>void begin()</code> — دریافت DMA را شروع می‌کند (<code>start_rx</code>).</li>
+<li><code>void begin()</code> — دریافت DMA را شروع می کند (<code>start_rx</code>).</li>
 <li><code>UART_HandleTypeDef* handle() const</code> — دسترسی به هندل UART.</li>
-<li><code>uint16_t write(const uint8_t* data, uint16_t len)</code> — با <code>HAL_UART_Transmit</code> (Blocking با مهلت) ارسال می‌کند؛ در موفقیت <code>len</code> و در خطا <code>0</code>.</li>
-<li><code>uint16_t read(uint8_t* out, uint16_t max)</code> — تا <code>max</code> بایت از حلقه‌ی RX برمی‌دارد.</li>
-<li><code>uint16_t available()</code> — تعداد بایت‌های آماده در حلقه.</li>
-<li><code>void drain_rx()</code> — حلقه را خالی می‌کند.</li>
-<li><code>void on_rx_event(uint16_t size)</code> — کال‌بک رویداد RX (از <code>HAL_UARTEx_RxEventCallback</code>)؛ داده‌ی جدید DMA را از <code>last_pos_</code> تا <code>size</code> وارد حلقه می‌کند و حالت wrap-around بافر DMA را مدیریت می‌کند.</li>
-<li><code>void on_error()</code> — فلگ‌های خطای UART (ORE/NE/FE) را پاک می‌کند و دریافت را دوباره شروع می‌کند.</li>
-<li><code>void set_circular(bool on)</code> — حالت دریافت پیوسته‌ی حلقه‌ای DMA را روشن/خاموش می‌کند.</li>
+<li><code>uint16_t write(const uint8_t* data, uint16_t len)</code> — با <code>HAL_UART_Transmit</code> (Blocking با مهلت) ارسال می کند؛ در موفقیت <code>len</code> و در خطا <code>0</code>.</li>
+<li><code>uint16_t read(uint8_t* out, uint16_t max)</code> — تا <code>max</code> بایت از حلقه ی RX برمی دارد.</li>
+<li><code>uint16_t available()</code> — تعداد بایت های آماده در حلقه.</li>
+<li><code>void drain_rx()</code> — حلقه را خالی می کند.</li>
+<li><code>void on_rx_event(uint16_t size)</code> — کال بک رویداد RX (از <code>HAL_UARTEx_RxEventCallback</code>)؛ داده ی جدید DMA را از <code>last_pos_</code> تا <code>size</code> وارد حلقه می کند و حالت wrap-around بافر DMA را مدیریت می کند.</li>
+<li><code>void on_error()</code> — فلگ های خطای UART (ORE/NE/FE) را پاک می کند و دریافت را دوباره شروع می کند.</li>
+<li><code>void set_circular(bool on)</code> — حالت دریافت پیوسته ی حلقه ای DMA را روشن/خاموش می کند.</li>
 </ul>
 <ul>
 <li><code>class Stm32Clock final : public hal::IClock</code></li>
-<li><code>uint32_t millis()</code> — <code>HAL_GetTick()</code> را برمی‌گرداند (میلی‌ثانیه‌ی سراسری HAL).</li>
+<li><code>uint32_t millis()</code> — <code>HAL_GetTick()</code> را برمی گرداند (میلی ثانیه ی سراسری HAL).</li>
 </ul>
 <ul>
 <li><code>class Stm32PowerControl final : public hal::IPowerControl</code></li>
 </ul>
-<p>کنترل پین‌های تغذیه و ریست مودم با پشتیبانی از سطح فعال-پایین.</p>
+<p>کنترل پین های تغذیه و ریست مودم با پشتیبانی از سطح فعال-پایین.</p>
 <ul>
 <li>سازنده: <code>Stm32PowerControl(GPIO_TypeDef<em> pwr_port, uint16_t pwr_pin, GPIO_TypeDef</em> rst_port = nullptr, uint16_t rst_pin = 0, bool active_low = true)</code></li>
-<li><code>void power_key(bool asserted)</code> — فقط سطح پین PWRKEY را ست/ریست می‌کند (بدون هیچ تأخیری). زمان‌بندی پولس (<code>assert</code> → نگه داشتن → <code>release</code> → boot guard) در <code>Modem::tick()</code> انجام می‌شود.</li>
-<li><code>void reset(bool asserted)</code> — فقط پین RESET را همان لحظه کنترل می‌کند (بدون تأخیر).</li>
-<li>⚠️ عمداً هیچ <code>HAL_Delay</code> در این کلاس نیست: اگر این توابع از داخل وقفه صدا زده شوند (مثل دستور کنسول که از ISR یو‌آرت می‌آمد)، <code>HAL_Delay</code> روی تیک SysTick قفل می‌شود و کل دستگاه هنگ می‌کند. <code>power_key()</code> را هرگز از ISR صدا نزنید.</li>
+<li><code>void power_key(bool asserted)</code> — فقط سطح پین PWRKEY را ست/ریست می کند (بدون هیچ تأخیری). زمان بندی پولس (<code>assert</code> → نگه داشتن → <code>release</code> → boot guard) در <code>Modem::tick()</code> انجام می شود.</li>
+<li><code>void reset(bool asserted)</code> — فقط پین RESET را همان لحظه کنترل می کند (بدون تأخیر).</li>
+<li>⚠️ عمداً هیچ <code>HAL_Delay</code> در این کلاس نیست: اگر این توابع از داخل وقفه صدا زده شوند (مثل دستور کنسول که از ISR یو آرت می آمد)، <code>HAL_Delay</code> روی تیک SysTick قفل می شود و کل دستگاه هنگ می کند. <code>power_key()</code> را هرگز از ISR صدا نزنید.</li>
 </ul>
 <h2>جریان کاری</h2>
 <ol>
-<li><strong>شروع دریافت:</strong> <code>begin()</code> → <code>start_rx()</code> → <code>HAL_UARTEx_ReceiveToIdle_DMA</code> (با غیرفعال کردن وقفه‌ی نیمه‌بافر DMA).</li>
-<li><strong>ورود داده:</strong> وقفه‌ی DMA → <code>HAL_UARTEx_RxEventCallback</code> → <code>on_rx_event(size)</code> → انتقال بایت‌های جدید از بافر DMA به حلقه‌ی RX.</li>
-<li><strong>مدیریت wrap:</strong> اگر <code>size</code> از <code>last_pos_</code> کوچک‌تر باشد (نشانه‌ی چرخش بافر DMA)، داده از <code>last_pos_</code> تا انتها و سپس از ابتدای بافر DMA خوانده می‌شود.</li>
-<li><strong>غیر حلقه‌ای:</strong> اگر <code>circular_</code> خاموش باشد، پس از هر رویداد دریافت دوباره <code>start_rx()</code> صدا زده می‌شود.</li>
-<li><strong>ارسال:</strong> <code>write</code> از <code>HAL_UART_Transmit</code> Blocking استفاده می‌کند.</li>
-<li><strong>تغذیه:</strong> <code>Stm32PowerControl</code> پین‌های PWRKEY/RESET را برای روشن کردن یا ریست سخت‌افزاری مودم مدیریت می‌کند.</li>
+<li><strong>شروع دریافت:</strong> <code>begin()</code> → <code>start_rx()</code> → <code>HAL_UARTEx_ReceiveToIdle_DMA</code> (با غیرفعال کردن وقفه ی نیمه بافر DMA).</li>
+<li><strong>ورود داده:</strong> وقفه ی DMA → <code>HAL_UARTEx_RxEventCallback</code> → <code>on_rx_event(size)</code> → انتقال بایت های جدید از بافر DMA به حلقه ی RX.</li>
+<li><strong>مدیریت wrap:</strong> اگر <code>size</code> از <code>last_pos_</code> کوچک تر باشد (نشانه ی چرخش بافر DMA)، داده از <code>last_pos_</code> تا انتها و سپس از ابتدای بافر DMA خوانده می شود.</li>
+<li><strong>غیر حلقه ای:</strong> اگر <code>circular_</code> خاموش باشد، پس از هر رویداد دریافت دوباره <code>start_rx()</code> صدا زده می شود.</li>
+<li><strong>ارسال:</strong> <code>write</code> از <code>HAL_UART_Transmit</code> Blocking استفاده می کند.</li>
+<li><strong>تغذیه:</strong> <code>Stm32PowerControl</code> پین های PWRKEY/RESET را برای روشن کردن یا ریست سخت افزاری مودم مدیریت می کند.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li><code>last_pos_</code> از نوع <code>volatile uint16_t</code> است چون در زمینه‌ی وقفه تغییر می‌کند.</li>
-<li>بافر DMA آرایه‌ی <code>uint8_t dma_[DmaSize]</code> با اندازه‌ی پیش‌فرض <code>256</code> است.</li>
-<li><code>write</code> در صورت ورودی نال/طول صفر، <code>0</code> برمی‌گرداند؛ در خطا (غیر <code>HAL_OK</code>) نیز <code>0</code> برمی‌گرداند.</li>
-<li>تفکیک منطق فعال (<code>asserted ^ active_low_</code>) به پین‌های فعال-پایین یا فعال-بالا اجازه می‌دهد با یک سازنده سازگار شوند.</li>
-<li><code>on_error</code> فلگ‌های Overrun/Noise/Framing را پاک می‌کند تا UART پس از خطا به حالت عادی برگردد.</li>
+<li><code>last_pos_</code> از نوع <code>volatile uint16_t</code> است چون در زمینه ی وقفه تغییر می کند.</li>
+<li>بافر DMA آرایه ی <code>uint8_t dma_[DmaSize]</code> با اندازه ی پیش فرض <code>256</code> است.</li>
+<li><code>write</code> در صورت ورودی نال/طول صفر، <code>0</code> برمی گرداند؛ در خطا (غیر <code>HAL_OK</code>) نیز <code>0</code> برمی گرداند.</li>
+<li>تفکیک منطق فعال (<code>asserted ^ active_low_</code>) به پین های فعال-پایین یا فعال-بالا اجازه می دهد با یک سازنده سازگار شوند.</li>
+<li><code>on_error</code> فلگ های Overrun/Noise/Framing را پاک می کند تا UART پس از خطا به حالت عادی برگردد.</li>
 <li>ماکروی <code>GSM_RX_RING_SIZE</code> باید در <code>main.h</code> یا پیکربندی پروژه تعریف شود.</li>
 <li>برخلاف پُرت میزبان، اینجا از هیچ STL پویایی استفاده نشده و با <code>-fno-exceptions -fno-rtti</code> سازگار است.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>gsm/hal/hal.hpp</code> — رابط‌های <code>IUart</code>/<code>IClock</code>/<code>IPowerControl</code> که اینجا پیاده می‌شوند.</li>
+<li><code>gsm/hal/hal.hpp</code> — رابط های <code>IUart</code>/<code>IClock</code>/<code>IPowerControl</code> که اینجا پیاده می شوند.</li>
 <li><code>gsm/util/ring_buffer.hpp</code> — <code>RingBuffer</code> برای بافر RX.</li>
 <li><code>main.h</code> (CubeMX) — تعریف <code>UART_HandleTypeDef</code>، <code>GPIO_TypeDef</code> و ماکروهای <code>GSM_RX_RING_SIZE</code>، <code>GSM_PWRKEY_PULSE_MS</code>.</li>
-<li><code>gsm/user_code/cli.cpp</code> و <code>App/gsm_cli/cli.cpp</code> — نمونه‌های <code>Stm32Uart</code>/<code>Stm32Clock</code>/<code>Stm32PowerControl</code> را می‌سازند و به <code>Modem</code> می‌دهند.</li>
-<li><code>gsm/examples/stm32_main.cpp</code> — نقطه‌ی ورود نمونه که کال‌بک‌های UART را به این پُرت وصل می‌کند.</li>
-<li><code>gsm/CMakeLists.txt</code> — با گزینه‌ی <code>GSM_PORT_STM32</code> پوشه‌ی <code>ports/stm32</code> را به include اضافه می‌کند.</li>
+<li><code>gsm/user_code/cli.cpp</code> و <code>App/gsm_cli/cli.cpp</code> — نمونه های <code>Stm32Uart</code>/<code>Stm32Clock</code>/<code>Stm32PowerControl</code> را می سازند و به <code>Modem</code> می دهند.</li>
+<li><code>gsm/examples/stm32_main.cpp</code> — نقطه ی ورود نمونه که کال بک های UART را به این پُرت وصل می کند.</li>
+<li><code>gsm/CMakeLists.txt</code> — با گزینه ی <code>GSM_PORT_STM32</code> پوشه ی <code>ports/stm32</code> را به include اضافه می کند.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

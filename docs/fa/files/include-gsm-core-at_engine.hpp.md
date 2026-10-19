@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-موتور اجرای فرمان‌های AT: ارسال دستور روی UART، جمع‌آوری خطوط پاسخ با `LineReader`، تشخیص خطوط نهایی (OK/ERROR/…)، هدایت URCها به `UrcRouter` و اطلاع‌رسانی به `IAtObserver`. این کلاس قلب همگام‌سازی کتابخانه است و همهٔ سرویس‌ها (SMS، تماس، وضعیت، USSD) از طریق آن با مودم حرف می‌زنند.
+موتور اجرای فرمان های AT: ارسال دستور روی UART، جمع آوری خطوط پاسخ با `LineReader`، تشخیص خطوط نهایی (OK/ERROR/…)، هدایت URCها به `UrcRouter` و اطلاع رسانی به `IAtObserver`. این کلاس قلب همگام سازی کتابخانه است و همهٔ سرویس ها (SMS، تماس، وضعیت، USSD) از طریق آن با مودم حرف می زنند.
 
 ## ساختارهای کلیدی
 
@@ -48,10 +48,10 @@ uint32_t    now();
 hal::IUart& uart();
 ```
 
-- `execute`: شروع تراکنش؛ دستور را با `\r` می‌فرستد، observer را ثبت می‌کند و `false` برمی‌گرداند اگر موتور مشغول باشد.
+- `execute`: شروع تراکنش؛ دستور را با `\r` می فرستد، observer را ثبت می کند و `false` برمی گرداند اگر موتور مشغول باشد.
 - `write_raw` / `write_ctrl_z` / `write_escape`: ارسال payload پس از نشان `>` (متن پیامک، پاسخ USSD).
-- `await_final`: انتظار برای نتیجهٔ نهایی با observer داده‌شده (برای فازهایی که observer عوض می‌شود).
-- `tick`: باید در هر تیک حلقهٔ اصلی صدا زده شود؛ دریافت UART، تغذیهٔ `LineReader`، تشخیص prompt (`>`)، طبقه‌بندی خطوط نهایی با `classify_final`، اعمال timeout و در نهایت `finish(status, code)`.
+- `await_final`: انتظار برای نتیجهٔ نهایی با observer داده شده (برای فازهایی که observer عوض می شود).
+- `tick`: باید در هر تیک حلقهٔ اصلی صدا زده شود؛ دریافت UART، تغذیهٔ `LineReader`، تشخیص prompt (`>`)، طبقه بندی خطوط نهایی با `classify_final`، اعمال timeout و در نهایت `finish(status, code)`.
 
 متدهای خصوصی:
 ```cpp
@@ -59,7 +59,7 @@ void finish(AtStatus status, int16_t code);   // -> observer->on_final(...)
 bool classify_final(const char* line, AtStatus& status, int16_t& code) const;
 ```
 
-فیلدهای وضعیت: `reader_` (خط جاری)، `observer_` (تراکنش جاری)، `sent_` (`StaticString<GSM_CMD_MAX>` دستور ارسال‌شده برای تشخیص echo)، `started_`/`timeout_`/`last_done_` (تایمرها)، `expect_prompt_` و `trace_`.
+فیلدهای وضعیت: `reader_` (خط جاری)، `observer_` (تراکنش جاری)، `sent_` (`StaticString<GSM_CMD_MAX>` دستور ارسال شده برای تشخیص echo)، `started_`/`timeout_`/`last_done_` (تایمرها)، `expect_prompt_` و `trace_`.
 
 ## جریان کاری
 
@@ -80,20 +80,20 @@ service.on_final() -> advance state machine
 
 ## نکات فنی
 
-- **غیرمسدودکننده و بدون تخصیص حافظه**: هیچ `new`/`malloc`؛ همهٔ بافرها `StaticString` با اندازهٔ کامپایل‌تایم.
-- یک تراکنش در هر لحظه (observer منحصربه‌فرد)؛ `execute` در حالت busy برمی‌گردد `false` — مدیریت صف بر عهدهٔ `Modem`/`JobQueue` است.
-- URCها (مثلاً `RING`، `+CMTI`) در میانهٔ پاسخ هم ممکن است برسند؛ `tick` آن‌ها را از خطوط پاسخ تفکیک و به `UrcRouter` می‌فرستد.
-- `echo_expected` برای ماژول‌هایی است که دستور را echo می‌کنند؛ خط echo به observer داده نمی‌شود.
-- `trace_` (پیش‌فرض روشن) ترافیک AT را برای `log`/CLI ثبت می‌کند.
+- **غیرمسدودکننده و بدون تخصیص حافظه**: هیچ `new`/`malloc`؛ همهٔ بافرها `StaticString` با اندازهٔ کامپایل تایم.
+- یک تراکنش در هر لحظه (observer منحصربه فرد)؛ `execute` در حالت busy برمی گردد `false` — مدیریت صف بر عهدهٔ `Modem`/`JobQueue` است.
+- URCها (مثلاً `RING`، `+CMTI`) در میانهٔ پاسخ هم ممکن است برسند؛ `tick` آن ها را از خطوط پاسخ تفکیک و به `UrcRouter` می فرستد.
+- `echo_expected` برای ماژول هایی است که دستور را echo می کنند؛ خط echo به observer داده نمی شود.
+- `trace_` (پیش فرض روشن) ترافیک AT را برای `log`/CLI ثبت می کند.
 - wrap-around ساعت `uint32` با الگوی `hal::elapsed` پوشش داده شده است.
-- گارد زمانی بین تراکنش‌ها از `GSM_AT_GUARD_TIME` می‌آید (`last_done_`)؛ timeoutهای پیش‌فرض از `gsm_config.hpp`.
+- گارد زمانی بین تراکنش ها از `GSM_AT_GUARD_TIME` می آید (`last_done_`)؛ timeoutهای پیش فرض از `gsm_config.hpp`.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `core/at_types.hpp` — `AtStatus`، `AtResult`، `IAtObserver`
-- `core/line_reader.hpp` — تفکیک بایت‌ها به خطوط و prompt
+- `core/line_reader.hpp` — تفکیک بایت ها به خطوط و prompt
 - `core/urc_router.hpp` — مسیریابی خطوط URC
 - `hal/hal.hpp` — `IUart`، `IClock`
-- `core/service.hpp` — `IService` (observer سرویس‌ها)
-- `modem/modem.hpp` — مالک `AtEngine` و هماهنگ‌کنندهٔ صف/سرویس‌ها
+- `core/service.hpp` — `IService` (observer سرویس ها)
+- `modem/modem.hpp` — مالک `AtEngine` و هماهنگ کنندهٔ صف/سرویس ها
 - `tools/serial_bridge.hpp`، `cli/cli.hpp` — اجرای مستقیم دستور AT روی همین موتور

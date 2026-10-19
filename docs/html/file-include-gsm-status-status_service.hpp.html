@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/status/status_service.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/status/status_service.hpp</h1>
 <h2>نقش فایل</h2>
-<p>سرویس جمع‌آوری وضعیت مودم: سیگنال، ثبت شبکه، وضعیت سیم‌کارت، فضای ذخیرهٔ پیامک و اپراتور. نتایج در ساختار اشتراکی <code>ModemStatus</code> نوشته می‌شوند که هم <code>Modem</code> و هم CLI/کاربر از آن می‌خوانند. enumهای این فایل وضعیت شبکه/SIM/اپراتور را (از جمله اپراتورهای ایرانی) مدل می‌کنند.</p>
+<p>سرویس جمع آوری وضعیت مودم: سیگنال، ثبت شبکه، وضعیت سیم کارت، فضای ذخیرهٔ پیامک و اپراتور. نتایج در ساختار اشتراکی <code>ModemStatus</code> نوشته می شوند که هم <code>Modem</code> و هم CLI/کاربر از آن می خوانند. enumهای این فایل وضعیت شبکه/SIM/اپراتور را (از جمله اپراتورهای ایرانی) مدل می کنند.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3>enumهای وضعیت</h3>
 <pre><code class="lang-cpp">enum class RegState : uint8_t
@@ -69,7 +69,7 @@ const char* to_string(RegState s);
 const char* to_string(SimState s);
 const char* to_string(Operator op);
 Operator    detect_operator(const char* name);</code></pre>
-<p><code>detect_operator</code> نام اپراتور خوانده‌شده از <code>+COPS</code>/<code>+QSPN</code> را به enum نگاشت می‌کند (کاربرد اصلی: انتخاب خودکار کد تعادل USSD).</p>
+<p><code>detect_operator</code> نام اپراتور خوانده شده از <code>+COPS</code>/<code>+QSPN</code> را به enum نگاشت می کند (کاربرد اصلی: انتخاب خودکار کد تعادل USSD).</p>
 <h3><code>struct ModemStatus</code></h3>
 <pre><code class="lang-cpp">struct ModemStatus
 {
@@ -110,7 +110,7 @@ bool start_full_sweep();                            // all steps (JobKind::Statu
 // IService overrides: active / pump / cancel / step_name / result
 void on_line(const char* line, uint16_t len) override;
 void on_final(const AtResult&amp; res) override;</code></pre>
-<p>فیلد <code>sweep_</code> مشخص می‌کند اجرا کامل است یا تک‌مرحله‌ای.</p>
+<p>فیلد <code>sweep_</code> مشخص می کند اجرا کامل است یا تک مرحله ای.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">Modem housekeeping (HousekeepingConfig.signal_ms / full_sweep_ms)
     |
@@ -126,19 +126,19 @@ StatusService::start_full_sweep()
 updated_at_ms = now  -&gt; ModemStatus ready for CLI/status bar / watchdog health</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه</strong>: <code>ModemStatus</code> یک POD با <code>StaticString&lt;32&gt;</code>؛ به‌صورت ارجاع در <code>Modem</code> نگهداری و درجا به‌روز می‌شود.</li>
-<li><code>csq_raw = 99</code> یعنی «نامشخص» و نباید به dBm تبدیل شود؛ <code>signal_bars()</code> همین را به ۰ نگاشت می‌کند.</li>
-<li>مقادیر <code>RegState</code> عمداً با کدهای <code>+CREG</code> یکی‌اند (0..5) تا نگاشت بدون تبدیل باشد.</li>
-<li><code>detect_operator</code> برای اپراتورهای ایرانی بهینه شده؛ نام‌های ناشناخته به <code>Operator::Unknown</code> می‌رسند.</li>
+<li><strong>بدون تخصیص حافظه</strong>: <code>ModemStatus</code> یک POD با <code>StaticString&lt;32&gt;</code>؛ به صورت ارجاع در <code>Modem</code> نگهداری و درجا به روز می شود.</li>
+<li><code>csq_raw = 99</code> یعنی «نامشخص» و نباید به dBm تبدیل شود؛ <code>signal_bars()</code> همین را به ۰ نگاشت می کند.</li>
+<li>مقادیر <code>RegState</code> عمداً با کدهای <code>+CREG</code> یکی اند (0..5) تا نگاشت بدون تبدیل باشد.</li>
+<li><code>detect_operator</code> برای اپراتورهای ایرانی بهینه شده؛ نام های ناشناخته به <code>Operator::Unknown</code> می رسند.</li>
 <li>نتایج این سرویس ورودی <code>MaintenanceWatchdog::bind_status</code> هستند (بررسی سلامت SIM/شبکه).</li>
-<li><code>start()</code> با <code>first</code> دلخواه اجازه می‌دهد فقط بخشی (مثلاً فقط سیگنال) تازه‌سازی شود — بهینه‌سازی housekeeping دوره‌ای.</li>
+<li><code>start()</code> با <code>first</code> دلخواه اجازه می دهد فقط بخشی (مثلاً فقط سیگنال) تازه سازی شود — بهینه سازی housekeeping دوره ای.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/service.hpp</code> — پایهٔ <code>IService</code></li>
 <li><code>core/at_engine.hpp</code> — اجرای <code>AT+CSQ/CREG/CPIN/CPMS/COPS</code></li>
 <li><code>device/device_traits.hpp</code> — <code>storage_cmd</code> برای انتخاب مسیر ذخیره</li>
-<li><code>modem/modem.hpp</code> — مالک <code>ModemStatus status_</code> و زمان‌بند housekeeping</li>
+<li><code>modem/modem.hpp</code> — مالک <code>ModemStatus status_</code> و زمان بند housekeeping</li>
 <li><code>maintenance/watchdog.hpp</code> — <code>bind_status(const ModemStatus*)</code> برای health check</li>
 <li><code>ussd/ussd_service.hpp</code> — <code>Operator</code> برای <code>start_balance_query</code></li>
 <li><code>cli/cli.hpp</code> — نمایش status bar و signal bars</li>

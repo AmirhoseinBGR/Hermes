@@ -41,46 +41,46 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/user_code/cli.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/user_code/cli.hpp</h1>
 <h2>نقش فایل</h2>
-<p>این هدر، رابط عمومی «چسب سخت‌افزاری» (hardware glue) کنسول تعاملی روی STM32 را اعلام می‌کند. از نسخه‌ی v0.4، تمام منطق کنسول به داخل هسته‌ی کتابخانه منتقل شده (<code>gsm/cli/cli.hpp</code> و <code>src/cli.cpp</code> → کلاس <code>gsm::cli::Console</code>)؛ بنابراین این فایل فقط توابع نازکی برای مقداردهی اولیه، پردازش تیک، و وصل کردن کال‌بک‌های UART سخت‌افزار به کنسول کتابخانه فراهم می‌کند.</p>
+<p>این هدر، رابط عمومی «چسب سخت افزاری» (hardware glue) کنسول تعاملی روی STM32 را اعلام می کند. از نسخه ی v0.4، تمام منطق کنسول به داخل هسته ی کتابخانه منتقل شده (<code>gsm/cli/cli.hpp</code> و <code>src/cli.cpp</code> → کلاس <code>gsm::cli::Console</code>)؛ بنابراین این فایل فقط توابع نازکی برای مقداردهی اولیه، پردازش تیک، و وصل کردن کال بک های UART سخت افزار به کنسول کتابخانه فراهم می کند.</p>
 <h2>ساختارها/توابع کلیدی</h2>
-<p>همه‌ی توابع در <code>namespace cli</code> قرار دارند:</p>
+<p>همه ی توابع در <code>namespace cli</code> قرار دارند:</p>
 <ul>
 <li><code>void init()</code></li>
 </ul>
-<p>مقداردهی اولیه‌ی زیرسیستم CLI: سخت‌افزار (UART)، نمونه‌ی مودم و کال‌بک‌ها. (پیاده‌سازی در <code>cli.cpp</code>.)</p>
+<p>مقداردهی اولیه ی زیرسیستم CLI: سخت افزار (UART)، نمونه ی مودم و کال بک ها. (پیاده سازی در <code>cli.cpp</code>.)</p>
 <ul>
 <li>`void tick()</li>
 </ul>
-<p>پردازش یک تیک CLI؛ باید از حلقه‌ی اصلی (main loop) صدا زده شود.</p>
+<p>پردازش یک تیک CLI؛ باید از حلقه ی اصلی (main loop) صدا زده شود.</p>
 <ul>
 <li><code>void on_uart_rx(UART_HandleTypeDef* huart, uint16_t size)</code></li>
 </ul>
-<p>کال‌بک رویداد دریافت UART (از HAL). داده‌ی دریافتی از UART مودم و UART دیباگ را به کنسول هدایت می‌کند.</p>
+<p>کال بک رویداد دریافت UART (از HAL). داده ی دریافتی از UART مودم و UART دیباگ را به کنسول هدایت می کند.</p>
 <ul>
 <li><code>void on_uart_error(UART_HandleTypeDef* huart)</code></li>
 </ul>
-<p>کال‌بک خطای UART (از HAL)؛ خطا را به پُرت STM32 ارجاع می‌دهد تا دریافت را بازیابی کند.</p>
+<p>کال بک خطای UART (از HAL)؛ خطا را به پُرت STM32 ارجاع می دهد تا دریافت را بازیابی کند.</p>
 <h2>جریان کاری</h2>
 <ol>
-<li>نقطه‌ی ورود اپلیکیشن (مثلاً <code>examples/stm32_main.cpp</code>) ابتدا <code>cli::init()</code> و سپس در هر حلقه <code>cli::tick()</code> را صدا می‌زند.</li>
-<li>وقفه‌های UART (از CubeMX) به <code>cli::on_uart_rx</code> و <code>cli::on_uart_error</code> وصل می‌شوند.</li>
-<li><code>on_uart_rx</code> بایت‌های UART دیباگ (USART1) را یکی‌یکی به <code>console.feed(byte)</code> می‌دهد تا دستورات کاربر پردازش شوند.</li>
-<li>منطق واقعی کنسول (منو، وضعیت زنده، پاس‌ترو، دستورات) در <code>gsm::cli::Console</code> کتابخانه انجام می‌شود؛ این فایل فقط سیم‌کشی است.</li>
+<li>نقطه ی ورود اپلیکیشن (مثلاً <code>examples/stm32_main.cpp</code>) ابتدا <code>cli::init()</code> و سپس در هر حلقه <code>cli::tick()</code> را صدا می زند.</li>
+<li>وقفه های UART (از CubeMX) به <code>cli::on_uart_rx</code> و <code>cli::on_uart_error</code> وصل می شوند.</li>
+<li><code>on_uart_rx</code> بایت های UART دیباگ (USART1) را یکی یکی به <code>console.feed(byte)</code> می دهد تا دستورات کاربر پردازش شوند.</li>
+<li>منطق واقعی کنسول (منو، وضعیت زنده، پاس ترو، دستورات) در <code>gsm::cli::Console</code> کتابخانه انجام می شود؛ این فایل فقط سیم کشی است.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li>این فایل یک «چسب نازک» (thin glue) است و نباید منطق تجاری/کنسول در آن قرار گیرد؛ همه‌ی آن در کتابخانه است.</li>
-<li><code>UART_HandleTypeDef*</code> از <code>main.h</code> (CubeMX) می‌آید؛ بنابراین این هدر به محیط STM32 وابسته است.</li>
-<li>توابع <code>init</code>/<code>tick</code> به‌صورت blocking طراحی نشده‌اند؛ <code>tick</code> باید کوتاه و غیرمسدودکننده باشد.</li>
-<li>تفکیک UART مودم (UART7) و UART دیباگ (USART1) در پیاده‌سازی <code>cli.cpp</code> انجام می‌شود، نه در این هدر.</li>
+<li>این فایل یک «چسب نازک» (thin glue) است و نباید منطق تجاری/کنسول در آن قرار گیرد؛ همه ی آن در کتابخانه است.</li>
+<li><code>UART_HandleTypeDef*</code> از <code>main.h</code> (CubeMX) می آید؛ بنابراین این هدر به محیط STM32 وابسته است.</li>
+<li>توابع <code>init</code>/<code>tick</code> به صورت blocking طراحی نشده اند؛ <code>tick</code> باید کوتاه و غیرمسدودکننده باشد.</li>
+<li>تفکیک UART مودم (UART7) و UART دیباگ (USART1) در پیاده سازی <code>cli.cpp</code> انجام می شود، نه در این هدر.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>gsm/user_code/cli.cpp</code> — پیاده‌سازی این رابط (نمونه‌های سخت‌افزاری + کنسول کتابخانه).</li>
+<li><code>gsm/user_code/cli.cpp</code> — پیاده سازی این رابط (نمونه های سخت افزاری + کنسول کتابخانه).</li>
 <li><code>gsm/include/gsm/cli/cli.hpp</code> — کلاس <code>gsm::cli::Console</code> که تمام منطق کنسول را در بر دارد.</li>
-<li><code>gsm/ports/stm32/gsm_port_stm32.hpp</code> — پُرت UART/Clock/Power که در <code>cli.cpp</code> نمونه‌سازی می‌شود.</li>
-<li><code>gsm/examples/stm32_main.cpp</code> — نقطه‌ی ورود نمونه که <code>cli::init</code>/<code>cli::tick</code> و کال‌بک‌های HAL را صدا می‌زند.</li>
-<li>در برابر <code>App/gsm_cli/cli.hpp</code> قرار می‌گیرد که همان نقش را به‌همراه پل وب (web bridge) برای اپلیکیشن کامل‌تر دارد.</li>
+<li><code>gsm/ports/stm32/gsm_port_stm32.hpp</code> — پُرت UART/Clock/Power که در <code>cli.cpp</code> نمونه سازی می شود.</li>
+<li><code>gsm/examples/stm32_main.cpp</code> — نقطه ی ورود نمونه که <code>cli::init</code>/<code>cli::tick</code> و کال بک های HAL را صدا می زند.</li>
+<li>در برابر <code>App/gsm_cli/cli.hpp</code> قرار می گیرد که همان نقش را به همراه پل وب (web bridge) برای اپلیکیشن کامل تر دارد.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

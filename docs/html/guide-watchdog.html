@@ -1,4 +1,4 @@
-<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>واچ‌داگ‌ها</title><style>
+<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>واچ داگ ها</title><style>
 :root { --bg:#0f1420; --panel:#171e2e; --ink:#e8ecf4; --dim:#9aa7bd;
         --accent:#4db2ff; --accent2:#7ee0a3; --warn:#ffcc66; --code:#0b101a; }
 * { box-sizing: border-box; }
@@ -41,45 +41,45 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>راهنمای دو ریست‌کننده نگه‌بانی و بررسی سلامت (Maintenance Watchdogs)</h1>
-<blockquote><p>نسخه ۰.۴ — پایداری ۲۴/۷ برای ماژول‌های M08R / M08 / SIM800</p></blockquote>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>راهنمای دو ریست کننده نگه بانی و بررسی سلامت (Maintenance Watchdogs)</h1>
+<blockquote><p>نسخه ۰.۴ — پایداری ۲۴/۷ برای ماژول های M08R / M08 / SIM800</p></blockquote>
 <h2>۱. فلسفه</h2>
-<p>ماژول سلولار در کار طولانی‌مدت (چند روز تا چند ماه) ممکن است به مرور کند، هنگ یا ناپایدار شود. به‌جای انتظار برای خرابی، دو <strong>ریست‌کننده مستقل</strong> به‌صورت دوره‌ای ماژول را کاملاً ریست و سپس <strong>سلامت آن را بررسی</strong> می‌کنند.</p>
+<p>ماژول سلولار در کار طولانی مدت (چند روز تا چند ماه) ممکن است به مرور کند، هنگ یا ناپایدار شود. به جای انتظار برای خرابی، دو <strong>ریست کننده مستقل</strong> به صورت دوره ای ماژول را کاملاً ریست و سپس <strong>سلامت آن را بررسی</strong> می کنند.</p>
 <h2>۲. دو بودجه ریست</h2>
-<h3>ریست‌کننده اول — بودجه زمانی</h3>
-<p>هر <strong>N دقیقه</strong> (پیش‌فرض: <strong>۱ ساعت = ۳۶۰۰۰۰۰ میلی‌ثانیه</strong>) یک ریست کامل انجام می‌شود.</p>
-<h3>ریست‌کننده دوم — بودجه تعداد عملیات</h3>
-<p>بعد از <strong>N عملیات موفق/کامل</strong> (پیش‌فرض: <strong>۵۰</strong>) یک ریست کامل انجام می‌شود. منظور از عملیات، هر جاب تمام‌شده (ارسال/دریافت پیامک، تماس، USSD، استعلام وضعیت) است.</p>
-<p>هر کدام زودتر فعال شوند، ریست انجام می‌شود. بعد از هر ریست، هر دو بودجه از نو شروع می‌شوند.</p>
+<h3>ریست کننده اول — بودجه زمانی</h3>
+<p>هر <strong>N دقیقه</strong> (پیش فرض: <strong>۱ ساعت = ۳۶۰۰۰۰۰ میلی ثانیه</strong>) یک ریست کامل انجام می شود.</p>
+<h3>ریست کننده دوم — بودجه تعداد عملیات</h3>
+<p>بعد از <strong>N عملیات موفق/کامل</strong> (پیش فرض: <strong>۵۰</strong>) یک ریست کامل انجام می شود. منظور از عملیات، هر جاب تمام شده (ارسال/دریافت پیامک، تماس، USSD، استعلام وضعیت) است.</p>
+<p>هر کدام زودتر فعال شوند، ریست انجام می شود. بعد از هر ریست، هر دو بودجه از نو شروع می شوند.</p>
 <h2>۳. تنظیمات</h2>
 <h3>کامپایل (<code>gsm_config.hpp</code>):</h3>
-<pre><code class="lang-c">#define GSM_PERIODIC_RESET_MS  3600000 // ریست‌کننده اول (0 = غیرفعال)
-#define GSM_OPS_RESET_COUNT    50      // ریست‌کننده دوم (0 = غیرفعال)
+<pre><code class="lang-c">#define GSM_PERIODIC_RESET_MS  3600000 // ریست کننده اول (0 = غیرفعال)
+#define GSM_OPS_RESET_COUNT    50      // ریست کننده دوم (0 = غیرفعال)
 #define GSM_WATCHDOG_GRACE_MS  10000   // حداکثر انتظار برای فرصت امن ریست</code></pre>
 <h3>زمان اجرا:</h3>
 <pre><code class="lang-cpp">auto&amp; wd = modem.maintenance();
 wd.policy().periodic_ms = 30 * 60 * 1000; // هر ۳۰ دقیقه
 wd.policy().ops_period  = 200;            // هر ۲۰۰ عملیات
-wd.policy().use_power_cycle = true;       // ریست سخت‌افزاری با PWRKEY (در صورت وجود)
+wd.policy().use_power_cycle = true;       // ریست سخت افزاری با PWRKEY (در صورت وجود)
 wd.policy().health_check    = true;       // بررسی سلامت بعد از هر ریست
 wd.policy().enabled         = true;</code></pre>
-<h3>فعال‌سازی دستی:</h3>
+<h3>فعال سازی دستی:</h3>
 <pre><code class="lang-cpp">modem.maintenance().request_reset(gsm::ResetReason::Manual);</code></pre>
-<h2>۴. چه زمانی ریست انجام می‌شود؟</h2>
-<p>ریست در یک <strong>فرصت امن</strong> انجام می‌شود:</p>
+<h2>۴. چه زمانی ریست انجام می شود؟</h2>
+<p>ریست در یک <strong>فرصت امن</strong> انجام می شود:</p>
 <ul>
 <li>هیچ تماسی در جریان نیست</li>
 <li>موتور AT بیکار است</li>
 <li>هیچ جابی در حال اجرا نیست</li>
 </ul>
-<p>اگر چنین فرصتی تا <code>grace_ms</code> (پیش‌فرض ۱۰ ثانیه) پیدا نشود، ریست <strong>اجباری</strong> انجام می‌شود. مهم: جاب‌های <strong>صف‌کشیده‌شده</strong> در طول ریست نگه داشته می‌شوند و بعد از بالا آمدن مودم ادامه پیدا می‌کنند (<code>full_restart(..., keep_jobs=true)</code>).</p>
+<p>اگر چنین فرصتی تا <code>grace_ms</code> (پیش فرض ۱۰ ثانیه) پیدا نشود، ریست <strong>اجباری</strong> انجام می شود. مهم: جاب های <strong>صف کشیده شده</strong> در طول ریست نگه داشته می شوند و بعد از بالا آمدن مودم ادامه پیدا می کنند (<code>full_restart(..., keep_jobs=true)</code>).</p>
 <h2>۵. بررسی سلامت (Health Check)</h2>
-<p>بعد از هر ریست (و با دستور دستی)، یک بررسی سلامت چهارمرحله‌ای اجرا می‌شود:</p>
-<pre><code>AT        ──▶ پاسخ‌گویی پایه ماژول        (at_ok)
-AT+CPIN?  ──▶ وضعیت سیم‌کارت              (sim_ok از ModemStatus زنده)
+<p>بعد از هر ریست (و با دستور دستی)، یک بررسی سلامت چهارمرحله ای اجرا می شود:</p>
+<pre><code>AT        ──▶ پاسخ گویی پایه ماژول        (at_ok)
+AT+CPIN?  ──▶ وضعیت سیم کارت              (sim_ok از ModemStatus زنده)
 AT+CREG?  ──▶ ثبت در شبکه                 (net_ok از ModemStatus زنده)
 AT+CSQ    ──▶ قدرت سیگنال                  (rssi_dbm)</code></pre>
-<blockquote><p>نکته: پاسخ‌های <code>+CPIN:</code> و <code>+CREG:</code> توسط <code>UrcRouter</code> بلعیده می‌شوند و وضعیت زنده <code>ModemStatus</code> را به‌روز می‌کنند؛ برای همین verdict سلامت از همان وضعیت زنده خوانده می‌شود.</p></blockquote>
+<blockquote><p>نکته: پاسخ های <code>+CPIN:</code> و <code>+CREG:</code> توسط <code>UrcRouter</code> بلعیده می شوند و وضعیت زنده <code>ModemStatus</code> را به روز می کنند؛ برای همین verdict سلامت از همان وضعیت زنده خوانده می شود.</p></blockquote>
 <p>نتیجه:</p>
 <pre><code class="lang-cpp">modem.set_on_health(MaintenanceWatchdog::ReportCb([](void*, const HealthReport&amp; r) {
     if (!r.ok()) {
@@ -92,7 +92,7 @@ const HealthReport&amp; h = modem.maintenance().health();
 // h.at_ok, h.sim_ok, h.net_ok, h.rssi_dbm, h.resets</code></pre>
 <h2>۶. جریان کلی</h2>
 <pre><code>tick() هر تیک:
-  watchdog.tick(now)                ──▶ آیا بودجه‌ای تمام شده؟
+  watchdog.tick(now)                ──▶ آیا بودجه ای تمام شده؟
         │ بله
         ▼
   فرصت امن؟ (بدون تماس/جاب)  ──▶ بله ──▶ full_restart(hardware?, keep_jobs=true)
@@ -104,19 +104,19 @@ const HealthReport&amp; h = modem.maintenance().health();
                                  شروع بررسی سلامت (4 پروب)
                                           │
                                           ▼
-                                 گزارش HealthReport → کال‌بک + لاگ</code></pre>
-<h2>۷. تفاوت با واچ‌داگ‌های قدیمی</h2>
-<table><thead><tr><th>قابلیت</th><th>واچ‌داگ صنعتی قبلی</th><th>ریست‌کننده‌های v0.4</th></tr></thead><tbody>
-<tr><td>تایم‌اوت‌های متوالی AT</td><td>✔ (<code>GSM_CONSECUTIVE_TIMEOUTS_RESET</code>)</td><td>✔ (همان قبلی)</td></tr>
+                                 گزارش HealthReport → کال بک + لاگ</code></pre>
+<h2>۷. تفاوت با واچ داگ های قدیمی</h2>
+<table><thead><tr><th>قابلیت</th><th>واچ داگ صنعتی قبلی</th><th>ریست کننده های v0.4</th></tr></thead><tbody>
+<tr><td>تایم اوت های متوالی AT</td><td>✔ (<code>GSM_CONSECUTIVE_TIMEOUTS_RESET</code>)</td><td>✔ (همان قبلی)</td></tr>
 <tr><td>گیر کردن در Fault/SimMissing</td><td>✔ (<code>GSM_HARDWARE_REBOOT_TIMEOUT_MS</code>)</td><td>✔ (همان قبلی)</td></tr>
-<tr><td>ریست دوره‌ای زمانی</td><td>✘</td><td>✔ پیش‌فرض ۱ ساعت</td></tr>
-<tr><td>ریست بعد از N عملیات</td><td>✘</td><td>✔ پیش‌فرض ۵۰</td></tr>
+<tr><td>ریست دوره ای زمانی</td><td>✘</td><td>✔ پیش فرض ۱ ساعت</td></tr>
+<tr><td>ریست بعد از N عملیات</td><td>✘</td><td>✔ پیش فرض ۵۰</td></tr>
 <tr><td>بررسی سلامت بعد از ریست</td><td>✘</td><td>✔</td></tr>
-<tr><td>حفظ صف در حین ریست</td><td>✘ (صف پاک می‌شد)</td><td>✔</td></tr>
+<tr><td>حفظ صف در حین ریست</td><td>✘ (صف پاک می شد)</td><td>✔</td></tr>
 </tbody></table>
 <h2>۸. تست</h2>
 <p>در <code>tests/host_smoke.cpp</code>:</p>
 <ul>
-<li>منطق بودجه‌های دوگانه (<code>Both resetter budgets work!</code>)</li>
-<li>پروب‌های بررسی سلامت (<code>Health check probes work!</code>)</li>
+<li>منطق بودجه های دوگانه (<code>Both resetter budgets work!</code>)</li>
+<li>پروب های بررسی سلامت (<code>Health check probes work!</code>)</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

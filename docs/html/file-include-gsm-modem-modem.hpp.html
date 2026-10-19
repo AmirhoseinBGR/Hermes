@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/modem/modem.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/modem/modem.hpp</h1>
 <h2>نقش فایل</h2>
-<p>کلاس اصلی (Facade) کتابخانه: <code>Modem</code> مالک همهٔ زیرسامانه‌هاست — موتور AT، مسیریاب URC، سرویس‌های SMS/تماس/وضعیت/USSD، صف Jobها و نگهبان تعمیراتی — و چرخهٔ عمر کامل مودم را مدیریت می‌کند: بوت، ثبت شبکه، پالس PWRKEY، صف‌بندی درخواست‌های کاربر، housekeeping دوره‌ای، بازیابی SIM و ریست/پاورچرخه. کاربر نهایی معمولاً فقط با همین کلاس در تعامل است.</p>
+<p>کلاس اصلی (Facade) کتابخانه: <code>Modem</code> مالک همهٔ زیرسامانه هاست — موتور AT، مسیریاب URC، سرویس های SMS/تماس/وضعیت/USSD، صف Jobها و نگهبان تعمیراتی — و چرخهٔ عمر کامل مودم را مدیریت می کند: بوت، ثبت شبکه، پالس PWRKEY، صف بندی درخواست های کاربر، housekeeping دوره ای، بازیابی SIM و ریست/پاورچرخه. کاربر نهایی معمولاً فقط با همین کلاس در تعامل است.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>enum class ModemState : uint8_t</code></h3>
 <pre><code class="lang-cpp">enum class ModemState : uint8_t
@@ -85,10 +85,10 @@ bool has_power_control() const;
 void pulse_pwrkey(uint32_t pulse_ms = GSM_PWRKEY_PULSE_MS);
 bool pwrkey_asserted() const;  // پین همین حالا پایین نگه داشته شده است؟
 uint32_t pwrkey_pulse_ms() const;</code></pre>
-<p>پولس PWRKEY <strong>غیرمسدودکننده</strong> است: <code>power_cycle()</code>/<code>pulse_pwrkey()</code> فقط وضعیت را به <code>PowerPulsing</code> می‌برند و <code>tick()</code> ترتیب</p>
-<p><code>assert</code> → نگه داشتن به مدت <code>pwrkey_pulse_ms</code> → <code>release</code> → انتظار <code>GSM_MODEM_BOOT_GUARD_MS</code> → پروب <code>AT</code> را اجرا می‌کند.</p>
-<p>هیچ‌کدام از این توابع بلاک نمی‌کنند و هرگز نباید از داخل وقفه صدا زده شوند.</p>
-<p>APIهای Job (همگی <code>JobId</code> برمی‌گردانند؛ callback اختیاری):</p>
+<p>پولس PWRKEY <strong>غیرمسدودکننده</strong> است: <code>power_cycle()</code>/<code>pulse_pwrkey()</code> فقط وضعیت را به <code>PowerPulsing</code> می برند و <code>tick()</code> ترتیب</p>
+<p><code>assert</code> → نگه داشتن به مدت <code>pwrkey_pulse_ms</code> → <code>release</code> → انتظار <code>GSM_MODEM_BOOT_GUARD_MS</code> → پروب <code>AT</code> را اجرا می کند.</p>
+<p>هیچ کدام از این توابع بلاک نمی کنند و هرگز نباید از داخل وقفه صدا زده شوند.</p>
+<p>APIهای Job (همگی <code>JobId</code> برمی گردانند؛ callback اختیاری):</p>
 <pre><code class="lang-cpp">JobId send_sms(const char* number, const char* utf8_text, JobCallback cb = {},
                SmsEncoding enc = SmsEncoding::Auto);
 JobId read_sms(int16_t index, JobCallback cb = {});
@@ -107,7 +107,7 @@ bool       cancel(JobId id);
 uint8_t    queue_size() const;
 const Job* queued(uint8_t i) const;
 const Job&amp; current_job() const;</code></pre>
-<p>مشاهده و دسترسی به زیرسامانه‌ها:</p>
+<p>مشاهده و دسترسی به زیرسامانه ها:</p>
 <pre><code class="lang-cpp">ModemState          state() const;
 const char*         state_name() const;
 const char*         activity() const;   // to_string(current_.kind)
@@ -132,7 +132,7 @@ void set_on_job(JobCallback cb);
 void set_on_urc(UrcRouter::Handler cb);
 void set_on_sim(SimEventCb cb);
 void set_auto_read_sms(bool on);   // default true</code></pre>
-<p>متدهای خصوصی کلیدی: <code>handle_urc</code>/<code>urc_trampoline</code>، <code>enter</code>، <code>enqueue</code>/<code>start_job</code>/<code>finish_job</code>، <code>pump_services</code>/<code>pump_housekeeping</code>/<code>flush_cancelled</code>، <code>service_for</code>، <code>check_watchdog</code>/<code>handle_sim_recovery</code>، <code>is_call_job</code>/<code>preempt_for_call</code>/<code>maintenance_service</code>/<code>full_restart</code> و وضعیت‌های بازیابی (<code>consecutive_timeouts_</code>، <code>sim_recovery_phase_</code>: 0=پروب <code>AT+CPIN?</code>، 1=‏<code>CFUN=0</code>، 2=‏<code>CFUN=1</code>).</p>
+<p>متدهای خصوصی کلیدی: <code>handle_urc</code>/<code>urc_trampoline</code>، <code>enter</code>، <code>enqueue</code>/<code>start_job</code>/<code>finish_job</code>، <code>pump_services</code>/<code>pump_housekeeping</code>/<code>flush_cancelled</code>، <code>service_for</code>، <code>check_watchdog</code>/<code>handle_sim_recovery</code>، <code>is_call_job</code>/<code>preempt_for_call</code>/<code>maintenance_service</code>/<code>full_restart</code> و وضعیت های بازیابی (<code>consecutive_timeouts_</code>، <code>sim_recovery_phase_</code>: 0=پروب <code>AT+CPIN?</code>، 1=‏<code>CFUN=0</code>، 2=‏<code>CFUN=1</code>).</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">begin() -&gt; Booting (AT probes) -&gt; PowerPulsing (if silent) -&gt; Configuring
         -&gt; WaitingRegistration (+CREG 1/5) -&gt; Ready
@@ -155,22 +155,22 @@ modem.maintenance().policy().ops_period = 50;        // resetter #2
 modem.set_on_health(on_health);</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون heap / بدون STL</strong>: همهٔ سرویس‌ها به‌صورت member (نه new)؛ <code>current_</code> یک <code>Job</code> کامل روی object است.</li>
-<li><strong><code>call_gate()</code></strong> (ویژگی v0.4): وقتی تماسی در جریان است (<code>CallService::engaged</code>)، Jobهای غیرتماسی نگه داشته می‌شوند تا وقفهٔ تماس، صف را خراب یا متوقف نکند؛ <code>preempt_for_call</code> اولویت را به Jobهای تماس می‌دهد.</li>
-<li><strong>بازیابی صنعتی</strong>: timeoutهای پیاپی (<code>GSM_CONSECUTIVE_TIMEOUTS_RESET</code>) به بازیابی می‌انجامد؛ چرخهٔ SIM: پروب <code>AT+CPIN?</code> → <code>CFUN=0/1</code> → در نهایت power cycle سخت‌افزاری (پس از <code>GSM_HARDWARE_REBOOT_TIMEOUT_MS</code>).</li>
-<li><strong><code>maintenance_service</code>/<code>full_restart</code></strong>: بازنشانی‌های نگهبان دوگانه (دوره‌ای + بودجهٔ عملیات) را اجرا می‌کنند؛ <code>keep_jobs</code> مشخص می‌کند صف حفظ یا تخلیه شود.</li>
-<li><code>start_failures_</code> و <code>kErrJobStalled</code> مکانیزم جلوگیری از گیرافتادن صف روی Job غیرقابل‌شروع است.</li>
-<li><code>tick()</code> باید بدون وقفه و سریع صدا زده شود؛ همه‌چیز غیرمسدودکننده و event-driven است.</li>
-<li>trait پیش‌فرض <code>kSim800</code> است؛ برای ماژول‌های M08/M08R صریحاً trait مناسب را بدهید (<code>kQuectelM08R</code> برای رفتار <code>clcc_authoritative</code>).</li>
-<li><code>IPowerControl*</code> اختیاری است؛ بدون آن <code>reset()</code> نرم می‌ماند و <code>power_cycle()</code> معادل ریست نرم است.</li>
+<li><strong>بدون heap / بدون STL</strong>: همهٔ سرویس ها به صورت member (نه new)؛ <code>current_</code> یک <code>Job</code> کامل روی object است.</li>
+<li><strong><code>call_gate()</code></strong> (ویژگی v0.4): وقتی تماسی در جریان است (<code>CallService::engaged</code>)، Jobهای غیرتماسی نگه داشته می شوند تا وقفهٔ تماس، صف را خراب یا متوقف نکند؛ <code>preempt_for_call</code> اولویت را به Jobهای تماس می دهد.</li>
+<li><strong>بازیابی صنعتی</strong>: timeoutهای پیاپی (<code>GSM_CONSECUTIVE_TIMEOUTS_RESET</code>) به بازیابی می انجامد؛ چرخهٔ SIM: پروب <code>AT+CPIN?</code> → <code>CFUN=0/1</code> → در نهایت power cycle سخت افزاری (پس از <code>GSM_HARDWARE_REBOOT_TIMEOUT_MS</code>).</li>
+<li><strong><code>maintenance_service</code>/<code>full_restart</code></strong>: بازنشانی های نگهبان دوگانه (دوره ای + بودجهٔ عملیات) را اجرا می کنند؛ <code>keep_jobs</code> مشخص می کند صف حفظ یا تخلیه شود.</li>
+<li><code>start_failures_</code> و <code>kErrJobStalled</code> مکانیزم جلوگیری از گیرافتادن صف روی Job غیرقابل شروع است.</li>
+<li><code>tick()</code> باید بدون وقفه و سریع صدا زده شود؛ همه چیز غیرمسدودکننده و event-driven است.</li>
+<li>trait پیش فرض <code>kSim800</code> است؛ برای ماژول های M08/M08R صریحاً trait مناسب را بدهید (<code>kQuectelM08R</code> برای رفتار <code>clcc_authoritative</code>).</li>
+<li><code>IPowerControl*</code> اختیاری است؛ بدون آن <code>reset()</code> نرم می ماند و <code>power_cycle()</code> معادل ریست نرم است.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/at_engine.hpp</code>، <code>core/service.hpp</code>، <code>core/urc_router.hpp</code> — هستهٔ ارتباط AT</li>
-<li><code>sms/sms_service.hpp</code>، <code>voice/call_service.hpp</code>، <code>status/status_service.hpp</code>، <code>ussd/ussd_service.hpp</code> — سرویس‌ها</li>
-<li><code>queue/job.hpp</code>، <code>queue/job_queue.hpp</code> — صف درخواست‌ها</li>
+<li><code>sms/sms_service.hpp</code>، <code>voice/call_service.hpp</code>، <code>status/status_service.hpp</code>، <code>ussd/ussd_service.hpp</code> — سرویس ها</li>
+<li><code>queue/job.hpp</code>، <code>queue/job_queue.hpp</code> — صف درخواست ها</li>
 <li><code>maintenance/watchdog.hpp</code> — نگهبان تعمیراتی و health check</li>
-<li><code>device/device_traits.hpp</code> — رفتار ماژول‌محور</li>
+<li><code>device/device_traits.hpp</code> — رفتار ماژول محور</li>
 <li><code>hal/hal.hpp</code> — UART/Clock/Power</li>
-<li><code>cli/cli.hpp</code>، <code>tools/serial_bridge.hpp</code> — مصرف‌کنندگان سطح بالا</li>
+<li><code>cli/cli.hpp</code>، <code>tools/serial_bridge.hpp</code> — مصرف کنندگان سطح بالا</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

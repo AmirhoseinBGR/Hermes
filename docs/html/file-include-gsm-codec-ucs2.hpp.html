@@ -41,23 +41,23 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/codec/ucs2.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/codec/ucs2.hpp</h1>
 <h2>نقش فایل</h2>
-<p>توابع تبدیل متن برای رمزگذاری UCS2 مورد نیاز پیامک‌های فارسی/عربی و تشخیص سریع ماهیت رشته‌ها. مودم‌های GSM متن UCS2 را به‌صورت <strong>رشتهٔ hex</strong> (هر کاراکتر ۴ رقم hex) در payload پیامک دریافت می‌کنند؛ این فایل پل بین UTF-8 داخل برنامه و آن قالب سیمی است. همهٔ توابع با بافرهای caller کار می‌کنند (بدون تخصیص حافظه).</p>
+<p>توابع تبدیل متن برای رمزگذاری UCS2 مورد نیاز پیامک های فارسی/عربی و تشخیص سریع ماهیت رشته ها. مودم های GSM متن UCS2 را به صورت <strong>رشتهٔ hex</strong> (هر کاراکتر ۴ رقم hex) در payload پیامک دریافت می کنند؛ این فایل پل بین UTF-8 داخل برنامه و آن قالب سیمی است. همهٔ توابع با بافرهای caller کار می کنند (بدون تخصیص حافظه).</p>
 <h2>ساختارهای کلیدی</h2>
 <p>همه در <code>namespace gsm::codec</code>:</p>
 <pre><code class="lang-cpp">uint16_t utf8_to_ucs2_hex(const char* utf8, char* out, uint16_t out_cap);</code></pre>
-<p>تبدیل UTF-8 به رشتهٔ hex-UCS2 برای ارسال (<code>AT+CMGS</code> در حالت UCS2). تعداد بایت نوشته‌شده در <code>out</code> را برمی‌گرداند؛ <code>out_cap</code> سقف بافر خروجی است. هر کاراکتر UCS2 به ۴ رقم hex تبدیل می‌شود (مثلاً «م» → <code>0645</code>).</p>
+<p>تبدیل UTF-8 به رشتهٔ hex-UCS2 برای ارسال (<code>AT+CMGS</code> در حالت UCS2). تعداد بایت نوشته شده در <code>out</code> را برمی گرداند؛ <code>out_cap</code> سقف بافر خروجی است. هر کاراکتر UCS2 به ۴ رقم hex تبدیل می شود (مثلاً «م» → <code>0645</code>).</p>
 <pre><code class="lang-cpp">uint16_t ucs2_hex_to_utf8(const char* hex, char* out, uint16_t out_cap);</code></pre>
 <p>عکس عملیات قبلی: رمزگشایی رشتهٔ hex-UCS2 دریافتی (<code>+CMGL</code>/<code>+CMGR</code>/<code>+CUSD</code>) به UTF-8 برای نمایش/ذخیره.</p>
 <pre><code class="lang-cpp">uint16_t ascii_to_ucs2_hex(const char* ascii, char* out, uint16_t out_cap);</code></pre>
-<p>تبدیل سریع متن خالص ASCII به hex-UCS2 (بدون مسیر کامل UTF-8) — برای شماره‌ها و رشته‌های ساده.</p>
+<p>تبدیل سریع متن خالص ASCII به hex-UCS2 (بدون مسیر کامل UTF-8) — برای شماره ها و رشته های ساده.</p>
 <pre><code class="lang-cpp">bool     looks_like_ucs2_hex(const char* s);</code></pre>
-<p>تشخیص اینکه یک رشته، hex-UCS2 به نظر می‌رسد (الگوی hex با طول زوج) — برای انتخاب خودکار مسیر رمزگشایی.</p>
+<p>تشخیص اینکه یک رشته، hex-UCS2 به نظر می رسد (الگوی hex با طول زوج) — برای انتخاب خودکار مسیر رمزگشایی.</p>
 <pre><code class="lang-cpp">uint16_t ucs2_units(const char* utf8);</code></pre>
-<p>تعداد واحدهای UCS2 لازم برای متن UTF-8 — برای محاسبهٔ طول مؤثر پیامک (سقف ۷۰ واحد در هر پیامک UCS2) و هم‌راستا با نگهبان طول <code>SmsService</code>.</p>
+<p>تعداد واحدهای UCS2 لازم برای متن UTF-8 — برای محاسبهٔ طول مؤثر پیامک (سقف ۷۰ واحد در هر پیامک UCS2) و هم راستا با نگهبان طول <code>SmsService</code>.</p>
 <pre><code class="lang-cpp">bool is_ascii_only(const char* utf8);</code></pre>
-<p>آیا متن فقط ASCII است؟ (تعیین <code>SmsEncoding::Auto</code>: متن خالص ASCII می‌تواند GSM-7 شود — ۱۶۰ کاراکتر به‌ازای هر پیامک).</p>
+<p>آیا متن فقط ASCII است؟ (تعیین <code>SmsEncoding::Auto</code>: متن خالص ASCII می تواند GSM-7 شود — ۱۶۰ کاراکتر به ازای هر پیامک).</p>
 <h2>جریان کاری</h2>
 <p>ارسال پیامک فارسی:</p>
 <pre><code class="lang-text">utf8 text (&quot;سلام&quot;)
@@ -77,18 +77,18 @@ AT+CMGS -&gt; &#x27;&gt;&#x27; prompt -&gt; write hex payload + Ctrl-Z</code></p
 looks_like_ucs2_hex? -&gt; ucs2_hex_to_utf8() -&gt; SmsMessage.text (UTF-8)</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه</strong>: همهٔ توابع روی بافرهای <code>out</code> کاربر می‌نویسند و طول خروجی را برمی‌گردانند؛ هیچ حالت پنهان یا سراسری وجود ندارد (thread-safe / reentrant).</li>
+<li><strong>بدون تخصیص حافظه</strong>: همهٔ توابع روی بافرهای <code>out</code> کاربر می نویسند و طول خروجی را برمی گردانند؛ هیچ حالت پنهان یا سراسری وجود ندارد (thread-safe / reentrant).</li>
 <li><code>out_cap</code> باید حداقل ۴× طول متن (برای hex خروجی) یا ۴× تعداد hex digits تقسیم بر ۳ (برای UTF-8 خروجی) باشد؛ فراخواننده مسئول تأمین فضا است.</li>
-<li>نکتهٔ UTF-8: کاراکترهای فارسی در UTF-8 دو بایتی‌اند و به یک واحد UCS2 نگاشت می‌شوند؛ <code>ucs2_units</code> همین را می‌شمارد (کاراکترهای BMP). نمادهای خارج از BMP (که به surrogate pair نیاز دارند) ممکن است به‌درستی پشتیبانی نشوند.</li>
-<li><code>looks_like_ucs2_hex</code> یک تشخیص اکتشافی است (heuristic)؛ قطعیت با DCS فیلد <code>+CMGL/+CMGR</code> به دست می‌آید.</li>
-<li>این توابع در .cpp پیاده‌سازی شده‌اند؛ هدر فقط قرارداد دارد — مناسب جداسازی هستهٔ codec از منطق سرویس.</li>
-<li>طول مؤثر پیامک: ۷۰ واحد UCS2 (یا ۱۶۰ کاراکتر GSM-7)؛ به‌همین دلیل نگهبان <code>GSM_SMS_MAX_CHARS=60</code> در <code>SmsService</code> زیر این سقف است.</li>
+<li>نکتهٔ UTF-8: کاراکترهای فارسی در UTF-8 دو بایتی اند و به یک واحد UCS2 نگاشت می شوند؛ <code>ucs2_units</code> همین را می شمارد (کاراکترهای BMP). نمادهای خارج از BMP (که به surrogate pair نیاز دارند) ممکن است به درستی پشتیبانی نشوند.</li>
+<li><code>looks_like_ucs2_hex</code> یک تشخیص اکتشافی است (heuristic)؛ قطعیت با DCS فیلد <code>+CMGL/+CMGR</code> به دست می آید.</li>
+<li>این توابع در .cpp پیاده سازی شده اند؛ هدر فقط قرارداد دارد — مناسب جداسازی هستهٔ codec از منطق سرویس.</li>
+<li>طول مؤثر پیامک: ۷۰ واحد UCS2 (یا ۱۶۰ کاراکتر GSM-7)؛ به همین دلیل نگهبان <code>GSM_SMS_MAX_CHARS=60</code> در <code>SmsService</code> زیر این سقف است.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>sms/sms_service.hpp</code> — تبدیل payload ارسالی/دریافتی و تصمیم <code>wants_ucs2()</code></li>
 <li><code>sms/sms_types.hpp</code> — <code>SmsEncoding</code></li>
-<li><code>ussd/ussd_service.hpp</code> — رمزگشایی پاسخ‌های <code>+CUSD</code> با DCS متناظر</li>
+<li><code>ussd/ussd_service.hpp</code> — رمزگشایی پاسخ های <code>+CUSD</code> با DCS متناظر</li>
 <li><code>device/device_traits.hpp</code> — <code>ucs2_recipient_required</code>، <code>csmp_ucs2</code></li>
-<li><code>util/static_string.hpp</code> — کمک‌های متنی مکمل</li>
+<li><code>util/static_string.hpp</code> — کمک های متنی مکمل</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

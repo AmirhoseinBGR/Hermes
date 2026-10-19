@@ -2,42 +2,42 @@
 
 ## نقش فایل
 
-پیاده‌سازی زیرسیستم لاگ کتابخانه در فضای نام `gsm::log`: ثبت سراسری (`Registry`) با سینک قابل‌تعویض، کانال‌های چندسطحی (`Channel`) با فرمت‌دهی printf-مانند، دامپ بایتی/هگز برای ترافیک AT، و سینک‌های آماده (`stdio`، `null`، `writer` برای ارسال به سریال/وب). همه پیام‌ها با بافر ثابت ساخته می‌شوند؛ هیچ تخصیص حافظه پویا در مسیر لاگ وجود ندارد.
+پیاده سازی زیرسیستم لاگ کتابخانه در فضای نام `gsm::log`: ثبت سراسری (`Registry`) با سینک قابل تعویض، کانال های چندسطحی (`Channel`) با فرمت دهی printf-مانند، دامپ بایتی/هگز برای ترافیک AT، و سینک های آماده (`stdio`، `null`، `writer` برای ارسال به سریال/وب). همه پیام ها با بافر ثابت ساخته می شوند؛ هیچ تخصیص حافظه پویا در مسیر لاگ وجود ندارد.
 
 ## توابع و منطق کلیدی
 
 ### ایستاهای `Registry` و مدیریت سینک
 ```cpp
-Sink      Registry::sink_       = &stdio_sink;   // پیش‌فرض: printf
+Sink      Registry::sink_       = &stdio_sink;   // پیش فرض: printf
 ClockHook Registry::clock_      = nullptr;
 Level     Registry::global_     = Level::Trace;
 bool      Registry::color_      = (GSM_LOG_COLOR_DEFAULT != 0);
 bool      Registry::timestamps_ = true;
 ```
 
-- `set_sink(Sink, void* ctx)` — تعویض سینک؛ اگر `nullptr` بدهید به `stdio_sink` بازمی‌گردد (fail-safe).
+- `set_sink(Sink, void* ctx)` — تعویض سینک؛ اگر `nullptr` بدهید به `stdio_sink` بازمی گردد (fail-safe).
 - `emit(const Record&)` — ارسال یک رکورد به سینک جاری.
-- `level_name(Level)` → `"E" | "W" | "I" | "D" | "T"`؛ `level_color(Level)` → کدهای ANSI متناظر (قرمز/زرد/فیروزه‌ای/سفید/کم‌رنگ).
+- `level_name(Level)` → `"E" | "W" | "I" | "D" | "T"`؛ `level_color(Level)` → کدهای ANSI متناظر (قرمز/زرد/فیروزه ای/سفید/کم رنگ).
 
 ### `void Channel::vlog(Level, const char* fmt, va_list) const`
-هسته فرمت‌دهی: متن با `vsnprintf` در بافر ثابت `GSM_LOG_BUFFER_SIZE` (پیش‌فرض ۱۸۰ بایت) ساخته، طول واقعی (برش‌خورده) در `Record` ثبت و با timestamp از `Registry::now_ms()` ارسال می‌شود. فیلتر سطح (`wants(level)`) **قبل از** فرمت‌دهی انجام می‌شود تا پیام‌های ناخواسته هزینه‌ای نداشته باشند.
+هسته فرمت دهی: متن با `vsnprintf` در بافر ثابت `GSM_LOG_BUFFER_SIZE` (پیش فرض ۱۸۰ بایت) ساخته، طول واقعی (برش خورده) در `Record` ثبت و با timestamp از `Registry::now_ms()` ارسال می شود. فیلتر سطح (`wants(level)`) **قبل از** فرمت دهی انجام می شود تا پیام های ناخواسته هزینه ای نداشته باشند.
 
 ### متدهای سطح (تولیدشده با ماکرو `GSM_LOG_IMPL`)
-`error`، `warn`، `info`، `debug`، `trace` — همگی الگوی یکسان دارند: بررسی سطح، بازکردن `va_list`، فراخوانی `vlog`. ماکرو بعد از تولید `#undef` می‌شود.
+`error`، `warn`، `info`، `debug`، `trace` — همگی الگوی یکسان دارند: بررسی سطح، بازکردن `va_list`، فراخوانی `vlog`. ماکرو بعد از تولید `#undef` می شود.
 
 ### `void Channel::bytes(Level, const char* prefix, const uint8_t* data, uint16_t len) const`
-نمایش ترافیک خام به‌صورت خوانا: چاپی‌های ASCII مستقیم، `\r` → `\r` متنی (`\\r`)، `\n` → `\\n`، `0x1A` → `<CtrlZ>`، `0x1B` → `<ESC>` و بقیه به `<XX>`. برای ردیابی payload پیامک و پاسخ‌های AT حیاتی است.
+نمایش ترافیک خام به صورت خوانا: چاپی های ASCII مستقیم، `\r` → `\r` متنی (`\\r`)، `\n` → `\\n`، `0x1A` → `<CtrlZ>`، `0x1B` → `<ESC>` و بقیه به `<XX>`. برای ردیابی payload پیامک و پاسخ های AT حیاتی است.
 
 ### `void Channel::hexdump(Level, const char* prefix, const uint8_t* data, uint16_t len) const`
-دامپ هگز ۱۶‌بایتی در هر خط با آفست: `"%s%04X: %02X %02X …"`؛ هر خط یک `Record` جداگانه است.
+دامپ هگز ۱۶ بایتی در هر خط با آفست: `"%s%04X: %02X %02X …"`؛ هر خط یک `Record` جداگانه است.
 
 ### `ScopedSink`
-RAII برای تعویض موقت سینک (مثلاً منحرف‌کردن لاگ به بافر تست)؛ در destructor سینک قبلی بازمی‌گردد.
+RAII برای تعویض موقت سینک (مثلاً منحرف کردن لاگ به بافر تست)؛ در destructor سینک قبلی بازمی گردد.
 
-### سینک‌های آماده
+### سینک های آماده
 - **`stdio_sink`** — خروجی `printf` با قالب `[%8lu][%s/%s] %s` (زمان اختیاری) و رنگ ANSI اختیاری.
-- **`null_sink`** — بی‌صدا؛ برای حذف کامل لاگ در محصول نهایی.
-- **`writer_sink`** — همان قالب را در یک بافر می‌سازد و به `WriterSink::write` (تابع ارجاعی کاربر، مثلاً پورت سریال `Console`) می‌دهد؛ این همان مسیری است که `cli::Console::install_log_mirror` استفاده می‌کند.
+- **`null_sink`** — بی صدا؛ برای حذف کامل لاگ در محصول نهایی.
+- **`writer_sink`** — همان قالب را در یک بافر می سازد و به `WriterSink::write` (تابع ارجاعی کاربر، مثلاً پورت سریال `Console`) می دهد؛ این همان مسیری است که `cli::Console::install_log_mirror` استفاده می کند.
 
 ## جریان کاری
 
@@ -55,18 +55,18 @@ Registry::emit ──► sink_(rec, ctx)
 
 ## نکات فنی
 
-- **فیلتر زودهنگام:** `wants(level)` قبل از هر کاری اجرا می‌شود؛ لاگ در سطح بالاتر (مثلاً Error در production) تقریباً رایگان است.
-- **برش بافر:** پیام‌های بلندتر از `GSM_LOG_BUFFER_SIZE` بی‌صدا بریده می‌شوند (`vsnprintf` مقدار برگشتی بالاتر از ظرفیت را نادیده می‌گیرد).
-- **`Channel` ثابت‌های محلی هر فایل:** هر فایل `.cpp` یک `static const log::Channel kLog{"tag", Level::Debug}` دارد؛ tag در خروجی `[tag]` دیده می‌شود و سطح پیش‌فرض هر زیرسیستم مستقل است.
-- **timestamp از `ClockHook`:** `Registry::set_clock` تابع بازگشتی `uint32_t` می‌گیرد؛ `Modem::begin` آن را به `millis()` سخت‌افزار وصل می‌کند (قبل از آن، زمان‌ها 0 است).
-- **`bytes` برای `AtEngine::write_raw` در حالت trace** استفاده می‌شود (`TX< `)؛ `hexdump` بیشتر برای دیباگ لایه انتقال.
-- **قالب یکسان در همه سینک‌ها:** `writer_sink` و `stdio_sink` هر دو `[%time][LEVEL/tag] text` می‌سازند؛ تفاوت فقط مقصد است.
-- **بدون heap و thread-safe نبودن:** `Registry` ایستاهای سراسری ساده دارد (برای سیستم‌های single-threaded مانند حلقه اصلی `Modem::tick` طراحی شده).
+- **فیلتر زودهنگام:** `wants(level)` قبل از هر کاری اجرا می شود؛ لاگ در سطح بالاتر (مثلاً Error در production) تقریباً رایگان است.
+- **برش بافر:** پیام های بلندتر از `GSM_LOG_BUFFER_SIZE` بی صدا بریده می شوند (`vsnprintf` مقدار برگشتی بالاتر از ظرفیت را نادیده می گیرد).
+- **`Channel` ثابت های محلی هر فایل:** هر فایل `.cpp` یک `static const log::Channel kLog{"tag", Level::Debug}` دارد؛ tag در خروجی `[tag]` دیده می شود و سطح پیش فرض هر زیرسیستم مستقل است.
+- **timestamp از `ClockHook`:** `Registry::set_clock` تابع بازگشتی `uint32_t` می گیرد؛ `Modem::begin` آن را به `millis()` سخت افزار وصل می کند (قبل از آن، زمان ها 0 است).
+- **`bytes` برای `AtEngine::write_raw` در حالت trace** استفاده می شود (`TX< `)؛ `hexdump` بیشتر برای دیباگ لایه انتقال.
+- **قالب یکسان در همه سینک ها:** `writer_sink` و `stdio_sink` هر دو `[%time][LEVEL/tag] text` می سازند؛ تفاوت فقط مقصد است.
+- **بدون heap و thread-safe نبودن:** `Registry` ایستاهای سراسری ساده دارد (برای سیستم های single-threaded مانند حلقه اصلی `Modem::tick` طراحی شده).
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `gsm/log/log.hpp` — تعریف `Level`، `Record`، `Channel`، `Registry`، `Sink`، `WriterSink`، `ScopedSink`.
 - `include/gsm/gsm_config.hpp` — `GSM_LOG_BUFFER_SIZE`، `GSM_LOG_LEVEL_MAX`، `GSM_LOG_COLOR_DEFAULT`.
-- مصرف‌کننده‌ها: تقریباً همه فایل‌های `src/` (هرکدام `kLog` محلی دارند).
-- `src/cli.cpp` — نصب سینک `writer_sink` برای آینه‌سازی لاگ در کنسول/وب، و کنترل سطح/رنگ/زمان با دستورهای `L`/`T`/`C`.
+- مصرف کننده ها: تقریباً همه فایل های `src/` (هرکدام `kLog` محلی دارند).
+- `src/cli.cpp` — نصب سینک `writer_sink` برای آینه سازی لاگ در کنسول/وب، و کنترل سطح/رنگ/زمان با دستورهای `L`/`T`/`C`.
 - `src/modem.cpp` — وصل کردن `ClockHook` به `millis()` در `begin()`.

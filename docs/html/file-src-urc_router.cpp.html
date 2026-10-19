@@ -41,12 +41,12 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/urc_router.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/urc_router.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی <code>gsm::UrcRouter</code>؛ مسیریاب پیام‌های ناخواسته (URC) مودم. هر خط دریافتی از UART را دسته‌بندی می‌کند (<code>Urc</code>) و در صورت شناسایی، یک <code>UrcEvent</code> شامل نوع، متن خام و آرگومان عددی به handler مرکزی (<code>Modem::handle_urc</code>) تحویل می‌دهد. خطوط URC <strong>هرگز</strong> به observer فرمان جاری نمی‌رسند؛ این تفکیک، ستون فقرات تمایز «پاسخ فرمان» از «رویداد ناخواسته» در کل کتابخانه است.</p>
+<p>پیاده سازی <code>gsm::UrcRouter</code>؛ مسیریاب پیام های ناخواسته (URC) مودم. هر خط دریافتی از UART را دسته بندی می کند (<code>Urc</code>) و در صورت شناسایی، یک <code>UrcEvent</code> شامل نوع، متن خام و آرگومان عددی به handler مرکزی (<code>Modem::handle_urc</code>) تحویل می دهد. خطوط URC <strong>هرگز</strong> به observer فرمان جاری نمی رسند؛ این تفکیک، ستون فقرات تمایز «پاسخ فرمان» از «رویداد ناخواسته» در کل کتابخانه است.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3><code>Urc UrcRouter::classify(const char* line, int32_t&amp; arg)</code></h3>
-<p>دسته‌بندی یک خط؛ <code>arg</code> فقط برای رویدادهای عددی پر می‌شود (پیش‌فرض <code>-1</code>). الگوها به‌ترتیب بررسی می‌شوند:</p>
+<p>دسته بندی یک خط؛ <code>arg</code> فقط برای رویدادهای عددی پر می شود (پیش فرض <code>-1</code>). الگوها به ترتیب بررسی می شوند:</p>
 <table><thead><tr><th>الگوی خط</th><th><code>Urc</code></th><th><code>arg</code></th></tr></thead><tbody>
 <tr><td><code>RING</code></td><td><code>Ring</code></td><td>—</td></tr>
 <tr><td><code>+CLIP:</code></td><td><code>CallerId</code></td><td>—</td></tr>
@@ -67,9 +67,9 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <tr><td><code>RDY</code> / <code>DY</code></td><td><code>ModemReady</code></td><td>—</td></tr>
 <tr><td>سایر</td><td><code>Unknown</code></td><td>—</td></tr>
 </tbody></table>
-<p>نکته: برای <code>+CREG:</code>/<code>+CGREG:</code> آرگومان با <code>csv_field</code> از بعد از <code>:</code> استخراج می‌شود (ابتدا فیلد ۱، در صورت شکست فیلد ۰ — سازگار با هر دو قالب <code>&lt;stat&gt;</code> و <code>&lt;n&gt;,&lt;stat&gt;</code>).</p>
+<p>نکته: برای <code>+CREG:</code>/<code>+CGREG:</code> آرگومان با <code>csv_field</code> از بعد از <code>:</code> استخراج می شود (ابتدا فیلد ۱، در صورت شکست فیلد ۰ — سازگار با هر دو قالب <code>&lt;stat&gt;</code> و <code>&lt;n&gt;,&lt;stat&gt;</code>).</p>
 <h3><code>bool UrcRouter::dispatch(const char* line, uint16_t len)</code></h3>
-<p>خط را <code>classify</code> می‌کند؛ اگر <code>Unknown</code> باشد <code>false</code> (یعنی خط، پاسخ عادی فرمان است و باید به observer برسد). در غیر این صورت <code>UrcEvent{kind, line, arg}</code> ساخته، handler را صدا می‌زند و <code>true</code> برمی‌گرداند (خط «مصرف» شد).</p>
+<p>خط را <code>classify</code> می کند؛ اگر <code>Unknown</code> باشد <code>false</code> (یعنی خط، پاسخ عادی فرمان است و باید به observer برسد). در غیر این صورت <code>UrcEvent{kind, line, arg}</code> ساخته، handler را صدا می زند و <code>true</code> برمی گرداند (خط «مصرف» شد).</p>
 <pre><code class="lang-cpp">const Urc kind = classify(line, arg);
 if (kind == Urc::Unknown) return false;
 UrcEvent ev{kind, line, arg};
@@ -80,29 +80,29 @@ return true;</code></pre>
                         │
                         └─► urc_.dispatch(line)
                                 ├─ Unknown ──► false ──► observer_-&gt;on_line()  (پاسخ فرمان)
-                                └─ شناخته‌شده ──► handler_(UrcEvent) ──► Modem::handle_urc
+                                └─ شناخته شده ──► handler_(UrcEvent) ──► Modem::handle_urc
                                                         │
                                                         ├─ Ring/CallerId → preempt_for_call + call_.notify_ring
                                                         ├─ CallEnded/Busy/NoAnswer → پایان تماس
                                                         ├─ SmsReceived → read_sms خودکار
-                                                        ├─ Sim* → وضعیت سیم‌کارت
+                                                        ├─ Sim* → وضعیت سیم کارت
                                                         ├─ NetworkReg → گذار FSM
                                                         ├─ Ussd → ussd_.notify_cusd
                                                         └─ user_urc_(ev) → اپلیکیشن</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>ترتیب بررسی مهم است:</strong> <code>classify</code> اول «دقیق‌ترین» الگوها را می‌سنجد (مثلاً <code>+CPIN: READY</code> قبل از <code>+CPIN:</code> عمومی) تا دسته‌بندی‌های کلی، موارد خاص را نبلعند.</li>
-<li><strong><code>NO CARRIER</code> دو هویتی:</strong> در <code>AtEngine::classify_final</code> نتیجه نهایی فرمان (مثلاً <code>ATD</code>) و در اینجا URC پایان تماس است؛ اولویت با <code>classify_final</code> است (در <code>tick</code> اول نتیجه نهایی بررسی می‌شود)، پس وقتی observer فعالی در انتظار نتیجه است، <code>NO CARRIER</code> به <code>on_final(NoCarrier)</code> می‌رود نه URC.</li>
-<li><strong><code>+CPIN</code>های مبهم:</strong> هر حالت <code>+CPIN:</code> غیر از NOT READY/NOT INSERTED به‌عنوان <code>SimReady</code> گزارش می‌شود (حتی SIM PIN)؛ <code>StatusService</code> ریزبینانه‌تر تفسیر می‌کند.</li>
-<li><strong><code>RDY</code>/<code>DY</code>:</strong> برخی مودم‌ها با banner کوتاه <code>DY</code> (بخشی از <code>RDY</code> با تأخیر بافر) اعلام آمادگی می‌کنند؛ الگوی <code>DY</code> برای همین حالت عجیب اضافه شده است.</li>
-<li><strong>بدون heap:</strong> <code>UrcEvent</code> فقط اشاره‌گر به <code>line</code> (بافر <code>LineReader</code>) و یک <code>int32_t</code> است؛ handler باید در همان لحظه مصرف کند یا کپی بگیرد.</li>
-<li><strong><code>dispatch</code> مالکیت handler را ندارد:</strong> handler با <code>set_handler(UrcRouter::Handler(...))</code> (Delegate ذخیره‌ای) نصب می‌شود؛ <code>Modem</code> خودش را با trampoline وصل می‌کند.</li>
+<li><strong>ترتیب بررسی مهم است:</strong> <code>classify</code> اول «دقیق ترین» الگوها را می سنجد (مثلاً <code>+CPIN: READY</code> قبل از <code>+CPIN:</code> عمومی) تا دسته بندی های کلی، موارد خاص را نبلعند.</li>
+<li><strong><code>NO CARRIER</code> دو هویتی:</strong> در <code>AtEngine::classify_final</code> نتیجه نهایی فرمان (مثلاً <code>ATD</code>) و در اینجا URC پایان تماس است؛ اولویت با <code>classify_final</code> است (در <code>tick</code> اول نتیجه نهایی بررسی می شود)، پس وقتی observer فعالی در انتظار نتیجه است، <code>NO CARRIER</code> به <code>on_final(NoCarrier)</code> می رود نه URC.</li>
+<li><strong><code>+CPIN</code>های مبهم:</strong> هر حالت <code>+CPIN:</code> غیر از NOT READY/NOT INSERTED به عنوان <code>SimReady</code> گزارش می شود (حتی SIM PIN)؛ <code>StatusService</code> ریزبینانه تر تفسیر می کند.</li>
+<li><strong><code>RDY</code>/<code>DY</code>:</strong> برخی مودم ها با banner کوتاه <code>DY</code> (بخشی از <code>RDY</code> با تأخیر بافر) اعلام آمادگی می کنند؛ الگوی <code>DY</code> برای همین حالت عجیب اضافه شده است.</li>
+<li><strong>بدون heap:</strong> <code>UrcEvent</code> فقط اشاره گر به <code>line</code> (بافر <code>LineReader</code>) و یک <code>int32_t</code> است؛ handler باید در همان لحظه مصرف کند یا کپی بگیرد.</li>
+<li><strong><code>dispatch</code> مالکیت handler را ندارد:</strong> handler با <code>set_handler(UrcRouter::Handler(...))</code> (Delegate ذخیره ای) نصب می شود؛ <code>Modem</code> خودش را با trampoline وصل می کند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/core/urc_router.hpp</code> — تعریف <code>Urc</code>، <code>UrcEvent</code>، <code>Handler</code> و <code>classify</code>.</li>
 <li><code>src/at_engine.cpp</code> — نقطه فراخوانی <code>dispatch</code> در <code>tick</code> (قبل از <code>observer_-&gt;on_line</code>).</li>
-<li><code>src/modem.cpp</code> — <code>urc_trampoline</code> و <code>handle_urc</code> (مصرف‌کننده اصلی رویدادها).</li>
+<li><code>src/modem.cpp</code> — <code>urc_trampoline</code> و <code>handle_urc</code> (مصرف کننده اصلی رویدادها).</li>
 <li><code>src/ussd_service.cpp</code> — <code>notify_cusd</code> برای <code>Urc::Ussd</code>.</li>
 <li><code>src/call_service.cpp</code> — <code>notify_ring</code>/<code>notify_hangup</code>/<code>notify_busy</code> برای رویدادهای تماس.</li>
 <li><code>gsm/util/static_string.hpp</code> — <code>str_starts_with</code>، <code>parse_int</code>، <code>csv_field</code>.</li>

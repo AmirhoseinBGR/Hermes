@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/maintenance/watchdog.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/maintenance/watchdog.hpp</h1>
 <h2>نقش فایل</h2>
-<p>نگهبان تعمیراتی ماژول GSM با <strong>دو بازنشان مستقل</strong> (resetter): یکی بر مبنای زمان (هر چند وقت یک‌بار ریست کامل دوره‌ای) و دیگری بر مبنای بودجهٔ عملیات (هر N عملیات موفق). بعد از هر بازنشانی یک <strong>بررسی سلامت</strong> (AT / CPIN / CREG / CSQ) صحت بازگشت ماژول را تأیید می‌کند. این سازوکار برای کاربردهای صنعتی طراحی شده که مودم باید ماه‌ها بدون دخالت انسان کار کند.</p>
+<p>نگهبان تعمیراتی ماژول GSM با <strong>دو بازنشان مستقل</strong> (resetter): یکی بر مبنای زمان (هر چند وقت یک بار ریست کامل دوره ای) و دیگری بر مبنای بودجهٔ عملیات (هر N عملیات موفق). بعد از هر بازنشانی یک <strong>بررسی سلامت</strong> (AT / CPIN / CREG / CSQ) صحت بازگشت ماژول را تأیید می کند. این سازوکار برای کاربردهای صنعتی طراحی شده که مودم باید ماه ها بدون دخالت انسان کار کند.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3>enumها</h3>
 <pre><code class="lang-cpp">enum class ResetReason : uint8_t
@@ -118,7 +118,7 @@ const ResetPolicy&amp; policy() const;
 uint32_t           ops_count() const;
 uint32_t           resets_done() const;
 uint32_t           since_reset_ms(uint32_t now) const;</code></pre>
-<p>فیلدهای خصوصی: <code>last_reset_ms_</code>، <code>ops_</code>، <code>resets_</code>، <code>started_</code>، <code>pending_</code> (درخواست بازنشانی معلق)، <code>probe_index_</code>/<code>issued_</code>/<code>check_pending_</code> (ماشین حالت بررسی سلامت)، <code>status_</code> (اشاره‌گر به <code>ModemStatus</code> زنده)، <code>health_</code>، <code>on_health_</code>.</p>
+<p>فیلدهای خصوصی: <code>last_reset_ms_</code>، <code>ops_</code>، <code>resets_</code>، <code>started_</code>، <code>pending_</code> (درخواست بازنشانی معلق)، <code>probe_index_</code>/<code>issued_</code>/<code>check_pending_</code> (ماشین حالت بررسی سلامت)، <code>status_</code> (اشاره گر به <code>ModemStatus</code> زنده)، <code>health_</code>، <code>on_health_</code>.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">Modem::tick()
     |
@@ -147,20 +147,20 @@ modem.set_on_health([](const gsm::HealthReport&amp; r) {
 });</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون heap / بدون STL</strong>: فقط PODها، <code>Delegate</code> و <code>StaticString</code>؛ مناسب اجرای ماه‌ها بدون پراکندگی حافظه.</li>
-<li><strong>دو بازنشان مستقل</strong>: <code>periodic_ms</code> (پیش‌فرض ۱ ساعت) و <code>ops_period</code> (پیش‌فرض ۵۰ عملیات)؛ مقدار ۰ هر کدام را خاموش می‌کند. هر دو بعد از بازنشانی صفر می‌شوند (<code>on_reset_started</code>).</li>
-<li><strong><code>grace_ms</code></strong> (پیش‌فرض ۱۰ ثانیه): اگر پنجرهٔ امن برای بازنشانی (موتور بیکار/مودم آماده) پیدا نشود، بازنشانی به‌زور اجرا می‌شود — جلوگیری از تعویق بی‌نهایت ریست دوره‌ای.</li>
+<li><strong>بدون heap / بدون STL</strong>: فقط PODها، <code>Delegate</code> و <code>StaticString</code>؛ مناسب اجرای ماه ها بدون پراکندگی حافظه.</li>
+<li><strong>دو بازنشان مستقل</strong>: <code>periodic_ms</code> (پیش فرض ۱ ساعت) و <code>ops_period</code> (پیش فرض ۵۰ عملیات)؛ مقدار ۰ هر کدام را خاموش می کند. هر دو بعد از بازنشانی صفر می شوند (<code>on_reset_started</code>).</li>
+<li><strong><code>grace_ms</code></strong> (پیش فرض ۱۰ ثانیه): اگر پنجرهٔ امن برای بازنشانی (موتور بیکار/مودم آماده) پیدا نشود، بازنشانی به زور اجرا می شود — جلوگیری از تعویق بی نهایت ریست دوره ای.</li>
 <li><code>request_reset(Manual)</code> برای درخواست دستی از CLI/کاربر؛ <code>FaultRecovery</code> برای بازنشانی ناشی از شکست بررسی سلامت.</li>
-<li><code>bind_status</code> اشاره‌گر به <code>ModemStatus</code> زنده است (مالکیتی ندارد)؛ <code>rssi_dbm</code> در گزارش از همین‌جا می‌آید.</li>
-<li><code>pump(at, engine_idle, modem_ready)</code> فقط در پنجرهٔ امن اجرا می‌شود؛ <code>cancel_check</code> برای لغو بررسی نیمه‌کاره (مثلاً هنگام ورود تماس).</li>
-<li><code>check_busy()</code> مانع هم‌پوشانی دو بررسی می‌شود؛ <code>probe_index_</code> ترتیب پروب‌ها را نگه می‌دارد.</li>
-<li>هماهنگی با <code>Modem</code>: <code>Modem::check_watchdog</code> و <code>Modem::maintenance_service</code> این APIها را اورکستریت می‌کنند؛ <code>set_on_health</code> در <code>Modem</code> هم در دسترس است.</li>
-<li><code>IAtObserver</code> بودن کلاس یعنی پاسخ‌های پروب سلامت (مثلاً <code>+CPIN: READY</code>) مستقیم به <code>on_line</code>/<code>on_final</code> می‌آیند.</li>
+<li><code>bind_status</code> اشاره گر به <code>ModemStatus</code> زنده است (مالکیتی ندارد)؛ <code>rssi_dbm</code> در گزارش از همین جا می آید.</li>
+<li><code>pump(at, engine_idle, modem_ready)</code> فقط در پنجرهٔ امن اجرا می شود؛ <code>cancel_check</code> برای لغو بررسی نیمه کاره (مثلاً هنگام ورود تماس).</li>
+<li><code>check_busy()</code> مانع هم پوشانی دو بررسی می شود؛ <code>probe_index_</code> ترتیب پروب ها را نگه می دارد.</li>
+<li>هماهنگی با <code>Modem</code>: <code>Modem::check_watchdog</code> و <code>Modem::maintenance_service</code> این APIها را اورکستریت می کنند؛ <code>set_on_health</code> در <code>Modem</code> هم در دسترس است.</li>
+<li><code>IAtObserver</code> بودن کلاس یعنی پاسخ های پروب سلامت (مثلاً <code>+CPIN: READY</code>) مستقیم به <code>on_line</code>/<code>on_final</code> می آیند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm_config.hpp</code> — <code>GSM_PERIODIC_RESET_MS</code>، <code>GSM_OPS_RESET_COUNT</code>، <code>GSM_WATCHDOG_GRACE_MS</code></li>
-<li><code>core/at_engine.hpp</code> — اجرای پروب‌های سلامت</li>
+<li><code>core/at_engine.hpp</code> — اجرای پروب های سلامت</li>
 <li><code>core/at_types.hpp</code> — <code>IAtObserver</code>، <code>AtResult</code></li>
 <li><code>status/status_service.hpp</code> — <code>ModemStatus</code> (SIM/شبکه/RSSI زنده)</li>
 <li><code>modem/modem.hpp</code> — اورکستراسیون <code>tick</code>/<code>full_restart</code>، <code>set_on_health</code>، <code>maintenance()</code></li>

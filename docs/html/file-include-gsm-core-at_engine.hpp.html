@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/core/at_engine.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/core/at_engine.hpp</h1>
 <h2>نقش فایل</h2>
-<p>موتور اجرای فرمان‌های AT: ارسال دستور روی UART، جمع‌آوری خطوط پاسخ با <code>LineReader</code>، تشخیص خطوط نهایی (OK/ERROR/…)، هدایت URCها به <code>UrcRouter</code> و اطلاع‌رسانی به <code>IAtObserver</code>. این کلاس قلب همگام‌سازی کتابخانه است و همهٔ سرویس‌ها (SMS، تماس، وضعیت، USSD) از طریق آن با مودم حرف می‌زنند.</p>
+<p>موتور اجرای فرمان های AT: ارسال دستور روی UART، جمع آوری خطوط پاسخ با <code>LineReader</code>، تشخیص خطوط نهایی (OK/ERROR/…)، هدایت URCها به <code>UrcRouter</code> و اطلاع رسانی به <code>IAtObserver</code>. این کلاس قلب همگام سازی کتابخانه است و همهٔ سرویس ها (SMS، تماس، وضعیت، USSD) از طریق آن با مودم حرف می زنند.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>struct AtRequest</code></h3>
 <pre><code class="lang-cpp">struct AtRequest
@@ -77,15 +77,15 @@ void        set_trace(bool on);
 uint32_t    now();
 hal::IUart&amp; uart();</code></pre>
 <ul>
-<li><code>execute</code>: شروع تراکنش؛ دستور را با <code>\r</code> می‌فرستد، observer را ثبت می‌کند و <code>false</code> برمی‌گرداند اگر موتور مشغول باشد.</li>
+<li><code>execute</code>: شروع تراکنش؛ دستور را با <code>\r</code> می فرستد، observer را ثبت می کند و <code>false</code> برمی گرداند اگر موتور مشغول باشد.</li>
 <li><code>write_raw</code> / <code>write_ctrl_z</code> / <code>write_escape</code>: ارسال payload پس از نشان <code>&gt;</code> (متن پیامک، پاسخ USSD).</li>
-<li><code>await_final</code>: انتظار برای نتیجهٔ نهایی با observer داده‌شده (برای فازهایی که observer عوض می‌شود).</li>
-<li><code>tick</code>: باید در هر تیک حلقهٔ اصلی صدا زده شود؛ دریافت UART، تغذیهٔ <code>LineReader</code>، تشخیص prompt (<code>&gt;</code>)، طبقه‌بندی خطوط نهایی با <code>classify_final</code>، اعمال timeout و در نهایت <code>finish(status, code)</code>.</li>
+<li><code>await_final</code>: انتظار برای نتیجهٔ نهایی با observer داده شده (برای فازهایی که observer عوض می شود).</li>
+<li><code>tick</code>: باید در هر تیک حلقهٔ اصلی صدا زده شود؛ دریافت UART، تغذیهٔ <code>LineReader</code>، تشخیص prompt (<code>&gt;</code>)، طبقه بندی خطوط نهایی با <code>classify_final</code>، اعمال timeout و در نهایت <code>finish(status, code)</code>.</li>
 </ul>
 <p>متدهای خصوصی:</p>
 <pre><code class="lang-cpp">void finish(AtStatus status, int16_t code);   // -&gt; observer-&gt;on_final(...)
 bool classify_final(const char* line, AtStatus&amp; status, int16_t&amp; code) const;</code></pre>
-<p>فیلدهای وضعیت: <code>reader_</code> (خط جاری)، <code>observer_</code> (تراکنش جاری)، <code>sent_</code> (<code>StaticString&lt;GSM_CMD_MAX&gt;</code> دستور ارسال‌شده برای تشخیص echo)، <code>started_</code>/<code>timeout_</code>/<code>last_done_</code> (تایمرها)، <code>expect_prompt_</code> و <code>trace_</code>.</p>
+<p>فیلدهای وضعیت: <code>reader_</code> (خط جاری)، <code>observer_</code> (تراکنش جاری)، <code>sent_</code> (<code>StaticString&lt;GSM_CMD_MAX&gt;</code> دستور ارسال شده برای تشخیص echo)، <code>started_</code>/<code>timeout_</code>/<code>last_done_</code> (تایمرها)، <code>expect_prompt_</code> و <code>trace_</code>.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">service.pump()
     |  AtEngine.execute(cmd, timeout, this)
@@ -101,21 +101,21 @@ loop: AtEngine.tick()
 service.on_final() -&gt; advance state machine</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>غیرمسدودکننده و بدون تخصیص حافظه</strong>: هیچ <code>new</code>/<code>malloc</code>؛ همهٔ بافرها <code>StaticString</code> با اندازهٔ کامپایل‌تایم.</li>
-<li>یک تراکنش در هر لحظه (observer منحصربه‌فرد)؛ <code>execute</code> در حالت busy برمی‌گردد <code>false</code> — مدیریت صف بر عهدهٔ <code>Modem</code>/<code>JobQueue</code> است.</li>
-<li>URCها (مثلاً <code>RING</code>، <code>+CMTI</code>) در میانهٔ پاسخ هم ممکن است برسند؛ <code>tick</code> آن‌ها را از خطوط پاسخ تفکیک و به <code>UrcRouter</code> می‌فرستد.</li>
-<li><code>echo_expected</code> برای ماژول‌هایی است که دستور را echo می‌کنند؛ خط echo به observer داده نمی‌شود.</li>
-<li><code>trace_</code> (پیش‌فرض روشن) ترافیک AT را برای <code>log</code>/CLI ثبت می‌کند.</li>
+<li><strong>غیرمسدودکننده و بدون تخصیص حافظه</strong>: هیچ <code>new</code>/<code>malloc</code>؛ همهٔ بافرها <code>StaticString</code> با اندازهٔ کامپایل تایم.</li>
+<li>یک تراکنش در هر لحظه (observer منحصربه فرد)؛ <code>execute</code> در حالت busy برمی گردد <code>false</code> — مدیریت صف بر عهدهٔ <code>Modem</code>/<code>JobQueue</code> است.</li>
+<li>URCها (مثلاً <code>RING</code>، <code>+CMTI</code>) در میانهٔ پاسخ هم ممکن است برسند؛ <code>tick</code> آن ها را از خطوط پاسخ تفکیک و به <code>UrcRouter</code> می فرستد.</li>
+<li><code>echo_expected</code> برای ماژول هایی است که دستور را echo می کنند؛ خط echo به observer داده نمی شود.</li>
+<li><code>trace_</code> (پیش فرض روشن) ترافیک AT را برای <code>log</code>/CLI ثبت می کند.</li>
 <li>wrap-around ساعت <code>uint32</code> با الگوی <code>hal::elapsed</code> پوشش داده شده است.</li>
-<li>گارد زمانی بین تراکنش‌ها از <code>GSM_AT_GUARD_TIME</code> می‌آید (<code>last_done_</code>)؛ timeoutهای پیش‌فرض از <code>gsm_config.hpp</code>.</li>
+<li>گارد زمانی بین تراکنش ها از <code>GSM_AT_GUARD_TIME</code> می آید (<code>last_done_</code>)؛ timeoutهای پیش فرض از <code>gsm_config.hpp</code>.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/at_types.hpp</code> — <code>AtStatus</code>، <code>AtResult</code>، <code>IAtObserver</code></li>
-<li><code>core/line_reader.hpp</code> — تفکیک بایت‌ها به خطوط و prompt</li>
+<li><code>core/line_reader.hpp</code> — تفکیک بایت ها به خطوط و prompt</li>
 <li><code>core/urc_router.hpp</code> — مسیریابی خطوط URC</li>
 <li><code>hal/hal.hpp</code> — <code>IUart</code>، <code>IClock</code></li>
-<li><code>core/service.hpp</code> — <code>IService</code> (observer سرویس‌ها)</li>
-<li><code>modem/modem.hpp</code> — مالک <code>AtEngine</code> و هماهنگ‌کنندهٔ صف/سرویس‌ها</li>
+<li><code>core/service.hpp</code> — <code>IService</code> (observer سرویس ها)</li>
+<li><code>modem/modem.hpp</code> — مالک <code>AtEngine</code> و هماهنگ کنندهٔ صف/سرویس ها</li>
 <li><code>tools/serial_bridge.hpp</code>، <code>cli/cli.hpp</code> — اجرای مستقیم دستور AT روی همین موتور</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

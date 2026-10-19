@@ -41,31 +41,31 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>راهنمای کامل مدیریت تماس (Call Supervision)</h1>
-<blockquote><p>نسخه ۰.۴ کتابخانه — سازگار با ماژول‌های SIM800 و Quectel M08 / <strong>M08R</strong></p></blockquote>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>راهنمای کامل مدیریت تماس (Call Supervision)</h1>
+<blockquote><p>نسخه ۰.۴ کتابخانه — سازگار با ماژول های SIM800 و Quectel M08 / <strong>M08R</strong></p></blockquote>
 <h2>۱. چرا این بازنویسی انجام شد؟</h2>
-<p>در نسخه‌های قبلی سه مشکل جدی در مدیریت تماس وجود داشت:</p>
+<p>در نسخه های قبلی سه مشکل جدی در مدیریت تماس وجود داشت:</p>
 <ol>
-<li><strong>مرگ صف با ورود تماس</strong>: اگر تماس بین ارسال پیامک‌ها رخ می‌داد، صف کارها (JobQueue) برای همیشه متوقف می‌شد و دیگر هیچ جابی اجرا نمی‌شد.</li>
-<li><strong>عدم تشخیص قطع/رد تماس</strong>: وقتی طرف مقابل تماس را رد می‌کرد یا جواب نمی‌داد، کتابخانه متوجه نمی‌شد و وضعیت تماس برای همیشه روی <code>Outgoing</code>/<code>Incoming</code> می‌ماند.</li>
-<li><strong>نبود تایم‌اوت قطع خودکار</strong>: اگر تماسی وصل نمی‌شد، هیچ‌وقت به‌طور خودکار قطع نمی‌شد.</li>
+<li><strong>مرگ صف با ورود تماس</strong>: اگر تماس بین ارسال پیامک ها رخ می داد، صف کارها (JobQueue) برای همیشه متوقف می شد و دیگر هیچ جابی اجرا نمی شد.</li>
+<li><strong>عدم تشخیص قطع/رد تماس</strong>: وقتی طرف مقابل تماس را رد می کرد یا جواب نمی داد، کتابخانه متوجه نمی شد و وضعیت تماس برای همیشه روی <code>Outgoing</code>/<code>Incoming</code> می ماند.</li>
+<li><strong>نبود تایم اوت قطع خودکار</strong>: اگر تماسی وصل نمی شد، هیچ وقت به طور خودکار قطع نمی شد.</li>
 </ol>
-<p>هر سه مشکل با یک «سرپرستی تماس» (Call Supervision) جدید حل شده‌اند.</p>
+<p>هر سه مشکل با یک «سرپرستی تماس» (Call Supervision) جدید حل شده اند.</p>
 <h2>۲. معماری جدید</h2>
 <pre><code>                 ┌────────────────────────────────────────────┐
                  │            CallService (v2)                │
                  │                                          │
    Job Queue ───▶│  start_dial / start_answer / start_hangup │──▶ ATD / ATA / ATH
-   (مرحله‌ها)     │                                          │
+   (مرحله ها)     │                                          │
                  │  monitor() ── هر تیک، مستقل از صف:        │
-                 │    ├─ تایمر قطع خودکار (پیش‌فرض ۲۰ ثانیه)  │
-                 │    ├─ پرس‌وجوی دوره‌ای +CLCC               │
+                 │    ├─ تایمر قطع خودکار (پیش فرض ۲۰ ثانیه)  │
+                 │    ├─ پرس وجوی دوره ای +CLCC               │
                  │    └─ تشخیص ناپدید شدن تماس               │
                  │                                          │
    URC Router ──▶│  notify_ring / notify_hangup / notify_busy│
    (RING, NO CARRIER, BUSY, ...)                             │
                  └────────────────────────────────────────────┘</code></pre>
-<p>نکته کلیدی: <code>monitor()</code> در <strong>هر تیک</strong> از <code>Modem::tick()</code> صدا زده می‌شود، حتی وقتی هیچ جاب تماسی در صف نیست. بنابراین ردیابی تماس هرگز به وضعیت صف وابسته نیست.</p>
+<p>نکته کلیدی: <code>monitor()</code> در <strong>هر تیک</strong> از <code>Modem::tick()</code> صدا زده می شود، حتی وقتی هیچ جاب تماسی در صف نیست. بنابراین ردیابی تماس هرگز به وضعیت صف وابسته نیست.</p>
 <h2>۳. ماشین حالت تماس</h2>
 <pre><code>        dial()                 ATA                 hang_up()
   Idle ────────▶ Dialing ──▶ Outgoing ──▶ Active ───────▶ Releasing ──▶ Idle
@@ -76,38 +76,38 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
    ▲                │                         │               │
    │     پاسخ ندادن (تایمر)                    │               │
    └────────────────┴─────────────────────────┴───────────────┘
-              (هر گذار با CallEndReason گزارش می‌شود)</code></pre>
+              (هر گذار با CallEndReason گزارش می شود)</code></pre>
 <h2>۴. قطع خودکار بعد از ۲۰ ثانیه (قابل تنظیم)</h2>
-<p>سیاست نگه‌بانی در <code>CallPolicy</code> تعریف شده است:</p>
+<p>سیاست نگه بانی در <code>CallPolicy</code> تعریف شده است:</p>
 <pre><code class="lang-cpp">struct CallPolicy {
     uint32_t dial_timeout_ms = 20000; // تماس خروجی: اگر وصل نشد، قطع خودکار
     uint32_t ring_timeout_ms = 20000; // تماس ورودی: اگر جواب داده نشد، رد خودکار
-    uint32_t clcc_poll_ms    = 2000;  // فاصله پرس‌وجوی +CLCC
+    uint32_t clcc_poll_ms    = 2000;  // فاصله پرس وجوی +CLCC
     bool     auto_hangup     = true;  // کلید اصلی قطع خودکار
 };</code></pre>
 <h3>تنظیم در زمان اجرا:</h3>
 <pre><code class="lang-cpp">modem.call_policy().dial_timeout_ms = 30000; // ۳۰ ثانیه
 modem.call_policy().ring_timeout_ms = 15000; // ۱۵ ثانیه</code></pre>
-<h3>تنظیم در زمان کامپایل (پیش‌فرض‌ها):</h3>
+<h3>تنظیم در زمان کامپایل (پیش فرض ها):</h3>
 <pre><code class="lang-c">#define GSM_CALL_ANSWER_TIMEOUT_MS 20000
 #define GSM_CALL_RING_TIMEOUT_MS   20000
 #define GSM_CALL_CLCC_POLL_MS      2000
 #define GSM_CALL_CLCC_MISSES       2</code></pre>
 <p>وقتی تایمر منقضی شود:</p>
 <ol>
-<li>دلیل پایان روی <code>CallEndReason::Timeout</code> تنظیم می‌شود.</li>
-<li>فرمان قطع (<code>AT+CHUP</code> در M08/M08R، <code>ATH</code> در SIM800) ارسال می‌شود.</li>
-<li>اگر فرمان اصلی جواب ندهد، یک بار <code>ATH</code> به‌عنوان فرمان جایگزین امتحان می‌شود.</li>
-<li>وضعیت به <code>Idle</code> برمی‌گردد و کال‌بک <code>on_ended</code> صدا زده می‌شود.</li>
+<li>دلیل پایان روی <code>CallEndReason::Timeout</code> تنظیم می شود.</li>
+<li>فرمان قطع (<code>AT+CHUP</code> در M08/M08R، <code>ATH</code> در SIM800) ارسال می شود.</li>
+<li>اگر فرمان اصلی جواب ندهد، یک بار <code>ATH</code> به عنوان فرمان جایگزین امتحان می شود.</li>
+<li>وضعیت به <code>Idle</code> برمی گردد و کال بک <code>on_ended</code> صدا زده می شود.</li>
 </ol>
-<h2>۵. تشخیص رد تماس / بی‌جوابی (حتی وقتی ماژول چیزی نمی‌گوید)</h2>
-<p>ماژول M08R گاهی هیچ‌کدام از URCهای پایان تماس (<code>NO CARRIER</code>، <code>BUSY</code>، <code>NO ANSWER</code>) را نمی‌فرستد. برای همین یک <strong>شبکه ایمنی +CLCC</strong> وجود دارد:</p>
+<h2>۵. تشخیص رد تماس / بی جوابی (حتی وقتی ماژول چیزی نمی گوید)</h2>
+<p>ماژول M08R گاهی هیچ کدام از URCهای پایان تماس (<code>NO CARRIER</code>، <code>BUSY</code>، <code>NO ANSWER</code>) را نمی فرستد. برای همین یک <strong>شبکه ایمنی +CLCC</strong> وجود دارد:</p>
 <ul>
-<li>هر <code>clcc_poll_ms</code> (پیش‌فرض ۲ ثانیه) یک <code>AT+CLCC</code> ارسال می‌شود.</li>
-<li>اگر تماسی در فهرست باشد (<code>stat=0</code> فعال، <code>2/3</code> در حال شماره‌گیری، <code>4/5</code> ورودی) وضعیت تماس به‌روز می‌شود — پاسخ گرفتن تماس (<code>stat=0</code>) هم از همین‌جا تشخیص داده می‌شود.</li>
-<li>اگر فهرست خالی باشد و تماس «قبلاً دیده شده باشد» یا فعال باشد یا به‌اندازه کافی قدیمی باشد، بعد از <code>GSM_CALL_CLCC_MISSES</code> (پیش‌فرض ۲) بار خالی، تماس «مرده» اعلام و خط فعالانه آزاد می‌شود.</li>
+<li>هر <code>clcc_poll_ms</code> (پیش فرض ۲ ثانیه) یک <code>AT+CLCC</code> ارسال می شود.</li>
+<li>اگر تماسی در فهرست باشد (<code>stat=0</code> فعال، <code>2/3</code> در حال شماره گیری، <code>4/5</code> ورودی) وضعیت تماس به روز می شود — پاسخ گرفتن تماس (<code>stat=0</code>) هم از همین جا تشخیص داده می شود.</li>
+<li>اگر فهرست خالی باشد و تماس «قبلاً دیده شده باشد» یا فعال باشد یا به اندازه کافی قدیمی باشد، بعد از <code>GSM_CALL_CLCC_MISSES</code> (پیش فرض ۲) بار خالی، تماس «مرده» اعلام و خط فعالانه آزاد می شود.</li>
 </ul>
-<p>نتیجه: رد شدن تماس یا بی‌جوابی حداکثر چند ثانیه بعد تشخیص داده می‌شود؛ تایمر ۲۰ ثانیه‌ای هم به‌عنوان مرز نهایی عمل می‌کند.</p>
+<p>نتیجه: رد شدن تماس یا بی جوابی حداکثر چند ثانیه بعد تشخیص داده می شود؛ تایمر ۲۰ ثانیه ای هم به عنوان مرز نهایی عمل می کند.</p>
 <h3>دلیل پایان تماس (CallEndReason)</h3>
 <table><thead><tr><th>مقدار</th><th>معنی</th></tr></thead><tbody>
 <tr><td><code>LocalHangup</code></td><td>خودمان قطع کردیم</td></tr>
@@ -125,20 +125,20 @@ modem.call_policy().ring_timeout_ms = 15000; // ۱۵ ثانیه</code></pre>
 }, nullptr));</code></pre>
 <h2>۶. گیت تماس — حل مشکل مرگ صف</h2>
 <p>قانون جدید و ساده:</p>
-<blockquote><p><strong>وقتی تماسی در جریان است (Dialing/Outgoing/Incoming/Active/Releasing)، جاب‌های غیرتماسی اجرا نمی‌شوند و نگه داشته می‌شوند. به محض پایان تماس، صف از همان‌جا ادامه پیدا می‌کند.</strong></p></blockquote>
+<blockquote><p><strong>وقتی تماسی در جریان است (Dialing/Outgoing/Incoming/Active/Releasing)، جاب های غیرتماسی اجرا نمی شوند و نگه داشته می شوند. به محض پایان تماس، صف از همان جا ادامه پیدا می کند.</strong></p></blockquote>
 <ul>
-<li>جاب‌های <code>CallDial</code>، <code>CallAnswer</code> و <code>CallHangup</code> (اضطراری) همیشه از گیت عبور می‌کنند.</li>
-<li>اگر تماس ورودی <strong>وسط ارسال پیامک</strong> برسد، جاب در حال اجرا با <code>ESC</code> به‌صورت امن لغو و برای اجرای مجدد علامت‌گذاری می‌شود (<code>deferred</code>) — بدون اینکه از بودجه تلاش مجدد (<code>attempts</code>) کم شود. این دقیقاً همان جایی است که M08R قبلاً هنگ می‌کرد و «پیام خالی» می‌فرستاد.</li>
-<li>جابی که سرویسش حاضر به شروع نشود، چند بار تلاش و سپس با کد خطای <code>kErrJobStalled</code> تمام می‌شود — صف دیگر <strong>هرگز</strong> نمی‌ایستد.</li>
+<li>جاب های <code>CallDial</code>، <code>CallAnswer</code> و <code>CallHangup</code> (اضطراری) همیشه از گیت عبور می کنند.</li>
+<li>اگر تماس ورودی <strong>وسط ارسال پیامک</strong> برسد، جاب در حال اجرا با <code>ESC</code> به صورت امن لغو و برای اجرای مجدد علامت گذاری می شود (<code>deferred</code>) — بدون اینکه از بودجه تلاش مجدد (<code>attempts</code>) کم شود. این دقیقاً همان جایی است که M08R قبلاً هنگ می کرد و «پیام خالی» می فرستاد.</li>
+<li>جابی که سرویسش حاضر به شروع نشود، چند بار تلاش و سپس با کد خطای <code>kErrJobStalled</code> تمام می شود — صف دیگر <strong>هرگز</strong> نمی ایستد.</li>
 </ul>
 <h2>۷. پشتیبانی از M08R</h2>
 <p>یک <code>DeviceTraits</code> اختصاصی به نام <code>kQuectelM08R</code> اضافه شده است:</p>
 <pre><code class="lang-cpp">static Modem modem(uart, clock, kQuectelM08R, &amp;power);</code></pre>
-<p>تفاوت با <code>kQuectelM08</code>: فیلد <code>clcc_authoritative = true</code> — یعنی پرس‌وجوی +CLCC منبع اصلی حقیقت برای وضعیت تماس است و نباید به URCهای پایان تماس تکیه کرد.</p>
+<p>تفاوت با <code>kQuectelM08</code>: فیلد <code>clcc_authoritative = true</code> — یعنی پرس وجوی +CLCC منبع اصلی حقیقت برای وضعیت تماس است و نباید به URCهای پایان تماس تکیه کرد.</p>
 <h2>۸. تست</h2>
-<p>سناریوهای بالا در <code>tests/host_smoke.cpp</code> تست شده‌اند:</p>
+<p>سناریوهای بالا در <code>tests/host_smoke.cpp</code> تست شده اند:</p>
 <ul>
-<li>قطع خودکار بعد از ۲۰ ثانیه برای تماس بی‌جواب (<code>Auto-hangup after timeout works!</code>)</li>
+<li>قطع خودکار بعد از ۲۰ ثانیه برای تماس بی جواب (<code>Auto-hangup after timeout works!</code>)</li>
 <li>تشخیص تماس مرده بدون دریافت URC و ادامه صف بعد از تماس (<code>Queue survives calls &amp; missed end-URCs are detected!</code>)</li>
 </ul>
 <p>اجرا:</p>

@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/status_service.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/status_service.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی <code>gsm::StatusService</code>؛ سرویس جمع‌آوری وضعیت مودم: قدرت سیگنال (<code>AT+CSQ</code>)، ثبت شبکه (<code>AT+CREG?</code>)، وضعیت سیم‌کارت (<code>AT+CPIN?</code>)، اشغال مخزن پیامک (<code>AT+CPMS?</code>) و نام اپراتور (<code>AT+COPS?</code>). نتایج در ساختار مشترک <code>ModemStatus</code> (که URCها هم آن را به‌روز می‌کنند) نوشته می‌شود. تشخیص اپراتورهای ایرانی (Irancell / MCI / RighTel) برای انتخاب کد USSD موجودی هم در همین فایل است.</p>
+<p>پیاده سازی <code>gsm::StatusService</code>؛ سرویس جمع آوری وضعیت مودم: قدرت سیگنال (<code>AT+CSQ</code>)، ثبت شبکه (<code>AT+CREG?</code>)، وضعیت سیم کارت (<code>AT+CPIN?</code>)، اشغال مخزن پیامک (<code>AT+CPMS?</code>) و نام اپراتور (<code>AT+COPS?</code>). نتایج در ساختار مشترک <code>ModemStatus</code> (که URCها هم آن را به روز می کنند) نوشته می شود. تشخیص اپراتورهای ایرانی (Irancell / MCI / RighTel) برای انتخاب کد USSD موجودی هم در همین فایل است.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3>توابع متنی</h3>
 <ul>
@@ -53,15 +53,15 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <li><code>to_string(StatusStep)</code> → <code>"csq" | "creg" | "cpin" | "cpms" | "cops"</code> (+ <code>"idle"/"done"</code>)</li>
 </ul>
 <h3><code>Operator detect_operator(const char* name)</code></h3>
-<p>تشخیص اپراتور از نام گزارش‌شده <code>AT+COPS?</code> با جست‌وجوی زیررشته‌ها:</p>
-<table><thead><tr><th>اپراتور</th><th>نشانه‌ها</th></tr></thead><tbody>
+<p>تشخیص اپراتور از نام گزارش شده <code>AT+COPS?</code> با جست وجوی زیررشته ها:</p>
+<table><thead><tr><th>اپراتور</th><th>نشانه ها</th></tr></thead><tbody>
 <tr><td>Irancell</td><td><code>Irancell</code>، <code>MTN</code>، <code>IRANCELL</code>، <code>43235</code></td></tr>
 <tr><td>MCI (همراه اول)</td><td><code>MCI</code>، <code>TCI</code>، <code>IR-MCI</code>، <code>IR-TCI</code>، <code>Hamrah</code>، <code>43211</code></td></tr>
 <tr><td>RighTel</td><td><code>Rightel</code>، <code>RighTel</code>، <code>RIGHTEL</code>، <code>43220</code></td></tr>
 </tbody></table>
-<p>کدهای MCC/MNC ایران هم (به‌صورت رشته در نام) لحاظ شده‌اند.</p>
+<p>کدهای MCC/MNC ایران هم (به صورت رشته در نام) لحاظ شده اند.</p>
 <h3><code>bool StatusService::start(StatusStep first)</code> / <code>start_full_sweep()</code></h3>
-<p>شروع یک مرحله تکی یا یک sweep کامل (<code>Signal → Registration → SimPin → Storage → Operator</code>). اگر سرویس مشغول باشد <code>false</code>. <code>cancel()</code> فرمان جاری را با <code>at_.abort()</code> لغو می‌کند.</p>
+<p>شروع یک مرحله تکی یا یک sweep کامل (<code>Signal → Registration → SimPin → Storage → Operator</code>). اگر سرویس مشغول باشد <code>false</code>. <code>cancel()</code> فرمان جاری را با <code>at_.abort()</code> لغو می کند.</p>
 <h3><code>void StatusService::pump()</code></h3>
 <p>صدور فرمان مرحله جاری (فقط وقتی فرمانی در پرواز نیست):</p>
 <table><thead><tr><th>گام</th><th>فرمان</th><th>timeout</th></tr></thead><tbody>
@@ -72,16 +72,16 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <tr><td><code>Operator</code></td><td><code>AT+COPS?</code></td><td>۵۰۰۰ms</td></tr>
 </tbody></table>
 <h3><code>void StatusService::on_line(const char* line, uint16_t len)</code></h3>
-<p>پارس پاسخ‌ها و نوشتن مستقیم در <code>status_</code>:</p>
+<p>پارس پاسخ ها و نوشتن مستقیم در <code>status_</code>:</p>
 <ul>
 <li><strong><code>+CSQ: &lt;rssi&gt;,&lt;ber&gt;</code></strong> — <code>rssi_dbm = -113 + 2×rssi</code> (مقدار ۹۹ یعنی نامشخص → 0)؛ <code>ber</code> در فیلد دوم.</li>
 <li><strong><code>+CREG: &lt;n&gt;,&lt;stat&gt;</code></strong> — فیلد ۱: <code>registration</code>؛ <code>network_ready = (stat == 1 || stat == 5)</code>.</li>
-<li><strong><code>+CPIN: …</code></strong> — دسته‌بندی: <code>NOT READY</code>/<code>NOT INSERTED</code> → <code>Removed</code>؛ <code>READY</code> → <code>Ready</code>؛ <code>SIM PIN</code> → <code>LockedPin</code>؛ <code>SIM PUK</code> → <code>LockedPuk</code>؛ غیره → <code>Error</code>. به‌روزرسانی <code>sim_ready</code>.</li>
+<li><strong><code>+CPIN: …</code></strong> — دسته بندی: <code>NOT READY</code>/<code>NOT INSERTED</code> → <code>Removed</code>؛ <code>READY</code> → <code>Ready</code>؛ <code>SIM PIN</code> → <code>LockedPin</code>؛ <code>SIM PUK</code> → <code>LockedPuk</code>؛ غیره → <code>Error</code>. به روزرسانی <code>sim_ready</code>.</li>
 <li><strong><code>+CPMS: "…",used,total,…</code></strong> — فیلدهای ۱ و ۲: <code>sms_used</code> / <code>sms_total</code>.</li>
 <li><strong><code>+COPS: &lt;mode&gt;,&lt;format&gt;,"name"</code></strong> — فیلد ۲: نام اپراتور + <code>detect_operator</code>.</li>
 </ul>
 <h3><code>void StatusService::on_final(const AtResult&amp; res)</code></h3>
-<p>نتیجه هر فرمان در <code>result_</code> و زمان به‌روزرسانی در <code>status_.updated_at_ms</code> ثبت می‌شود. اگر sweep کامل نباشد (<code>!sweep_</code>) سرویس تمام می‌شود؛ وگرماه به گام بعدی می‌رود و در پایان خلاصه‌ای از همه مقادیر (<code>csq</code>, <code>reg</code>, <code>sim</code>, <code>sms</code>, <code>op</code>) لاگ می‌شود.</p>
+<p>نتیجه هر فرمان در <code>result_</code> و زمان به روزرسانی در <code>status_.updated_at_ms</code> ثبت می شود. اگر sweep کامل نباشد (<code>!sweep_</code>) سرویس تمام می شود؛ وگرماه به گام بعدی می رود و در پایان خلاصه ای از همه مقادیر (<code>csq</code>, <code>reg</code>, <code>sim</code>, <code>sms</code>, <code>op</code>) لاگ می شود.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">start_full_sweep()
    │
@@ -95,19 +95,19 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
                       └─► ModemStatus زنده ─► کنسول/CLI/watchdog</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>اشتراک <code>ModemStatus</code> با URCها:</strong> <code>UrcRouter</code> خطوط <code>+CREG</code>/<code>+CPIN</code> ناخواسته را هم در همین ساختار می‌نویسد؛ پس مقادیر همیشه «زنده»‌اند حتی وقتی sweep در جریان نیست (<code>MaintenanceWatchdog</code> برای همین به <code>status_</code> اشاره می‌کند).</li>
-<li><strong>باقی‌مانده‌های دیباک:</strong> در پارسر <code>+CPIN</code> چند فراخوانی <code>printf</code> (مثل <code>printf("===&gt; line: %s \n", line);</code>) باقی مانده که مستقیم به stdout می‌رود و از مسیر سیستم لاگ عبور نمی‌کند؛ در محصول نهایی باید حذف شود (در <code>src/status_service.cpp</code> در پردازش <code>+CPIN:</code>).</li>
-<li><strong><code>+CPMS?</code> فقط خواندنی است:</strong> <code>SmsService</code> مخزن را با <code>traits_.storage_cmd</code> (معمولاً <code>AT+CPMS=…</code>) تنظیم می‌کند؛ این سرویس فقط اشغال/ظرفیت را گزارش می‌دهد.</li>
-<li><strong><code>rssi_dbm</code> فرمول استاندارد 3GPP است</strong> (<code>-113 + 2×CSQ</code>)؛ <code>signal_bars()</code> در هدر <code>ModemStatus</code> آن را به ۰–۵ ستاره برای UI تبدیل می‌کند.</li>
-<li><strong><code>storage_cmd</code> اختیاری:</strong> برخی دستگاه‌ها <code>AT+CPMS</code> را پشتیبانی نمی‌کنند؛ گام <code>Storage</code> با کمک <code>DeviceTraits</code> skip می‌شود.</li>
-<li><strong>بدون heap:</strong> بافرهای پارس (<code>f[8]</code>، <code>f[12]</code>، <code>f[32]</code>) آرایه‌های پشته‌ای کوچک‌اند.</li>
+<li><strong>اشتراک <code>ModemStatus</code> با URCها:</strong> <code>UrcRouter</code> خطوط <code>+CREG</code>/<code>+CPIN</code> ناخواسته را هم در همین ساختار می نویسد؛ پس مقادیر همیشه «زنده» اند حتی وقتی sweep در جریان نیست (<code>MaintenanceWatchdog</code> برای همین به <code>status_</code> اشاره می کند).</li>
+<li><strong>باقی مانده های دیباک:</strong> در پارسر <code>+CPIN</code> چند فراخوانی <code>printf</code> (مثل <code>printf("===&gt; line: %s \n", line);</code>) باقی مانده که مستقیم به stdout می رود و از مسیر سیستم لاگ عبور نمی کند؛ در محصول نهایی باید حذف شود (در <code>src/status_service.cpp</code> در پردازش <code>+CPIN:</code>).</li>
+<li><strong><code>+CPMS?</code> فقط خواندنی است:</strong> <code>SmsService</code> مخزن را با <code>traits_.storage_cmd</code> (معمولاً <code>AT+CPMS=…</code>) تنظیم می کند؛ این سرویس فقط اشغال/ظرفیت را گزارش می دهد.</li>
+<li><strong><code>rssi_dbm</code> فرمول استاندارد 3GPP است</strong> (<code>-113 + 2×CSQ</code>)؛ <code>signal_bars()</code> در هدر <code>ModemStatus</code> آن را به ۰–۵ ستاره برای UI تبدیل می کند.</li>
+<li><strong><code>storage_cmd</code> اختیاری:</strong> برخی دستگاه ها <code>AT+CPMS</code> را پشتیبانی نمی کنند؛ گام <code>Storage</code> با کمک <code>DeviceTraits</code> skip می شود.</li>
+<li><strong>بدون heap:</strong> بافرهای پارس (<code>f[8]</code>، <code>f[12]</code>، <code>f[32]</code>) آرایه های پشته ای کوچک اند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/status/status_service.hpp</code> — <code>StatusStep</code>، <code>RegState</code>، <code>SimState</code>، <code>Operator</code>، <code>ModemStatus</code>.</li>
-<li><code>gsm/core/at_engine.hpp</code> — صدور فرمان‌ها به‌عنوان <code>IAtObserver</code>.</li>
-<li><code>src/modem.cpp</code> — <code>refresh_status()</code> (job <code>StatusSweep</code>) و <code>pump_housekeeping</code> (سیکل‌های دوره‌ای) و <code>pump()</code> در <code>tick</code>.</li>
+<li><code>gsm/core/at_engine.hpp</code> — صدور فرمان ها به عنوان <code>IAtObserver</code>.</li>
+<li><code>src/modem.cpp</code> — <code>refresh_status()</code> (job <code>StatusSweep</code>) و <code>pump_housekeeping</code> (سیکل های دوره ای) و <code>pump()</code> در <code>tick</code>.</li>
 <li><code>src/watchdog.cpp</code> — خواندن <code>sim_ready</code>/<code>network_ready</code> از <code>ModemStatus</code> در بررسی سلامت.</li>
-<li><code>src/ussd_service.cpp</code> — <code>default_balance_code(Operator)</code> از <code>detect_operator</code> تغذیه می‌شود.</li>
+<li><code>src/ussd_service.cpp</code> — <code>default_balance_code(Operator)</code> از <code>detect_operator</code> تغذیه می شود.</li>
 <li><code>src/cli.cpp</code> — نمایش اپراتور/سیگنال/SMS در نوار وضعیت و نمای زنده.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

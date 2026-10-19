@@ -41,7 +41,7 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>درس هایی که از لاگ های خودت گرفتیم (و در کد قفل شده اند)</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>درس هایی که از لاگ های خودت گرفتیم (و در کد قفل شده اند)</h1>
 <h2>1. با <code>CSCS="UCS2"</code> شماره هم باید UCS2 باشد</h2>
 <pre><code>AT+CSCS=&quot;UCS2&quot;            OK
 AT+CMGS=&quot;+989037744527&quot;   +CMS ERROR: 3518   ← شماره ASCII
@@ -73,20 +73,20 @@ at              +CME ERROR: 58</code></pre>
 <h2>7. echo</h2>
 <p>لاگ تو echo روشن دارد. <code>ATE0</code> در bootstrap خاموشش می کند و پارسر هم مقاوم است</p>
 <p>(خط برابر با فرمان ارسالی دور ریخته می شود).</p>
-<h2>۸. درس‌های M08R (v0.4)</h2>
-<h3>پایان تماس بی‌صدا</h3>
-<p>M08R ممکن است هیچ‌کدام از <code>NO CARRIER</code> / <code>BUSY</code> / <code>NO ANSWER</code> را هنگام رد یا بی‌جوابی</p>
-<p>تماس نفرستد. راه‌حل: پرس‌وجوی دوره‌ای <code>AT+CLCC</code> به‌عنوان منبع حقیقت</p>
+<h2>۸. درس های M08R (v0.4)</h2>
+<h3>پایان تماس بی صدا</h3>
+<p>M08R ممکن است هیچ کدام از <code>NO CARRIER</code> / <code>BUSY</code> / <code>NO ANSWER</code> را هنگام رد یا بی جوابی</p>
+<p>تماس نفرستد. راه حل: پرس وجوی دوره ای <code>AT+CLCC</code> به عنوان منبع حقیقت</p>
 <p>(<code>DeviceTraits::clcc_authoritative = true</code> در <code>kQuectelM08R</code>) + تایمر قطع خودکار.</p>
 <h3>هنگ و ارسال پیام خالی</h3>
-<p>ارسال متن‌های بلند یا ارسال در میانه عملیات دیگر، ماژول را به حالت prompt/داده گیر</p>
-<p>می‌اندازد و گاهی پیام خالی می‌فرستد. راه‌حل‌ها (همه در کد):</p>
+<p>ارسال متن های بلند یا ارسال در میانه عملیات دیگر، ماژول را به حالت prompt/داده گیر</p>
+<p>می اندازد و گاهی پیام خالی می فرستد. راه حل ها (همه در کد):</p>
 <ul>
-<li>گارد سخت‌گیرانه طول پیام (<code>GSM_SMS_MAX_CHARS</code> پیش‌فرض ۶۰ کاراکتر)</li>
-<li>گیت تماس: هیچ ارسالی در حین تماس شروع نمی‌شود</li>
+<li>گارد سخت گیرانه طول پیام (<code>GSM_SMS_MAX_CHARS</code> پیش فرض ۶۰ کاراکتر)</li>
+<li>گیت تماس: هیچ ارسالی در حین تماس شروع نمی شود</li>
 <li>لغو امن با <code>ESC</code> (0x1B) اگر تماس ورودی وسط payload برسد</li>
-<li>ریست‌های دوره‌ای نگه‌بانی (<code>docs/WATCHDOG.md</code>)</li>
+<li>ریست های دوره ای نگه بانی (<code>docs/WATCHDOG.md</code>)</li>
 </ul>
 <h3>قطع تماس</h3>
-<p>فرمان قطع M08R: <code>AT+CHUP</code>. اگر جواب ندهد، <code>ATH</code> به‌عنوان فرمان جایگزین ارسال می‌شود</p>
+<p>فرمان قطع M08R: <code>AT+CHUP</code>. اگر جواب ندهد، <code>ATH</code> به عنوان فرمان جایگزین ارسال می شود</p>
 <p>(<code>CallStep::HangupFallback</code>).</p></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>
