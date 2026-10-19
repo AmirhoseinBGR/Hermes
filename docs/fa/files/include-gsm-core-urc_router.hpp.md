@@ -2,12 +2,12 @@
 
 ## نقش فایل
 
-مسیریابی پیام‌های ناخواستهٔ مودم (URC — Unsolicited Result Code) مثل `RING`، `+CMTI`، `+CREG`. این کلاس خطوطی را که در پاسخ به فرمان خاصی نیامده‌اند طبقه‌بندی می‌کند و به‌صورت رویداد ساخت‌یافته (`UrcEvent`) به یک handler واحد تحویل می‌دهد. این جداسازی باعث می‌شود پروتکل‌های ناخواسته، جریان تراکنش‌های AT را مختل نکنند.
+مسیریابی پیام های ناخواستهٔ مودم (URC — Unsolicited Result Code) مثل `RING`، `+CMTI`، `+CREG`. این کلاس خطوطی را که در پاسخ به فرمان خاصی نیامده اند طبقه بندی می کند و به صورت رویداد ساخت یافته (`UrcEvent`) به یک handler واحد تحویل می دهد. این جداسازی باعث می شود پروتکل های ناخواسته، جریان تراکنش های AT را مختل نکنند.
 
 ## ساختارهای کلیدی
 
 ### `enum class Urc : uint8_t`
-انواع رویداد شناخته‌شده:
+انواع رویداد شناخته شده:
 ```cpp
 enum class Urc : uint8_t
 {
@@ -58,7 +58,7 @@ class UrcRouter
 };
 ```
 - `classify`: تشخیص نوع URC از پیشوند/الگوی خط (`RING`، `+CMTI:`، `+CLIP:`، `+CUSD:`، …) و استخراج آرگومان عددی.
-- `dispatch`: اگر خط URC باشد، handler را صدا می‌زند و `true` برمی‌گرداند؛ در غیر این صورت `false` (خط، پاسخ فرمان جاری است).
+- `dispatch`: اگر خط URC باشد، handler را صدا می زند و `true` برمی گرداند؛ در غیر این صورت `false` (خط، پاسخ فرمان جاری است).
 
 ## جریان کاری
 
@@ -90,17 +90,17 @@ urc_.set_handler(UrcRouter::Handler{&Modem::urc_trampoline, this});
 
 ## نکات فنی
 
-- **بدون تخصیص حافظه**: `UrcEvent` فقط اشاره‌گر به خط موجود و یک `int32_t`؛ متن خط متعلق به بافر `LineReader` است و فقط تا پردازش بعدی معتبر است.
-- `Delegate` به‌جای `std::function` استفاده شده (بدون heap و بدون STL).
-- تشخیص URC در برابر پاسخ فرمان بر عهدهٔ `classify` (الگوی خط) و `AtEngine` است؛ خطوطی که الگوی URC داشته باشند از جریان پاسخ تراکنش جدا می‌شوند.
-- URCهای ناشناخته به `Urc::Unknown` طبقه‌بندی می‌شوند و از طریق `user_urc_` در دسترس کاربرند (هدر ناشناس دور انداخته نمی‌شود).
-- برای ماژول‌هایی مثل M08R که URCهای پایان تماس نامطمئن‌اند (`clcc_authoritative`)، `CallEnded`/`CallBusy` صرفاً مکمل‌اند و نباید تنها مرجع قطع تماس باشند (به `voice/call_service.hpp` نگاه کنید).
+- **بدون تخصیص حافظه**: `UrcEvent` فقط اشاره گر به خط موجود و یک `int32_t`؛ متن خط متعلق به بافر `LineReader` است و فقط تا پردازش بعدی معتبر است.
+- `Delegate` به جای `std::function` استفاده شده (بدون heap و بدون STL).
+- تشخیص URC در برابر پاسخ فرمان بر عهدهٔ `classify` (الگوی خط) و `AtEngine` است؛ خطوطی که الگوی URC داشته باشند از جریان پاسخ تراکنش جدا می شوند.
+- URCهای ناشناخته به `Urc::Unknown` طبقه بندی می شوند و از طریق `user_urc_` در دسترس کاربرند (هدر ناشناس دور انداخته نمی شود).
+- برای ماژول هایی مثل M08R که URCهای پایان تماس نامطمئن اند (`clcc_authoritative`)، `CallEnded`/`CallBusy` صرفاً مکمل اند و نباید تنها مرجع قطع تماس باشند (به `voice/call_service.hpp` نگاه کنید).
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `core/at_engine.hpp` — فراخوانی `dispatch` برای هر خط دریافتی
 - `util/delegate.hpp` — نوع `Handler`
 - `modem/modem.hpp` — handler اصلی (`handle_urc` + `urc_trampoline`) و `set_on_urc`
 - `voice/call_service.hpp` — `notify_ring` / `notify_hangup` / `notify_busy`
 - `ussd/ussd_service.hpp` — `notify_cusd` برای `Urc::Ussd`
-- `status/status_service.hpp` — به‌روزرسانی وضعیت شبکه/SIM از رویدادها
+- `status/status_service.hpp` — به روزرسانی وضعیت شبکه/SIM از رویدادها

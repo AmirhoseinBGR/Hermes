@@ -41,20 +41,20 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/CMakeLists.txt</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/CMakeLists.txt</h1>
 <h2>نقش فایل</h2>
-<p>پیکربندی ساخت (build) کتابخانه‌ی ایستای <code>gsm_modem</code> با CMake. این فایل فهرست فایل‌های منبع هسته را جمع می‌کند، کتابخانه‌ی ایستا (STATIC) می‌سازد، مسیرهای include را تنظیم می‌کند، گزینه‌های کامپایل (بدون استثنا/RTTI، هشدارها) را اعمال می‌کند و دو گزینه‌ی اختیاری برای پُرت STM32 و تست میزبان فراهم می‌کند.</p>
+<p>پیکربندی ساخت (build) کتابخانه ی ایستای <code>gsm_modem</code> با CMake. این فایل فهرست فایل های منبع هسته را جمع می کند، کتابخانه ی ایستا (STATIC) می سازد، مسیرهای include را تنظیم می کند، گزینه های کامپایل (بدون استثنا/RTTI، هشدارها) را اعمال می کند و دو گزینه ی اختیاری برای پُرت STM32 و تست میزبان فراهم می کند.</p>
 <h2>ساختارها/توابع کلیدی</h2>
 <ul>
-<li><code>cmake_minimum_required(VERSION 3.16)</code> و <code>project(gsm_modem CXX)</code> — حداقل نسخه‌ی CMake و نام پروژه (زبان C++).</li>
+<li><code>cmake_minimum_required(VERSION 3.16)</code> و <code>project(gsm_modem CXX)</code> — حداقل نسخه ی CMake و نام پروژه (زبان C++).</li>
 <li><code>set(CMAKE_CXX_STANDARD 17)</code> + <code>set(CMAKE_CXX_STANDARD_REQUIRED ON)</code> — استاندارد C++17 اجباری.</li>
-<li><code>add_library(gsm_modem STATIC ...)</code> — ساخت کتابخانه‌ی ایستا از فایل‌های <code>src/</code>:</li>
+<li><code>add_library(gsm_modem STATIC ...)</code> — ساخت کتابخانه ی ایستا از فایل های <code>src/</code>:</li>
 </ul>
 <p><code>log.cpp</code>, <code>at_types.cpp</code>, <code>line_reader.cpp</code>, <code>urc_router.cpp</code>, <code>at_engine.cpp</code>, <code>ucs2.cpp</code>, <code>phone_number.cpp</code>, <code>sms_service.cpp</code>, <code>call_service.cpp</code>, <code>status_service.cpp</code>, <code>ussd_service.cpp</code>, <code>job_queue.cpp</code>, <code>watchdog.cpp</code>, <code>modem.cpp</code>, <code>cli.cpp</code>.</p>
 <ul>
-<li><code>target_include_directories(gsm_modem PUBLIC include)</code> — پوشه‌ی <code>include/</code> به‌عنوان مسیر include عمومی.</li>
-<li><code>target_compile_options(gsm_modem PRIVATE ...)</code> — هشدارها (<code>-Wall -Wextra -Wshadow</code>) و بهینه‌سازی حجم (<code>-ffunction-sections -fdata-sections</code>) به‌همراه <code>-fno-exceptions -fno-rtti</code>.</li>
-<li><code>option(GSM_PORT_STM32 "Build the STM32 HAL port" OFF)</code> — اگر روشن باشد <code>ports/stm32</code> به include اضافه می‌شود.</li>
+<li><code>target_include_directories(gsm_modem PUBLIC include)</code> — پوشه ی <code>include/</code> به عنوان مسیر include عمومی.</li>
+<li><code>target_compile_options(gsm_modem PRIVATE ...)</code> — هشدارها (<code>-Wall -Wextra -Wshadow</code>) و بهینه سازی حجم (<code>-ffunction-sections -fdata-sections</code>) به همراه <code>-fno-exceptions -fno-rtti</code>.</li>
+<li><code>option(GSM_PORT_STM32 "Build the STM32 HAL port" OFF)</code> — اگر روشن باشد <code>ports/stm32</code> به include اضافه می شود.</li>
 <li><code>option(GSM_BUILD_TESTS "Build the host smoke test" OFF)</code> — اگر روشن باشد:</li>
 <li><code>add_executable(host_smoke tests/host_smoke.cpp)</code></li>
 <li><code>target_link_libraries(host_smoke PRIVATE gsm_modem)</code></li>
@@ -63,29 +63,29 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 </ul>
 <h2>جریان کاری</h2>
 <ol>
-<li>CMake پروژه را با C++17 تعریف می‌کند.</li>
-<li>کتابخانه‌ی ایستای <code>gsm_modem</code> از پانزده فایل منبع هسته ساخته می‌شود؛ <code>include/</code> مسیر include عمومی است.</li>
-<li>گزینه‌های کامپایل سخت‌گیرانه اعمال می‌شوند (بدون استثنا/RTTI، مناسب محیط‌های embedded).</li>
-<li>در صورت نیاز، گزینه‌ی <code>GSM_PORT_STM32</code> مسیر پُرت STM32 را اضافه می‌کند.</li>
-<li>در صورت نیاز، گزینه‌ی <code>GSM_BUILD_TESTS</code> اجرایی <code>host_smoke</code> را می‌سازد، به کتابخانه پیوند می‌دهد، پُرت میزبان را اضافه می‌کند و تست را با CTest ثبت می‌کند.</li>
+<li>CMake پروژه را با C++17 تعریف می کند.</li>
+<li>کتابخانه ی ایستای <code>gsm_modem</code> از پانزده فایل منبع هسته ساخته می شود؛ <code>include/</code> مسیر include عمومی است.</li>
+<li>گزینه های کامپایل سخت گیرانه اعمال می شوند (بدون استثنا/RTTI، مناسب محیط های embedded).</li>
+<li>در صورت نیاز، گزینه ی <code>GSM_PORT_STM32</code> مسیر پُرت STM32 را اضافه می کند.</li>
+<li>در صورت نیاز، گزینه ی <code>GSM_BUILD_TESTS</code> اجرایی <code>host_smoke</code> را می سازد، به کتابخانه پیوند می دهد، پُرت میزبان را اضافه می کند و تست را با CTest ثبت می کند.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li>کتابخانه STATIC است؛ برای مصرف در پروژه‌های embedded مناسب است.</li>
-<li><code>-fno-exceptions -fno-rtti</code> با سیاست «بدون STL پویا/استثنا» سازگار است (همان‌طور که در <code>library.json</code> هم آمده).</li>
-<li><code>-ffunction-sections -fdata-sections</code> به linker کمک می‌کند کد استفاده‌نشده را حذف کند (کاهش حجم فریمور).</li>
-<li>پرچم‌های کامپایل فقط <code>PRIVATE</code> هستند؛ مصرف‌کنندگان کتابخانه این پرچم‌ها را به ارث نمی‌برند.</li>
-<li>هر دو گزینه (<code>GSM_PORT_STM32</code>, <code>GSM_BUILD_TESTS</code>) پیش‌فرض <code>OFF</code> هستند تا ساخت پایه سبک بماند.</li>
-<li><code>cli.cpp</code> (کنسول تعاملی v0.4) بخشی از هسته‌ی کتابخانه است و در <code>add_library</code> فهرست شده است.</li>
-<li>فهرست منبع دقیقاً با ساختار <code>src/</code> هم‌خوان است؛ هر سرویس (SMS، تماس، وضعیت، USSD، صف، واچ‌داگ) فایل مخصوص به خود را دارد.</li>
+<li>کتابخانه STATIC است؛ برای مصرف در پروژه های embedded مناسب است.</li>
+<li><code>-fno-exceptions -fno-rtti</code> با سیاست «بدون STL پویا/استثنا» سازگار است (همان طور که در <code>library.json</code> هم آمده).</li>
+<li><code>-ffunction-sections -fdata-sections</code> به linker کمک می کند کد استفاده نشده را حذف کند (کاهش حجم فریمور).</li>
+<li>پرچم های کامپایل فقط <code>PRIVATE</code> هستند؛ مصرف کنندگان کتابخانه این پرچم ها را به ارث نمی برند.</li>
+<li>هر دو گزینه (<code>GSM_PORT_STM32</code>, <code>GSM_BUILD_TESTS</code>) پیش فرض <code>OFF</code> هستند تا ساخت پایه سبک بماند.</li>
+<li><code>cli.cpp</code> (کنسول تعاملی v0.4) بخشی از هسته ی کتابخانه است و در <code>add_library</code> فهرست شده است.</li>
+<li>فهرست منبع دقیقاً با ساختار <code>src/</code> هم خوان است؛ هر سرویس (SMS، تماس، وضعیت، USSD، صف، واچ داگ) فایل مخصوص به خود را دارد.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>gsm/src/*.cpp</code> — فایل‌های منبعی که در کتابخانه گنجانده شده‌اند.</li>
-<li><code>gsm/include/</code> — سرصفحه‌های عمومی (مسیر include).</li>
-<li><code>gsm/ports/stm32/</code> — با <code>GSM_PORT_STM32</code> اضافه می‌شود.</li>
-<li><code>gsm/ports/host/</code> — برای تست میزبان اضافه می‌شود.</li>
+<li><code>gsm/src/*.cpp</code> — فایل های منبعی که در کتابخانه گنجانده شده اند.</li>
+<li><code>gsm/include/</code> — سرصفحه های عمومی (مسیر include).</li>
+<li><code>gsm/ports/stm32/</code> — با <code>GSM_PORT_STM32</code> اضافه می شود.</li>
+<li><code>gsm/ports/host/</code> — برای تست میزبان اضافه می شود.</li>
 <li><code>gsm/tests/host_smoke.cpp</code> — هدف تست میزبان.</li>
-<li><code>gsm/library.json</code> — متادیتای PlatformIO؛ با این CMake هم‌راستا است (C++17، بدون استثنا/RTTI).</li>
-<li><code>App/CMakeLists.txt</code> — لایه‌ی اپلیکیشن که <code>gsm_modem</code> را به‌عنوان وابستگی لینک می‌کند.</li>
+<li><code>gsm/library.json</code> — متادیتای PlatformIO؛ با این CMake هم راستا است (C++17، بدون استثنا/RTTI).</li>
+<li><code>App/CMakeLists.txt</code> — لایه ی اپلیکیشن که <code>gsm_modem</code> را به عنوان وابستگی لینک می کند.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

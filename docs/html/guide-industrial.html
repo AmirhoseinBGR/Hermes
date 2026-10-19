@@ -41,7 +41,7 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>مستند قابلیت های صنعتی و بازیابی خودکار (Industrial Recovery &amp; Watchdog)</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>مستند قابلیت های صنعتی و بازیابی خودکار (Industrial Recovery &amp; Watchdog)</h1>
 <p>این بخش به منظور تضمین کارکرد پایدار ۲۴/۷ و شرایط واقعی محیط های صنعتی طراحی شده است:</p>
 <h2>۱. چرخه بازیابی خودکار سیم کارت با ریست لایه RF/SIM (CFUN Cycle)</h2>
 <p>در ماژول های کوئکتل (M08/M66) و SIM800، پس از خارج شدن و جا زدن مجدد سیم کارت، ماژول وضعیت جدید را در وقایع عادی تشخیص نداده و در پاسخ به <code>AT+CPIN?</code> خطای <code>+CME ERROR: SIM not inserted</code> می دهد تا زمانی که لایه ی بیس باند ریست شود:</p>
@@ -56,7 +56,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 </ul>
 <h2>۳. ریست سخت افزاری خودکار با PWRKEY</h2>
 <ul>
-<li><strong>تشخیص هنگ ماژول</strong>: در صورتی که ۳ دستور متوالی (<code>GSM_CONSECUTIVE_TIMEOUTS_RESET = 3</code>) دچار تایم اوت شوند یا مودم به مدت ۹۰ ثانیه (<code>GSM_HARDWARE_REBOOT_TIMEOUT_MS</code>) در حالت Fault گیر کند، اگر پین PWRKEY متصل باشد (<code>IPowerControl</code>)، واچ داگ به طور خودکار پایه ی PWRKEY را پولس زده و سخت افزاری ماژول را ریبوت کامل می کند. این پولس <strong>غیرمسدودکننده</strong> است: <code>tick()</code> پین را پایین می‌کشد، <code>GSM_PWRKEY_PULSE_MS</code> نگه می‌دارد، رها می‌کند و بعد <code>GSM_MODEM_BOOT_GUARD_MS</code> صبر می‌کند تا ماژول بوت شود؛ بنابراین ریست خودکار هیچ‌وقت حلقه‌ی اصلی یا وقفه‌ها را قفل نمی‌کند.</li>
+<li><strong>تشخیص هنگ ماژول</strong>: در صورتی که ۳ دستور متوالی (<code>GSM_CONSECUTIVE_TIMEOUTS_RESET = 3</code>) دچار تایم اوت شوند یا مودم به مدت ۹۰ ثانیه (<code>GSM_HARDWARE_REBOOT_TIMEOUT_MS</code>) در حالت Fault گیر کند، اگر پین PWRKEY متصل باشد (<code>IPowerControl</code>)، واچ داگ به طور خودکار پایه ی PWRKEY را پولس زده و سخت افزاری ماژول را ریبوت کامل می کند. این پولس <strong>غیرمسدودکننده</strong> است: <code>tick()</code> پین را پایین می کشد، <code>GSM_PWRKEY_PULSE_MS</code> نگه می دارد، رها می کند و بعد <code>GSM_MODEM_BOOT_GUARD_MS</code> صبر می کند تا ماژول بوت شود؛ بنابراین ریست خودکار هیچ وقت حلقه ی اصلی یا وقفه ها را قفل نمی کند.</li>
 <li><strong>اختیاری بودن کنترل سخت افزاری</strong>: چنانچه در ساختار <code>Modem</code> پوینتر <code>power</code> مقدار <code>nullptr</code> داده شود، تمام این قابلیت ها به صورت نرم افزاری و بدون ایجاد خطا کار خواهند کرد.</li>
 </ul>
 <h2>۴. تفکیک معماری CLI</h2>

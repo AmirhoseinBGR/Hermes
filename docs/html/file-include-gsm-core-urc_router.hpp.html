@@ -41,12 +41,12 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/core/urc_router.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/core/urc_router.hpp</h1>
 <h2>نقش فایل</h2>
-<p>مسیریابی پیام‌های ناخواستهٔ مودم (URC — Unsolicited Result Code) مثل <code>RING</code>، <code>+CMTI</code>، <code>+CREG</code>. این کلاس خطوطی را که در پاسخ به فرمان خاصی نیامده‌اند طبقه‌بندی می‌کند و به‌صورت رویداد ساخت‌یافته (<code>UrcEvent</code>) به یک handler واحد تحویل می‌دهد. این جداسازی باعث می‌شود پروتکل‌های ناخواسته، جریان تراکنش‌های AT را مختل نکنند.</p>
+<p>مسیریابی پیام های ناخواستهٔ مودم (URC — Unsolicited Result Code) مثل <code>RING</code>، <code>+CMTI</code>، <code>+CREG</code>. این کلاس خطوطی را که در پاسخ به فرمان خاصی نیامده اند طبقه بندی می کند و به صورت رویداد ساخت یافته (<code>UrcEvent</code>) به یک handler واحد تحویل می دهد. این جداسازی باعث می شود پروتکل های ناخواسته، جریان تراکنش های AT را مختل نکنند.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>enum class Urc : uint8_t</code></h3>
-<p>انواع رویداد شناخته‌شده:</p>
+<p>انواع رویداد شناخته شده:</p>
 <pre><code class="lang-cpp">enum class Urc : uint8_t
 {
     Unknown = 0,
@@ -90,7 +90,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 };</code></pre>
 <ul>
 <li><code>classify</code>: تشخیص نوع URC از پیشوند/الگوی خط (<code>RING</code>، <code>+CMTI:</code>، <code>+CLIP:</code>، <code>+CUSD:</code>، …) و استخراج آرگومان عددی.</li>
-<li><code>dispatch</code>: اگر خط URC باشد، handler را صدا می‌زند و <code>true</code> برمی‌گرداند؛ در غیر این صورت <code>false</code> (خط، پاسخ فرمان جاری است).</li>
+<li><code>dispatch</code>: اگر خط URC باشد، handler را صدا می زند و <code>true</code> برمی گرداند؛ در غیر این صورت <code>false</code> (خط، پاسخ فرمان جاری است).</li>
 </ul>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">AtEngine::tick()
@@ -115,18 +115,18 @@ Modem::handle_urc()   -&gt; service observer (on_line / on_final)
 urc_.set_handler(UrcRouter::Handler{&amp;Modem::urc_trampoline, this});</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه</strong>: <code>UrcEvent</code> فقط اشاره‌گر به خط موجود و یک <code>int32_t</code>؛ متن خط متعلق به بافر <code>LineReader</code> است و فقط تا پردازش بعدی معتبر است.</li>
-<li><code>Delegate</code> به‌جای <code>std::function</code> استفاده شده (بدون heap و بدون STL).</li>
-<li>تشخیص URC در برابر پاسخ فرمان بر عهدهٔ <code>classify</code> (الگوی خط) و <code>AtEngine</code> است؛ خطوطی که الگوی URC داشته باشند از جریان پاسخ تراکنش جدا می‌شوند.</li>
-<li>URCهای ناشناخته به <code>Urc::Unknown</code> طبقه‌بندی می‌شوند و از طریق <code>user_urc_</code> در دسترس کاربرند (هدر ناشناس دور انداخته نمی‌شود).</li>
-<li>برای ماژول‌هایی مثل M08R که URCهای پایان تماس نامطمئن‌اند (<code>clcc_authoritative</code>)، <code>CallEnded</code>/<code>CallBusy</code> صرفاً مکمل‌اند و نباید تنها مرجع قطع تماس باشند (به <code>voice/call_service.hpp</code> نگاه کنید).</li>
+<li><strong>بدون تخصیص حافظه</strong>: <code>UrcEvent</code> فقط اشاره گر به خط موجود و یک <code>int32_t</code>؛ متن خط متعلق به بافر <code>LineReader</code> است و فقط تا پردازش بعدی معتبر است.</li>
+<li><code>Delegate</code> به جای <code>std::function</code> استفاده شده (بدون heap و بدون STL).</li>
+<li>تشخیص URC در برابر پاسخ فرمان بر عهدهٔ <code>classify</code> (الگوی خط) و <code>AtEngine</code> است؛ خطوطی که الگوی URC داشته باشند از جریان پاسخ تراکنش جدا می شوند.</li>
+<li>URCهای ناشناخته به <code>Urc::Unknown</code> طبقه بندی می شوند و از طریق <code>user_urc_</code> در دسترس کاربرند (هدر ناشناس دور انداخته نمی شود).</li>
+<li>برای ماژول هایی مثل M08R که URCهای پایان تماس نامطمئن اند (<code>clcc_authoritative</code>)، <code>CallEnded</code>/<code>CallBusy</code> صرفاً مکمل اند و نباید تنها مرجع قطع تماس باشند (به <code>voice/call_service.hpp</code> نگاه کنید).</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/at_engine.hpp</code> — فراخوانی <code>dispatch</code> برای هر خط دریافتی</li>
 <li><code>util/delegate.hpp</code> — نوع <code>Handler</code></li>
 <li><code>modem/modem.hpp</code> — handler اصلی (<code>handle_urc</code> + <code>urc_trampoline</code>) و <code>set_on_urc</code></li>
 <li><code>voice/call_service.hpp</code> — <code>notify_ring</code> / <code>notify_hangup</code> / <code>notify_busy</code></li>
 <li><code>ussd/ussd_service.hpp</code> — <code>notify_cusd</code> برای <code>Urc::Ussd</code></li>
-<li><code>status/status_service.hpp</code> — به‌روزرسانی وضعیت شبکه/SIM از رویدادها</li>
+<li><code>status/status_service.hpp</code> — به روزرسانی وضعیت شبکه/SIM از رویدادها</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

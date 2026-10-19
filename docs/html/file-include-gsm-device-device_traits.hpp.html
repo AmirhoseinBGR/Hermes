@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/device/device_traits.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/device/device_traits.hpp</h1>
 <h2>نقش فایل</h2>
-<p>توصیف‌های سخت‌افزاری هر خانوادهٔ ماژول GSM در قالب یک struct مقداردهی‌اولیه‌شده در زمان کامپایل (<code>DeviceTraits</code>) و سه مقدار آماده برای ماژول‌های پشتیبانی‌شده. تفاوت‌های ظریف بین ماژول‌ها (دستور قطع تماس، محل ذخیرهٔ پیامک، پارامترهای CSMP، timeoutها و اعتماد به <code>+CLCC</code>) اینجا متمرکز شده تا کد سرویس‌ها شرطی و پراکنده نشود.</p>
+<p>توصیف های سخت افزاری هر خانوادهٔ ماژول GSM در قالب یک struct مقداردهی اولیه شده در زمان کامپایل (<code>DeviceTraits</code>) و سه مقدار آماده برای ماژول های پشتیبانی شده. تفاوت های ظریف بین ماژول ها (دستور قطع تماس، محل ذخیرهٔ پیامک، پارامترهای CSMP، timeoutها و اعتماد به <code>+CLCC</code>) اینجا متمرکز شده تا کد سرویس ها شرطی و پراکنده نشود.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>struct DeviceTraits</code></h3>
 <pre><code class="lang-cpp">struct DeviceTraits
@@ -63,7 +63,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     // truth (module URCs for NO CARRIER / BUSY are unreliable, e.g. M08R).
     bool clcc_authoritative;
 };</code></pre>
-<h3>مقادیر ازپیش‌تعریف‌شده</h3>
+<h3>مقادیر ازپیش تعریف شده</h3>
 <table><thead><tr><th>Trait</th><th>ماژول</th><th>hangup</th><th>storage</th><th>boot</th><th>clcc_authoritative</th></tr></thead><tbody>
 <tr><td><code>kSim800</code></td><td>SIM800</td><td><code>ATH</code></td><td><code>"SM","SM","SM"</code></td><td>15000ms</td><td>false</td></tr>
 <tr><td><code>kQuectelM08</code></td><td>M08</td><td><code>AT+CHUP</code></td><td><code>"ME","ME","ME"</code></td><td>20000ms</td><td>false</td></tr>
@@ -86,7 +86,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <pre><code class="lang-cpp">// M08R variant: call-end URCs (NO CARRIER / BUSY / NO ANSWER) are unreliable and
 // the module can wedge after interrupted SMS payloads. Call supervision therefore
 // relies on +CLCC polling (clcc_authoritative) plus the call watchdog.</code></pre>
-<p>برای M08R، نظارت تماس به <strong>polling متناوب <code>+CLCC</code></strong> به‌عنوان مرجع اصلی حقیقت تکیه می‌کند؛ URCهای پایان تماس صرفاً کمکی‌اند. این flag مستقیماً رفتار <code>CallService::monitor</code> را تغییر می‌دهد.</p>
+<p>برای M08R، نظارت تماس به <strong>polling متناوب <code>+CLCC</code></strong> به عنوان مرجع اصلی حقیقت تکیه می کند؛ URCهای پایان تماس صرفاً کمکی اند. این flag مستقیماً رفتار <code>CallService::monitor</code> را تغییر می دهد.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">Modem(uart, clock, traits = kSim800, power*)
         |
@@ -101,17 +101,17 @@ Boot sequence : boot_timeout_ms / prompt_timeout_ms</code></pre>
 gsm::Modem modem(uart, clock, gsm::kQuectelM08R, &amp;power);</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><code>constexpr</code> و <code>inline</code> — بدون هزینهٔ زمان اجرا؛ رشته‌های literal در حافظهٔ فقط‌خواندنی.</li>
-<li>traitها با <strong>اشاره‌گر const</strong> نگهداری می‌شوند؛ از مقدارهای سراسری (<code>kSim800</code> و …) یا object با طول عمر کافی استفاده کنید.</li>
+<li><code>constexpr</code> و <code>inline</code> — بدون هزینهٔ زمان اجرا؛ رشته های literal در حافظهٔ فقط خواندنی.</li>
+<li>traitها با <strong>اشاره گر const</strong> نگهداری می شوند؛ از مقدارهای سراسری (<code>kSim800</code> و …) یا object با طول عمر کافی استفاده کنید.</li>
 <li><code>csmp_ucs2</code> برای M08/M08R با مقدار DCS=8 و برای SIM800 با 25 متفاوت است — همین تفاوت ظریف دلیل وجود این struct است.</li>
-<li>timeoutهای <code>prompt</code> و <code>send</code> به‌طور پیش‌فرض از <code>gsm_config.hpp</code> می‌آیند اما در trait قابل override ماژول‌محورند.</li>
-<li>افزودن ماژول جدید = تعریف یک <code>DeviceTraits</code> جدید؛ نیازی به تغییر سرویس‌ها نیست.</li>
+<li>timeoutهای <code>prompt</code> و <code>send</code> به طور پیش فرض از <code>gsm_config.hpp</code> می آیند اما در trait قابل override ماژول محورند.</li>
+<li>افزودن ماژول جدید = تعریف یک <code>DeviceTraits</code> جدید؛ نیازی به تغییر سرویس ها نیست.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm_config.hpp</code> — <code>GSM_AT_PROMPT_TIMEOUT</code>، <code>GSM_AT_CMGS_TIMEOUT</code></li>
 <li><code>sms/sms_service.hpp</code> — پارامترهای CSMP، مسیر ذخیره، timeout ارسال، الزام شمارهٔ UCS2</li>
 <li><code>voice/call_service.hpp</code> — <code>hangup_cmd</code>، <code>supports_clcc</code>، <code>clcc_authoritative</code></li>
-<li><code>status/status_service.hpp</code> — <code>storage_cmd</code> برای شمارش پیامک‌ها</li>
-<li><code>modem/modem.hpp</code> — سازندهٔ <code>Modem</code> trait را دریافت می‌کند</li>
+<li><code>status/status_service.hpp</code> — <code>storage_cmd</code> برای شمارش پیامک ها</li>
+<li><code>modem/modem.hpp</code> — سازندهٔ <code>Modem</code> trait را دریافت می کند</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

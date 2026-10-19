@@ -41,53 +41,53 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/examples/arduino_basic.ino</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/examples/arduino_basic.ino</h1>
 <h2>نقش فایل</h2>
-<p>نمونه‌ی مینیمال آردوینو برای نشان دادن اینکه «همان API، فقط دو خط راه‌اندازی متفاوت». این اسکچ ثابت می‌کند کل کتابخانه‌ی GSM (بدون بلوکه شدن) با یک <code>Stream</code> سریال و یک زمان‌سنج آردوینو کار می‌کند: مودم را راه می‌اندازد، پیامک دریافتی را چاپ می‌کند و پس از آماده شدن، یک پیامک فارسی ارسال می‌کند.</p>
+<p>نمونه ی مینیمال آردوینو برای نشان دادن اینکه «همان API، فقط دو خط راه اندازی متفاوت». این اسکچ ثابت می کند کل کتابخانه ی GSM (بدون بلوکه شدن) با یک <code>Stream</code> سریال و یک زمان سنج آردوینو کار می کند: مودم را راه می اندازد، پیامک دریافتی را چاپ می کند و پس از آماده شدن، یک پیامک فارسی ارسال می کند.</p>
 <h2>ساختارها/توابع کلیدی</h2>
 <ul>
 <li><code>port::ArduinoUart modem_uart(Serial1)</code> — پُرت UART آردوینو روی <code>Serial1</code>.</li>
-<li><code>port::ArduinoClock clk</code> — زمان‌سنج آردوینو.</li>
-<li><code>Modem modem(modem_uart, clk, kSim800)</code> — نمونه‌ی مودم SIM800 (بدون کنترل تغذیه).</li>
+<li><code>port::ArduinoClock clk</code> — زمان سنج آردوینو.</li>
+<li><code>Modem modem(modem_uart, clk, kSim800)</code> — نمونه ی مودم SIM800 (بدون کنترل تغذیه).</li>
 </ul>
 <p>توابع:</p>
 <ul>
 <li><code>void onSms(void*, const SmsMessage&amp; m)</code></li>
 </ul>
-<p>کال‌بک دریافت پیامک؛ شماره (<code>m.number</code>) و متن (<code>m.text</code>) را روی <code>Serial</code> چاپ می‌کند.</p>
+<p>کال بک دریافت پیامک؛ شماره (<code>m.number</code>) و متن (<code>m.text</code>) را روی <code>Serial</code> چاپ می کند.</p>
 <ul>
 <li><code>void setup()</code></li>
 <li><code>Serial.begin(115200)</code> و <code>Serial1.begin(115200)</code>.</li>
 <li><code>log::Registry::set_color(false)</code> — غیرفعال کردن رنگ ANSI در لاگ (مناسب مانیتور سریال ساده).</li>
-<li><code>modem.set_on_sms(SmsService::Received(&amp;onSms, nullptr))</code> — ثبت کال‌بک پیامک دریافتی.</li>
+<li><code>modem.set_on_sms(SmsService::Received(&amp;onSms, nullptr))</code> — ثبت کال بک پیامک دریافتی.</li>
 <li><code>modem.begin()</code> — شروع ماشین حالت مودم.</li>
 </ul>
 <ul>
 <li><code>void loop()</code></li>
-<li><code>modem.tick()</code> — پیشرفت غیرمسدودکننده‌ی مودم در هر چرخه.</li>
-<li>با <code>static bool sent</code> فقط یک بار پس از <code>modem.ready()</code>، پیامک <code>"سلام از آردوینو"</code> به شماره‌ی <code>"09037744527"</code> ارسال می‌شود.</li>
+<li><code>modem.tick()</code> — پیشرفت غیرمسدودکننده ی مودم در هر چرخه.</li>
+<li>با <code>static bool sent</code> فقط یک بار پس از <code>modem.ready()</code>، پیامک <code>"سلام از آردوینو"</code> به شماره ی <code>"09037744527"</code> ارسال می شود.</li>
 </ul>
 <h2>جریان کاری</h2>
 <ol>
-<li><strong>راه‌اندازی (<code>setup</code>):</strong> سریال‌ها با نرخ ۱۱۵۲۰۰ باز می‌شوند، رنگ لاگ خاموش می‌شود، کال‌بک پیامک ثبت می‌شود و <code>modem.begin()</code> ماشین حالت را شروع می‌کند.</li>
-<li><strong>حلقه (<code>loop</code>):</strong> در هر چرخه <code>modem.tick()</code> صدا زده می‌شود (غیرمسدودکننده).</li>
-<li><strong>ارسال یک‌بار:</strong> به محض <code>modem.ready()</code> (ثبت شبکه کامل)، یک پیامک فارسی ارسال و پرچم <code>sent</code> ست می‌شود تا دوباره ارسال نشود.</li>
-<li><strong>دریافت:</strong> هر پیامک ورودی از طریق <code>onSms</code> روی <code>Serial</code> چاپ می‌شود.</li>
+<li><strong>راه اندازی (<code>setup</code>):</strong> سریال ها با نرخ ۱۱۵۲۰۰ باز می شوند، رنگ لاگ خاموش می شود، کال بک پیامک ثبت می شود و <code>modem.begin()</code> ماشین حالت را شروع می کند.</li>
+<li><strong>حلقه (<code>loop</code>):</strong> در هر چرخه <code>modem.tick()</code> صدا زده می شود (غیرمسدودکننده).</li>
+<li><strong>ارسال یک بار:</strong> به محض <code>modem.ready()</code> (ثبت شبکه کامل)، یک پیامک فارسی ارسال و پرچم <code>sent</code> ست می شود تا دوباره ارسال نشود.</li>
+<li><strong>دریافت:</strong> هر پیامک ورودی از طریق <code>onSms</code> روی <code>Serial</code> چاپ می شود.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li>پیام متن فارسی (<code>"سلام از آردوینو"</code>) نشان می‌دهد کتابخانه از کدگذاری UCS2 برای متن‌های غیرلاتین پشتیبانی می‌کند (حالت متنی SMS با UCS2).</li>
-<li><code>modem.ready()</code> نقطه‌ی اطمینان برای ارسال است؛ پیش از آن ارسال انجام نمی‌شود.</li>
-<li>الگوی <code>static bool sent</code> یک ارسال یک‌بارمصرف (one-shot) می‌سازد؛ برای ارسال مکرر باید منطق صف (queue) استفاده شود.</li>
-<li><code>log::Registry::set_color(false)</code> برای مانیتورهای سریالی که ANSI پشتیبانی نمی‌کنند مفید است.</li>
-<li>این نمونه از کنترل تغذیه (PWRKEY) استفاده نمی‌کند؛ <code>Modem</code> با آخرین آرگومان پیش‌فرض ساخته شده است.</li>
-<li><code>kSim800</code> برخلاف مثال STM32 که <code>kQuectelM08R</code> است؛ هر دو از یک API بهره می‌برند.</li>
+<li>پیام متن فارسی (<code>"سلام از آردوینو"</code>) نشان می دهد کتابخانه از کدگذاری UCS2 برای متن های غیرلاتین پشتیبانی می کند (حالت متنی SMS با UCS2).</li>
+<li><code>modem.ready()</code> نقطه ی اطمینان برای ارسال است؛ پیش از آن ارسال انجام نمی شود.</li>
+<li>الگوی <code>static bool sent</code> یک ارسال یک بارمصرف (one-shot) می سازد؛ برای ارسال مکرر باید منطق صف (queue) استفاده شود.</li>
+<li><code>log::Registry::set_color(false)</code> برای مانیتورهای سریالی که ANSI پشتیبانی نمی کنند مفید است.</li>
+<li>این نمونه از کنترل تغذیه (PWRKEY) استفاده نمی کند؛ <code>Modem</code> با آخرین آرگومان پیش فرض ساخته شده است.</li>
+<li><code>kSim800</code> برخلاف مثال STM32 که <code>kQuectelM08R</code> است؛ هر دو از یک API بهره می برند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>gsm/ports/arduino/gsm_port_arduino.hpp</code> — <code>ArduinoUart</code>/<code>ArduinoClock</code> که این اسکچ استفاده می‌کند.</li>
+<li><code>gsm/ports/arduino/gsm_port_arduino.hpp</code> — <code>ArduinoUart</code>/<code>ArduinoClock</code> که این اسکچ استفاده می کند.</li>
 <li><code>gsm/modem/modem.hpp</code> — کلاس <code>Modem</code>، <code>SmsService::Received</code> و <code>SmsMessage</code>.</li>
 <li><code>gsm/log/log.hpp</code> — <code>log::Registry::set_color</code>.</li>
-<li><code>gsm/library.json</code> — پلتفرم‌های <code>atmelavr</code>/<code>arduino</code> را پوشش می‌دهد.</li>
-<li>در برابر <code>gsm/examples/stm32_main.cpp</code> (نمونه‌ی STM32) قرار می‌گیرد؛ هر دو همان API را نشان می‌دهند.</li>
+<li><code>gsm/library.json</code> — پلتفرم های <code>atmelavr</code>/<code>arduino</code> را پوشش می دهد.</li>
+<li>در برابر <code>gsm/examples/stm32_main.cpp</code> (نمونه ی STM32) قرار می گیرد؛ هر دو همان API را نشان می دهند.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

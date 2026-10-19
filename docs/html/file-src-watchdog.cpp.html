@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/watchdog.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/watchdog.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی <code>gsm::MaintenanceWatchdog</code>؛ نگهبان نگهداری (maintenance) مودم با دو «بودجه بازنشانی» مستقل و یک «بررسی سلامت» فعال. بازنشاننده #1 بر مبنای <strong>زمان</strong> (پیش‌فرض هر ۱ ساعت یک reset کامل ماژول) و بازنشاننده #2 بر مبنای <strong>تعداد عملیات</strong> (پیش‌فرض هر ۵۰ job تمام‌شده) کار می‌کند؛ پس از هر reset کامل، یک زنجیره پروب سلامت (<code>AT</code>، <code>AT+CPIN?</code>، <code>AT+CREG?</code>، <code>AT+CSQ</code>) وضعیت واقعی ماژول را با خواندن <code>ModemStatus</code> زنده (نگه‌داری‌شده توسط URCها) تأیید می‌کند. این همان «watchdog دوگانه» v0.4 است.</p>
+<p>پیاده سازی <code>gsm::MaintenanceWatchdog</code>؛ نگهبان نگهداری (maintenance) مودم با دو «بودجه بازنشانی» مستقل و یک «بررسی سلامت» فعال. بازنشاننده #1 بر مبنای <strong>زمان</strong> (پیش فرض هر ۱ ساعت یک reset کامل ماژول) و بازنشاننده #2 بر مبنای <strong>تعداد عملیات</strong> (پیش فرض هر ۵۰ job تمام شده) کار می کند؛ پس از هر reset کامل، یک زنجیره پروب سلامت (<code>AT</code>، <code>AT+CPIN?</code>، <code>AT+CREG?</code>، <code>AT+CSQ</code>) وضعیت واقعی ماژول را با خواندن <code>ModemStatus</code> زنده (نگه داری شده توسط URCها) تأیید می کند. این همان «watchdog دوگانه» v0.4 است.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3>توابع متنی</h3>
 <ul>
@@ -51,9 +51,9 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <li><code>to_string(HealthState)</code> → <code>"unknown" | "checking" | "healthy" | "unhealthy"</code></li>
 </ul>
 <h3><code>void MaintenanceWatchdog::note_operation()</code></h3>
-<p>شمارنده عملیات (<code>ops_</code>) را یکی افزایش می‌دهد. <code>Modem::finish_job</code> این را برای هر job به‌سرانجام‌رسیده (موفق/ناموفق/لغوشده) صدا می‌زند.</p>
+<p>شمارنده عملیات (<code>ops_</code>) را یکی افزایش می دهد. <code>Modem::finish_job</code> این را برای هر job به سرانجام رسیده (موفق/ناموفق/لغوشده) صدا می زند.</p>
 <h3><code>void MaintenanceWatchdog::tick(uint32_t now_ms)</code> — ارزیابی دو بودجه</h3>
-<p>اگر غیرفعال باشد یا همین حالا یک reset در انتظار باشد، کاری نمی‌کند. در غیر این صورت:</p>
+<p>اگر غیرفعال باشد یا همین حالا یک reset در انتظار باشد، کاری نمی کند. در غیر این صورت:</p>
 <pre><code class="lang-cpp">// Resetter #1: time budget (default 1h)
 if (policy_.periodic_ms &amp;&amp; started_ &amp;&amp;
     hal::elapsed(now_ms, last_reset_ms_, policy_.periodic_ms))
@@ -62,27 +62,27 @@ if (policy_.periodic_ms &amp;&amp; started_ &amp;&amp;
 // Resetter #2: ops-count budget
 if (policy_.ops_period &amp;&amp; ops_ &gt;= policy_.ops_period)
     request_reset(ResetReason::OpsBudget);</code></pre>
-<p>هر دو فقط یک «درخواست» ثبت می‌کنند (<code>pending_</code>)؛ اجرای واقعی reset بر عهده <code>Modem::maintenance_service</code> است که پنجره امن پیدا می‌کند.</p>
+<p>هر دو فقط یک «درخواست» ثبت می کنند (<code>pending_</code>)؛ اجرای واقعی reset بر عهده <code>Modem::maintenance_service</code> است که پنجره امن پیدا می کند.</p>
 <h3><code>void MaintenanceWatchdog::request_reset(ResetReason r)</code> / <code>ResetReason take_pending()</code></h3>
-<p>درخواست reset با اولویت «اولی برنده»؛ تا وقتی <code>pending_</code> تخلیه نشده درخواست جدید نادیده گرفته می‌شود. <code>take_pending</code> مقدار را می‌خواند و پاک می‌کند (یک‌بارمصرف).</p>
+<p>درخواست reset با اولویت «اولی برنده»؛ تا وقتی <code>pending_</code> تخلیه نشده درخواست جدید نادیده گرفته می شود. <code>take_pending</code> مقدار را می خواند و پاک می کند (یک بارمصرف).</p>
 <h3><code>void MaintenanceWatchdog::on_reset_started(uint32_t now_ms)</code></h3>
-<p>پس از هر reset کامل توسط <code>Modem::begin</code> صدا زده می‌شود: ساعت بودجه زمانی تازه (<code>last_reset_ms_</code>)، <code>ops_ = 0</code>، <code>started_ = true</code>، شمارنده <code>resets_++</code> و یک <code>HealthReport</code> تازه (با ذکر تعداد resetها). اگر <code>policy_.health_check</code> فعال باشد، <code>check_pending_ = true</code> می‌شود تا به‌محض بیکار شدن سیستم، بررسی سلامت اجرا شود.</p>
+<p>پس از هر reset کامل توسط <code>Modem::begin</code> صدا زده می شود: ساعت بودجه زمانی تازه (<code>last_reset_ms_</code>)، <code>ops_ = 0</code>، <code>started_ = true</code>، شمارنده <code>resets_++</code> و یک <code>HealthReport</code> تازه (با ذکر تعداد resetها). اگر <code>policy_.health_check</code> فعال باشد، <code>check_pending_ = true</code> می شود تا به محض بیکار شدن سیستم، بررسی سلامت اجرا شود.</p>
 <h3><code>void MaintenanceWatchdog::start_check()</code> / <code>cancel_check()</code></h3>
-<p>شروع/لغو بررسی سلامت. <code>start_check</code> شمارنده پروب را صفر و وضعیت را <code>Checking</code> می‌کند؛ <code>check_busy()</code> همین وضعیت را گزارش می‌دهد.</p>
+<p>شروع/لغو بررسی سلامت. <code>start_check</code> شمارنده پروب را صفر و وضعیت را <code>Checking</code> می کند؛ <code>check_busy()</code> همین وضعیت را گزارش می دهد.</p>
 <h3><code>void MaintenanceWatchdog::pump(AtEngine&amp; at, bool engine_idle, bool modem_ready)</code></h3>
-<p>موتور بررسی سلامت؛ فقط وقتی سیستم کاملاً بیکار است (موتور AT آزاد، هیچ job در حال اجرا نیست و مودم در وضعیت <code>Ready</code> است) پروب بعدی را می‌فرستد:</p>
+<p>موتور بررسی سلامت؛ فقط وقتی سیستم کاملاً بیکار است (موتور AT آزاد، هیچ job در حال اجرا نیست و مودم در وضعیت <code>Ready</code> است) پروب بعدی را می فرستد:</p>
 <pre><code class="lang-text">probe 0: &quot;AT&quot;        (1000 ms)   → at_ok
-probe 1: &quot;AT+CPIN?&quot;  (3000 ms)   → از ModemStatus زنده خوانده می‌شود
-probe 2: &quot;AT+CREG?&quot;  (2000 ms)   → از ModemStatus زنده خوانده می‌شود
+probe 1: &quot;AT+CPIN?&quot;  (3000 ms)   → از ModemStatus زنده خوانده می شود
+probe 2: &quot;AT+CREG?&quot;  (2000 ms)   → از ModemStatus زنده خوانده می شود
 probe 3: &quot;AT+CSQ&quot;    (2000 ms)   → rssi از خط +CSQ:
 probe 4: → finish_check()</code></pre>
-<p>نکته: پاسخ‌های <code>+CPIN</code> / <code>+CREG</code> توسط <code>UrcRouter</code> مصرف و در <code>ModemStatus</code> زنده به‌روز می‌شوند؛ به همین دلیل <code>on_line</code> فقط <code>+CSQ</code> را مستقیم می‌خواند و بقیه از <code>status_</code> (اشاره‌گر به <code>ModemStatus</code> متصل‌شده با <code>bind_status</code>) برداشت می‌شوند.</p>
+<p>نکته: پاسخ های <code>+CPIN</code> / <code>+CREG</code> توسط <code>UrcRouter</code> مصرف و در <code>ModemStatus</code> زنده به روز می شوند؛ به همین دلیل <code>on_line</code> فقط <code>+CSQ</code> را مستقیم می خواند و بقیه از <code>status_</code> (اشاره گر به <code>ModemStatus</code> متصل شده با <code>bind_status</code>) برداشت می شوند.</p>
 <h3><code>void MaintenanceWatchdog::on_line(const char* line, uint16_t len)</code></h3>
-<p>فقط در پروب ۳ و فقط برای <code>+CSQ:</code>: <code>rssi_dbm = -113 + 2 × rssi</code> (مقدار ۹۹ یعنی نامشخص و نادیده گرفته می‌شود).</p>
+<p>فقط در پروب ۳ و فقط برای <code>+CSQ:</code>: <code>rssi_dbm = -113 + 2 × rssi</code> (مقدار ۹۹ یعنی نامشخص و نادیده گرفته می شود).</p>
 <h3><code>void MaintenanceWatchdog::on_final(const AtResult&amp; res)</code></h3>
-<p>پایان هر پروب: اگر پروب ۰ (<code>AT</code>) موفق بود <code>health_.at_ok = true</code>؛ سپس <code>probe_index_++</code> (صرف‌نظر از نتیجه، تا زنجیره همیشه جلو برود).</p>
+<p>پایان هر پروب: اگر پروب ۰ (<code>AT</code>) موفق بود <code>health_.at_ok = true</code>؛ سپس <code>probe_index_++</code> (صرف نظر از نتیجه، تا زنجیره همیشه جلو برود).</p>
 <h3><code>void MaintenanceWatchdog::finish_check()</code></h3>
-<p>نتیجه نهایی را می‌سازد:</p>
+<p>نتیجه نهایی را می سازد:</p>
 <pre><code class="lang-cpp">health_.sim_ok = status_-&gt;sim_ready;
 health_.net_ok = status_-&gt;network_ready;
 const bool ok = health_.at_ok &amp;&amp; health_.sim_ok &amp;&amp; health_.net_ok;
@@ -101,7 +101,7 @@ Modem::tick ──► watchdog_.tick(now)
                             │                              ▼
                             │                   full_restart(keep_jobs=true)
                             │                              │
-                            └──────────────────► on_reset_started(): بودجه‌ها صفر
+                            └──────────────────► on_reset_started(): بودجه ها صفر
                                                        │ health_check؟
                                                        ▼
                             pump(): AT ─► CPIN? ─► CREG? ─► CSQ ─► finish_check()
@@ -110,22 +110,22 @@ Modem::tick ──► watchdog_.tick(now)
                                             on_health_(HealthReport)</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بودجه‌ها «درخواست» می‌دهند نه اجرا:</strong> <code>tick</code> هرگز مستقیم reset نمی‌کند؛ <code>Modem::maintenance_service</code> با قانون grace (<code>GSM_WATCHDOG_GRACE_MS = 10s</code>) منتظر پنجره امن (بیکاری کامل) می‌ماند و اگر پنجره پیدا نشد (مثلاً تماس گیرکرده) پس از grace به‌صورت «اجباری» اجرا می‌کند.</li>
-<li><strong>بودجه #1 (زمان):</strong> <code>GSM_PERIODIC_RESET_MS = 3600000</code> (۱ ساعت). مقدار ۰ یعنی غیرفعال. هدف: پاک‌سازی تجمعی خطاها/نشت‌های داخل firmware مودم در اپلیکیشن‌های ۲۴/۷.</li>
-<li><strong>بودجه #2 (تعداد عملیات):</strong> <code>GSM_OPS_RESET_COUNT = 50</code>. برای سنگین‌ترین چرخه‌ها (مثلاً ارسال انبوه پیامک) زودتر از بودجه زمانی فعال می‌شود. ۰ یعنی غیرفعال.</li>
-<li><strong><code>use_power_cycle</code>:</strong> اگر <code>IPowerControl</code> موجود باشد، reset کامل با پالس PWRKEY (سخت‌افزاری) وگرنه reset نرم انجام می‌شود.</li>
+<li><strong>بودجه ها «درخواست» می دهند نه اجرا:</strong> <code>tick</code> هرگز مستقیم reset نمی کند؛ <code>Modem::maintenance_service</code> با قانون grace (<code>GSM_WATCHDOG_GRACE_MS = 10s</code>) منتظر پنجره امن (بیکاری کامل) می ماند و اگر پنجره پیدا نشد (مثلاً تماس گیرکرده) پس از grace به صورت «اجباری» اجرا می کند.</li>
+<li><strong>بودجه #1 (زمان):</strong> <code>GSM_PERIODIC_RESET_MS = 3600000</code> (۱ ساعت). مقدار ۰ یعنی غیرفعال. هدف: پاک سازی تجمعی خطاها/نشت های داخل firmware مودم در اپلیکیشن های ۲۴/۷.</li>
+<li><strong>بودجه #2 (تعداد عملیات):</strong> <code>GSM_OPS_RESET_COUNT = 50</code>. برای سنگین ترین چرخه ها (مثلاً ارسال انبوه پیامک) زودتر از بودجه زمانی فعال می شود. ۰ یعنی غیرفعال.</li>
+<li><strong><code>use_power_cycle</code>:</strong> اگر <code>IPowerControl</code> موجود باشد، reset کامل با پالس PWRKEY (سخت افزاری) وگرنه reset نرم انجام می شود.</li>
 <li><strong>HealthReport:</strong> <code>state</code>، <code>at_ok</code>، <code>sim_ok</code>، <code>net_ok</code>، <code>rssi_dbm</code>، <code>resets</code> و <code>since_reset_ms</code>؛ متد <code>ok()</code> فقط در حالت <code>Healthy</code> درست است.</li>
-<li><strong>پروب‌ها کم‌هزینه‌اند:</strong> هر پروب یک فرمان AT ساده است و فقط در idle کامل ارسال می‌شود؛ هیچ رقابتی با jobهای کاربر یا سرویس تماس وجود ندارد.</li>
+<li><strong>پروب ها کم هزینه اند:</strong> هر پروب یک فرمان AT ساده است و فقط در idle کامل ارسال می شود؛ هیچ رقابتی با jobهای کاربر یا سرویس تماس وجود ندارد.</li>
 <li><strong>بدون heap:</strong> همه stateها عضو کلاس و <code>uint8_t/uint32_t</code> هستند؛ <code>HealthReport</code> هم POD است.</li>
-<li><strong><code>cancel_check</code> اضطراری:</strong> اگر وسط بررسی، رویداد مهمی (مثلاً تماس) رخ دهد، <code>Modem</code> می‌تواند بررسی را رها کند؛ <code>health_</code> به حالت اولیه بازمی‌گردد.</li>
+<li><strong><code>cancel_check</code> اضطراری:</strong> اگر وسط بررسی، رویداد مهمی (مثلاً تماس) رخ دهد، <code>Modem</code> می تواند بررسی را رها کند؛ <code>health_</code> به حالت اولیه بازمی گردد.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/maintenance/watchdog.hpp</code> — <code>ResetReason</code>، <code>HealthState</code>، <code>HealthReport</code>، <code>ResetPolicy</code>.</li>
 <li><code>src/modem.cpp</code> — <code>maintenance_service()</code> (پنجره امن و اجرای reset)، <code>tick()</code> (فراخوانی <code>pump</code> در idle)، <code>check_watchdog()</code> (بازیابی خطاهای صنعتی مکمل).</li>
-<li><code>src/at_engine.cpp</code> — صدور پروب‌ها به‌عنوان <code>IAtObserver</code>.</li>
+<li><code>src/at_engine.cpp</code> — صدور پروب ها به عنوان <code>IAtObserver</code>.</li>
 <li><code>gsm/status/status_service.hpp</code> — ساختار <code>ModemStatus</code> که <code>sim_ready</code> / <code>network_ready</code> آن مرجع تأیید سلامت است.</li>
 <li><code>src/log.cpp</code> — کانال لاگ <code>"watchdog"</code>.</li>
 <li><code>include/gsm/gsm_config.hpp</code> — <code>GSM_PERIODIC_RESET_MS</code>، <code>GSM_OPS_RESET_COUNT</code>، <code>GSM_WATCHDOG_GRACE_MS</code>.</li>
-<li><code>src/cli.cpp</code> — پنل <code>w</code> (نمایش سیاست/شمارنده‌ها) و دستورهای <code>health</code> / <code>wreset</code>.</li>
+<li><code>src/cli.cpp</code> — پنل <code>w</code> (نمایش سیاست/شمارنده ها) و دستورهای <code>health</code> / <code>wreset</code>.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

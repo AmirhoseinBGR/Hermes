@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/tools/serial_bridge.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/tools/serial_bridge.hpp</h1>
 <h2>نقش فایل</h2>
-<p>پل سریال (<code>SerialBridge</code>) برای اتصال یک کنسول بایت‌محور (پورت سریال، USB-CDC، تست‌هاس) به مودم GSM. در حالت <strong>managed</strong> دستورهای تایپ‌شده را خط‌به‌خط به موتور AT می‌دهد و پاسخ‌ها را echo می‌کند؛ در حالت <strong>passthrough</strong> بایت‌ها را مستقیم بین کنسول و UART مودم جابه‌جا می‌کند. ابزاری کاربردی برای دیباگ و کالیبراسیون بدون نوشتن کد میزبان.</p>
+<p>پل سریال (<code>SerialBridge</code>) برای اتصال یک کنسول بایت محور (پورت سریال، USB-CDC، تست هاس) به مودم GSM. در حالت <strong>managed</strong> دستورهای تایپ شده را خط به خط به موتور AT می دهد و پاسخ ها را echo می کند؛ در حالت <strong>passthrough</strong> بایت ها را مستقیم بین کنسول و UART مودم جابه جا می کند. ابزاری کاربردی برای دیباگ و کالیبراسیون بدون نوشتن کد میزبان.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>class SerialBridge final : public IAtObserver</code></h3>
 <pre><code class="lang-cpp">SerialBridge(hal::IUart&amp; console, Modem&amp; modem);
@@ -82,20 +82,20 @@ console &lt;--&gt; modem UART|     console bytes -&gt; line_ buffer
 bridge.tick();</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه</strong>: بافر خط <code>StaticString&lt;GSM_CMD_MAX&gt;</code> (پیش‌فرض ۲۵۶ بایت) و چانک‌های ۳۲ بایتی روی پشته.</li>
-<li>در حالت managed فقط <strong>یک دستور در هر لحظه</strong> اجرا می‌شود؛ اگر موتور مشغول باشد پیام <code>BUSY (engine)</code> چاپ می‌شود — دستور از دست نمی‌رود ولی باید دوباره تایپ شود.</li>
-<li>timeout هر دستور ۱۰ ثانیه ثابت است (مقدار <code>10000</code> در <code>execute</code>)؛ برای سناریوهای طولانی‌تر از <code>Modem</code>/CLI استفاده کنید.</li>
-<li><code>write_ctrl_z</code> (‏<code>0x1A</code>) و <code>write_escape</code> (‏<code>0x1B</code>) برای پایان/انصراف payload پیامک در حالت prompt — رفتاری سازگار با ترمینال‌های AT.</li>
-<li>سوییچ <code>set_passthrough</code> بافر خط نیمه‌کاره را پاک می‌کند تا دستور ناقص به مودم نشت نکند.</li>
+<li><strong>بدون تخصیص حافظه</strong>: بافر خط <code>StaticString&lt;GSM_CMD_MAX&gt;</code> (پیش فرض ۲۵۶ بایت) و چانک های ۳۲ بایتی روی پشته.</li>
+<li>در حالت managed فقط <strong>یک دستور در هر لحظه</strong> اجرا می شود؛ اگر موتور مشغول باشد پیام <code>BUSY (engine)</code> چاپ می شود — دستور از دست نمی رود ولی باید دوباره تایپ شود.</li>
+<li>timeout هر دستور ۱۰ ثانیه ثابت است (مقدار <code>10000</code> در <code>execute</code>)؛ برای سناریوهای طولانی تر از <code>Modem</code>/CLI استفاده کنید.</li>
+<li><code>write_ctrl_z</code> (‏<code>0x1A</code>) و <code>write_escape</code> (‏<code>0x1B</code>) برای پایان/انصراف payload پیامک در حالت prompt — رفتاری سازگار با ترمینال های AT.</li>
+<li>سوییچ <code>set_passthrough</code> بافر خط نیمه کاره را پاک می کند تا دستور ناقص به مودم نشت نکند.</li>
 <li>این کلاس <code>final</code> است و باید در حلقهٔ اصلی مرتباً <code>tick()</code> بخورد؛ خودش تایمر یا thread ندارد.</li>
 <li>شامل <code>modem/modem.hpp</code> است؛ پس وابستگی به کل پشتهٔ مودم دارد (ابزار سطح بالا، نه هسته).</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>modem/modem.hpp</code> — دسترسی به <code>modem.at()</code> (AtEngine) و وضعیت</li>
 <li><code>core/at_engine.hpp</code> — <code>execute</code>/<code>write_ctrl_z</code>/<code>write_escape</code></li>
 <li><code>core/at_types.hpp</code> — <code>IAtObserver</code>، <code>to_string(AtStatus)</code></li>
 <li><code>hal/hal.hpp</code> — <code>IUart</code> برای هر دو سمت پل</li>
-<li><code>cli/cli.hpp</code> — جایگزین غنی‌تر با منو و دستورات مدیریتی (پل سریال، ابزار مینیمال است)</li>
+<li><code>cli/cli.hpp</code> — جایگزین غنی تر با منو و دستورات مدیریتی (پل سریال، ابزار مینیمال است)</li>
 <li><code>gsm_config.hpp</code> — <code>GSM_CMD_MAX</code></li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

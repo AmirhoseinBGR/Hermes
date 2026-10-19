@@ -2,11 +2,11 @@
 
 ## نقش فایل
 
-این فایل قلب پیکربندی کتابخانهٔ GSM است: همهٔ ثابت‌های زمان‌بندی، اندازهٔ بافرها، سقف‌ها و آستانه‌های بازیابی خطا در همین‌جا با ماکروهای `#ifndef` تعریف شده‌اند تا کاربر نهایی بتواند بدون دست‌زدن به کد کتابخانه، هر مقدار را قبل از include تغییر دهد یا از طریق `GSM_USER_CONFIG` یک فایل تنظیمات سفارشی تزریق کند. هیچ کد اجرایی در این فایل وجود ندارد؛ صرفاً قراردادهای عددی کتابخانه.
+این فایل قلب پیکربندی کتابخانهٔ GSM است: همهٔ ثابت های زمان بندی، اندازهٔ بافرها، سقف ها و آستانه های بازیابی خطا در همین جا با ماکروهای `#ifndef` تعریف شده اند تا کاربر نهایی بتواند بدون دست زدن به کد کتابخانه، هر مقدار را قبل از include تغییر دهد یا از طریق `GSM_USER_CONFIG` یک فایل تنظیمات سفارشی تزریق کند. هیچ کد اجرایی در این فایل وجود ندارد؛ صرفاً قراردادهای عددی کتابخانه.
 
 ## ساختارهای کلیدی
 
-هیچ class/struct ندارد؛ فقط ماکروها. گروه‌های اصلی:
+هیچ class/struct ندارد؛ فقط ماکروها. گروه های اصلی:
 
 ### ورودی سفارشی کاربر
 ```cpp
@@ -14,20 +14,20 @@
 #include GSM_USER_CONFIG
 #endif
 ```
-اگر `GSM_USER_CONFIG` به‌صورت نام فایل تعریف شود، آن فایل اول از همه include می‌شود؛ بنابراین هر `#define` در فایل کاربر بر ماکروهای پیش‌فرض این فایل مقدم است.
+اگر `GSM_USER_CONFIG` به صورت نام فایل تعریف شود، آن فایل اول از همه include می شود؛ بنابراین هر `#define` در فایل کاربر بر ماکروهای پیش فرض این فایل مقدم است.
 
 ### بافرها
-| ماکرو | مقدار پیش‌فرض | کاربرد |
+| ماکرو | مقدار پیش فرض | کاربرد |
 |---|---|---|
 | `GSM_RX_RING_SIZE` | 1024 | اندازهٔ حلقهٔ دریافت UART |
 | `GSM_LINE_MAX` | 512 | حداکثر طول یک خط AT |
 | `GSM_CMD_MAX` | 256 | حداکثر طول دستور ارسالی |
 | `GSM_SMS_TEXT_BYTES` | 512 | بافر متن پیامک |
 | `GSM_SMS_NUMBER_BYTES` | 24 | بافر شماره تلفن |
-| `GSM_SMS_INBOX_SLOTS` | 4 | تعداد اسلات‌های صندوق ورودی |
+| `GSM_SMS_INBOX_SLOTS` | 4 | تعداد اسلات های صندوق ورودی |
 | `GSM_USSD_RESPONSE_BYTES` | 512 | بافر پاسخ USSD |
 
-### نگهبان سخت‌گیرانهٔ طول پیامک (ویژگی v0.4)
+### نگهبان سخت گیرانهٔ طول پیامک (ویژگی v0.4)
 ```cpp
 // Strict outgoing length guard (in UTF-8 characters). A single UCS2 SMS carries
 // 70 chars; the default keeps a hard safety margin below that. Runtime adjustable
@@ -36,7 +36,7 @@
 #define GSM_SMS_MAX_CHARS 60
 #endif
 ```
-سقف خروجی بر حسب **کاراکتر UTF-8**؛ چون یک پیامک UCS2 حداکثر ۷۰ کاراکتر گنجایش دارد، مقدار پیش‌فرض ۶۰ حاشیهٔ ایمنی ایجاد می‌کند. در زمان اجرا با `SmsService::set_max_chars()` قابل تغییر است (مقدار ۰ نگهبان را غیرفعال می‌کند).
+سقف خروجی بر حسب **کاراکتر UTF-8**؛ چون یک پیامک UCS2 حداکثر ۷۰ کاراکتر گنجایش دارد، مقدار پیش فرض ۶۰ حاشیهٔ ایمنی ایجاد می کند. در زمان اجرا با `SmsService::set_max_chars()` قابل تغییر است (مقدار ۰ نگهبان را غیرفعال می کند).
 
 ### صف وظایف
 | ماکرو | مقدار | کاربرد |
@@ -45,8 +45,8 @@
 | `GSM_JOB_MAX_AGE_MS` | 45000 | حذف Job کهنه در صف (۴۵ ثانیه) |
 | `GSM_JOB_START_RETRIES` | 3 | دفعات تلاش برای شروع Job پیش از شکست |
 
-### زمان‌بندی (میلی‌ثانیه)
-`GSM_AT_DEFAULT_TIMEOUT` (1000)، `GSM_AT_PROMPT_TIMEOUT` (5000)، `GSM_AT_CMGS_TIMEOUT` (10000)، `GSM_AT_USSD_TIMEOUT` (10000)، `GSM_AT_GUARD_TIME` (30)، `GSM_REGISTRATION_TIMEOUT` (45000)، `GSM_PWRKEY_PULSE_MS` (1200: حداقل پهنای پولس PWRKEY طبق دیتاشیت SIM800/M08)، `GSM_MODEM_BOOT_GUARD_MS` (2500: سکوت لازم بعد از رهاکردن PWRKEY پیش از پروب `AT`)، `GSM_POWERDOWN_IGNORE_MS` (4000: نادیده‌گرفتن `NORMAL POWER DOWN` تأخیری بعد از اینکه `AT`/`RDY` ثابت کرد ماژول روشن است).
+### زمان بندی (میلی ثانیه)
+`GSM_AT_DEFAULT_TIMEOUT` (1000)، `GSM_AT_PROMPT_TIMEOUT` (5000)، `GSM_AT_CMGS_TIMEOUT` (10000)، `GSM_AT_USSD_TIMEOUT` (10000)، `GSM_AT_GUARD_TIME` (30)، `GSM_REGISTRATION_TIMEOUT` (45000)، `GSM_PWRKEY_PULSE_MS` (1200: حداقل پهنای پولس PWRKEY طبق دیتاشیت SIM800/M08)، `GSM_MODEM_BOOT_GUARD_MS` (2500: سکوت لازم بعد از رهاکردن PWRKEY پیش از پروب `AT`)، `GSM_POWERDOWN_IGNORE_MS` (4000: نادیده گرفتن `NORMAL POWER DOWN` تأخیری بعد از اینکه `AT`/`RDY` ثابت کرد ماژول روشن است).
 
 ### نظارت بر تماس (ویژگی v0.4)
 ```cpp
@@ -63,7 +63,7 @@
 #define GSM_CALL_CLCC_MISSES 2 // empty +CLCC results before the call is declared dead
 #endif
 ```
-این چهار مقدار مقادیر پیش‌فرض `CallPolicy` را می‌سازند.
+این چهار مقدار مقادیر پیش فرض `CallPolicy` را می سازند.
 
 ### نگهبان صنعتی و بازیابی خطا
 - `GSM_CONSECUTIVE_TIMEOUTS_RESET` (3) — تعداد timeout پیاپی پیش از ورود به بازیابی
@@ -72,7 +72,7 @@
 - `GSM_CFUN_RESET_TIMEOUT_MS` (8000) — مهلت `AT+CFUN=1,1` (ریست نرم ماژول)
 - `GSM_HARDWARE_REBOOT_TIMEOUT_MS` (90000) — پس از ۹۰ ثانیه گیرکردن، power cycle کامل
 
-### بازنشانی‌های تعمیراتی / نگهبان دوگانه (ویژگی v0.4)
+### بازنشانی های تعمیراتی / نگهبان دوگانه (ویژگی v0.4)
 ```cpp
 #ifndef GSM_PERIODIC_RESET_MS
 #define GSM_PERIODIC_RESET_MS 3600000 // resetter #1: full module reset every 60 min (0=off)
@@ -86,13 +86,13 @@
 ```
 
 ### ثبت وقایع
-- `GSM_LOG_LEVEL_MAX` (4) — سطح ماکزیمم کامپایل‌تایم: 0=off … 5=trace
+- `GSM_LOG_LEVEL_MAX` (4) — سطح ماکزیمم کامپایل تایم: 0=off … 5=trace
 - `GSM_LOG_BUFFER_SIZE` (180) — اندازهٔ بافر رکورد لاگ
-- `GSM_LOG_COLOR_DEFAULT` (1) — رنگ ANSI به‌صورت پیش‌فرض روشن
+- `GSM_LOG_COLOR_DEFAULT` (1) — رنگ ANSI به صورت پیش فرض روشن
 
 ## جریان کاری
 
-این فایل در ابتدای زنجیرهٔ include قرار می‌گیرد و همه‌جا مصرف می‌شود:
+این فایل در ابتدای زنجیرهٔ include قرار می گیرد و همه جا مصرف می شود:
 
 ```text
 GSM_USER_CONFIG (optional)
@@ -109,19 +109,19 @@ GSM_USER_CONFIG (optional)
 
 ## نکات فنی
 
-- **زمان اجرا در برابر کامپایل**: همهٔ ماکروها فقط مقادیر پیش‌فرض هستند؛ بیشترشان در زمان اجرا قابل بازنویسی‌اند (مثلاً `CallPolicy`، `ResetPolicy`، `HousekeepingConfig` و `set_max_chars`). مقدار ۰ در `GSM_PERIODIC_RESET_MS` و `GSM_OPS_RESET_COUNT` یعنی «غیرفعال».
+- **زمان اجرا در برابر کامپایل**: همهٔ ماکروها فقط مقادیر پیش فرض هستند؛ بیشترشان در زمان اجرا قابل بازنویسی اند (مثلاً `CallPolicy`، `ResetPolicy`، `HousekeepingConfig` و `set_max_chars`). مقدار ۰ در `GSM_PERIODIC_RESET_MS` و `GSM_OPS_RESET_COUNT` یعنی «غیرفعال».
 - **بدون STL / بدون تخصیص حافظه**: فایل صرفاً ماکرو است و هیچ وابستگی به کتابخانهٔ استاندارد ندارد.
-- `GSM_SMS_MAX_CHARS` بر حسب کاراکتر UTF-8 است نه بایت؛ شمارش با `SmsService::count_chars()` انجام می‌شود.
-- تغییر `GSM_LINE_MAX` یا `GSM_CMD_MAX` مستقیماً حافظهٔ ایستای `StaticString`ها را تغییر می‌دهد؛ در میکروکنترلرهای کم‌حافظه با احتیاط کم کنید.
-- ماکروهای نگهبان صنعتی (`GSM_CONSECUTIVE_TIMEOUTS_RESET` و …) با `MaintenanceWatchdog` (بازنشانی‌های دوره‌ای) مکمل‌اند و هم‌پوشانی ندارند: اولی واکنش به خطا، دومی پیشگیری برنامه‌ریزی‌شده.
+- `GSM_SMS_MAX_CHARS` بر حسب کاراکتر UTF-8 است نه بایت؛ شمارش با `SmsService::count_chars()` انجام می شود.
+- تغییر `GSM_LINE_MAX` یا `GSM_CMD_MAX` مستقیماً حافظهٔ ایستای `StaticString`ها را تغییر می دهد؛ در میکروکنترلرهای کم حافظه با احتیاط کم کنید.
+- ماکروهای نگهبان صنعتی (`GSM_CONSECUTIVE_TIMEOUTS_RESET` و …) با `MaintenanceWatchdog` (بازنشانی های دوره ای) مکمل اند و هم پوشانی ندارند: اولی واکنش به خطا، دومی پیشگیری برنامه ریزی شده.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
-- `core/line_reader.hpp` — از `GSM_LINE_MAX` استفاده می‌کند
+- `core/line_reader.hpp` — از `GSM_LINE_MAX` استفاده می کند
 - `core/at_engine.hpp` — timeoutهای AT و `GSM_CMD_MAX`
 - `queue/job.hpp` و `queue/job_queue.hpp` — `GSM_QUEUE_DEPTH`، `GSM_JOB_*`
 - `sms/sms_service.hpp` — `GSM_SMS_MAX_CHARS` (نگهبان طول)
-- `voice/call_service.hpp` — `GSM_CALL_*` (پیش‌فرض‌های `CallPolicy`)
+- `voice/call_service.hpp` — `GSM_CALL_*` (پیش فرض های `CallPolicy`)
 - `maintenance/watchdog.hpp` — `GSM_PERIODIC_RESET_MS`، `GSM_OPS_RESET_COUNT`، `GSM_WATCHDOG_GRACE_MS`
 - `log/log.hpp` — `GSM_LOG_LEVEL_MAX`، `GSM_LOG_BUFFER_SIZE`
 - `device/device_traits.hpp` — `GSM_AT_PROMPT_TIMEOUT` و `GSM_AT_CMGS_TIMEOUT` در traitها

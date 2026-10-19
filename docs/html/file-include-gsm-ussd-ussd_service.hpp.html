@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/ussd/ussd_service.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/ussd/ussd_service.hpp</h1>
 <h2>نقش فایل</h2>
-<p>سرویس USSD: اجرای کدهای دستوری مثل <code>#123#</code> (موجودی، بسته، منوی اپراتور) و مدیریت <strong>نشست تعاملی</strong> — وقتی شبکه برای ورودی بیشتر درخواست می‌دهد، سرویس در حالت <code>SessionOpen</code> می‌ماند تا کاربر پاسخ بفرستد (<code>send_reply</code>) یا نشست را ببندد (<code>end_session</code>). امکان پرس‌وجوی خودکار موجودی بر اساس اپراتور شناسایی‌شده هم وجود دارد.</p>
+<p>سرویس USSD: اجرای کدهای دستوری مثل <code>#123#</code> (موجودی، بسته، منوی اپراتور) و مدیریت <strong>نشست تعاملی</strong> — وقتی شبکه برای ورودی بیشتر درخواست می دهد، سرویس در حالت <code>SessionOpen</code> می ماند تا کاربر پاسخ بفرستد (<code>send_reply</code>) یا نشست را ببندد (<code>end_session</code>). امکان پرس وجوی خودکار موجودی بر اساس اپراتور شناسایی شده هم وجود دارد.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>struct UssdResult</code></h3>
 <pre><code class="lang-cpp">struct UssdResult
@@ -111,14 +111,14 @@ timeout (GSM_AT_USSD_TIMEOUT) -&gt; complete(Timeout)</code></pre>
 modem.check_balance();   // Job wrapper -&gt; start_balance_query(status.op)</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه</strong>: پاسخ در <code>StaticString&lt;GSM_USSD_RESPONSE_BYTES&gt;</code> (پیش‌فرض ۵۱۲ بایت)؛ کد USSD در <code>StaticString&lt;32&gt;</code>.</li>
-<li>پاسخ USSD معمولاً با DCS آمده و ممکن است UCS2 باشد؛ رمزگشایی متن بر عهدهٔ لایهٔ <code>codec</code> و مصرف‌کننده است — <code>response</code> همان رشتهٔ خام داخل <code>+CUSD</code> است.</li>
+<li><strong>بدون تخصیص حافظه</strong>: پاسخ در <code>StaticString&lt;GSM_USSD_RESPONSE_BYTES&gt;</code> (پیش فرض ۵۱۲ بایت)؛ کد USSD در <code>StaticString&lt;32&gt;</code>.</li>
+<li>پاسخ USSD معمولاً با DCS آمده و ممکن است UCS2 باشد؛ رمزگشایی متن بر عهدهٔ لایهٔ <code>codec</code> و مصرف کننده است — <code>response</code> همان رشتهٔ خام داخل <code>+CUSD</code> است.</li>
 <li><code>notify_cusd</code> مستقل از جریان <code>pump</code> است: URC ممکن است در هر لحظه (حتی بیرون از WaitUrc) برسد.</li>
-<li>حالت <code>SessionOpen</code> یعنی نشست شبکه باز است؛ بی‌توجهی به آن باعث قفل‌شدن نشست USSD اپراتور می‌شود — یا <code>send_reply</code> یا <code>end_session</code> اجباری است.</li>
-<li>timeout پیش‌فرض <code>GSM_AT_USSD_TIMEOUT</code> (۱۰ ثانیه)؛ برخی اپراتورها کندند — در صورت نیاز <code>wait_start_</code>/timeout را در سطح Job تنظیم کنید.</li>
-<li><code>default_balance_code(Operator)</code> برای Irancell/MCI/Rightel کدهای استاندارد تعادل را برمی‌گرداند (وابسته به <code>detect_operator</code> در <code>status_service.hpp</code>).</li>
+<li>حالت <code>SessionOpen</code> یعنی نشست شبکه باز است؛ بی توجهی به آن باعث قفل شدن نشست USSD اپراتور می شود — یا <code>send_reply</code> یا <code>end_session</code> اجباری است.</li>
+<li>timeout پیش فرض <code>GSM_AT_USSD_TIMEOUT</code> (۱۰ ثانیه)؛ برخی اپراتورها کندند — در صورت نیاز <code>wait_start_</code>/timeout را در سطح Job تنظیم کنید.</li>
+<li><code>default_balance_code(Operator)</code> برای Irancell/MCI/Rightel کدهای استاندارد تعادل را برمی گرداند (وابسته به <code>detect_operator</code> در <code>status_service.hpp</code>).</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/service.hpp</code> — پایهٔ <code>IService</code> و <code>SessionState</code></li>
 <li><code>core/at_engine.hpp</code> — اجرای <code>AT+CUSD</code></li>

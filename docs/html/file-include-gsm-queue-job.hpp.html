@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/queue/job.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/queue/job.hpp</h1>
 <h2>نقش فایل</h2>
-<p>تعریف «Job» — واحد کاری صف‌شده در مودم. هر درخواست کاربر (ارسال پیامک، خواندن پیامک، شماره‌گیری، پرس‌وجوی USSD، به‌روزرسانی وضعیت و …) در قالب یک object از نوع <code>Job</code> در صف قرار می‌گیرد و با callback مربوط تکمیل می‌شود. این فایل همچنین enumهای نوع و وضعیت Job و کلید شناسایی آن را تعریف می‌کند.</p>
+<p>تعریف «Job» — واحد کاری صف شده در مودم. هر درخواست کاربر (ارسال پیامک، خواندن پیامک، شماره گیری، پرس وجوی USSD، به روزرسانی وضعیت و …) در قالب یک object از نوع <code>Job</code> در صف قرار می گیرد و با callback مربوط تکمیل می شود. این فایل همچنین enumهای نوع و وضعیت Job و کلید شناسایی آن را تعریف می کند.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>JobId</code> و مقادیر enum</h3>
 <pre><code class="lang-cpp">using JobId                 = uint16_t;
@@ -91,7 +91,7 @@ using JobCallback = Delegate&lt;const Job&amp;&gt;;</code></pre>
 <p>فیلدهای مهم:</p>
 <ul>
 <li><strong><code>urgent</code></strong>: اولویت بالا (مثلاً قطع تماس) — در پردازش صف مقدم است.</li>
-<li><strong><code>deferred</code></strong> (ویژگی v0.4): وقتی تماس، Job را وقفه داده است، تلاش مجدد <strong>شمارندهٔ attempts را مصرف نمی‌کند</strong> تا Job به‌خاطر وقفهٔ بیرونی شکست نخورد.</li>
+<li><strong><code>deferred</code></strong> (ویژگی v0.4): وقتی تماس، Job را وقفه داده است، تلاش مجدد <strong>شمارندهٔ attempts را مصرف نمی کند</strong> تا Job به خاطر وقفهٔ بیرونی شکست نخورد.</li>
 <li><strong><code>max_attempts</code></strong>: سقف تلاش مجدد؛ مرتبط با <code>GSM_JOB_START_RETRIES</code>.</li>
 <li><strong><code>result</code></strong>: نتیجهٔ نهایی (<code>AtResult</code>)؛ برای callback و لاگ.</li>
 <li><strong><code>enqueued_ms</code></strong>: زمان ورود به صف؛ مبنای <code>JobQueue::purge_stale</code>.</li>
@@ -119,13 +119,13 @@ JobCallback cb{&amp;App::on_job_done, &amp;app};
 JobId id = modem.send_sms(&quot;+98912xxxxxxx&quot;, &quot;hello&quot;, cb);</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون تخصیص حافظه</strong>: همهٔ رشته‌ها <code>StaticString</code> با اندازهٔ ثابت؛ خود <code>Job</code> در <code>JobQueue::Slot</code>های ایستا جا می‌شود.</li>
-<li><code>Job</code> یک POD قابل بازنشانی با <code>clear()</code> است؛ اندازهٔ آن (به‌خاطر بافرها) در حد چند صد بایت است — <code>GSM_SMS_TEXT_BYTES</code> و <code>GSM_USSD_RESPONSE_BYTES</code> را متناسب حافظه تنظیم کنید.</li>
-<li><code>JobCallback</code> از نوع <code>Delegate</code> است (تابع + context)، نه <code>std::function</code>؛ مناسب محیط‌های بدون RTTI/استثنا.</li>
-<li><code>kInvalidJob = 0</code> یعنی شناسه‌ها از ۱ شروع می‌شوند (<code>Modem::next_id_ = 1</code>).</li>
-<li><code>ussd_response</code> در Job نگهداری می‌شود تا نتیجهٔ USSD هم از مسیر همان callback استاندارد برگردد.</li>
+<li><strong>بدون تخصیص حافظه</strong>: همهٔ رشته ها <code>StaticString</code> با اندازهٔ ثابت؛ خود <code>Job</code> در <code>JobQueue::Slot</code>های ایستا جا می شود.</li>
+<li><code>Job</code> یک POD قابل بازنشانی با <code>clear()</code> است؛ اندازهٔ آن (به خاطر بافرها) در حد چند صد بایت است — <code>GSM_SMS_TEXT_BYTES</code> و <code>GSM_USSD_RESPONSE_BYTES</code> را متناسب حافظه تنظیم کنید.</li>
+<li><code>JobCallback</code> از نوع <code>Delegate</code> است (تابع + context)، نه <code>std::function</code>؛ مناسب محیط های بدون RTTI/استثنا.</li>
+<li><code>kInvalidJob = 0</code> یعنی شناسه ها از ۱ شروع می شوند (<code>Modem::next_id_ = 1</code>).</li>
+<li><code>ussd_response</code> در Job نگهداری می شود تا نتیجهٔ USSD هم از مسیر همان callback استاندارد برگردد.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>queue/job_queue.hpp</code> — صف نگهدارندهٔ Jobها</li>
 <li><code>core/at_types.hpp</code> — <code>AtResult</code> در دل Job</li>

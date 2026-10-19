@@ -41,25 +41,25 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/phone_number.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/phone_number.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی <code>gsm::PhoneNumber</code>؛ نرمال‌سازی شماره تلفن به قالب E.164 (با پیشوند <code>+</code>). ورودی می‌تواند هر شکلی باشد: بین‌المللی (<code>+98912…</code>)، داخلی با صفر (<code>0912…</code>)، یا بدون صفر (<code>912…</code>)؛ خروجی همیشه یک رشته <code>+</code>دار معتبر است که مستقیماً در فرمان‌های <code>ATD</code> و <code>AT+CMGS</code> قابل استفاده است.</p>
+<p>پیاده سازی <code>gsm::PhoneNumber</code>؛ نرمال سازی شماره تلفن به قالب E.164 (با پیشوند <code>+</code>). ورودی می تواند هر شکلی باشد: بین المللی (<code>+98912…</code>)، داخلی با صفر (<code>0912…</code>)، یا بدون صفر (<code>912…</code>)؛ خروجی همیشه یک رشته <code>+</code>دار معتبر است که مستقیماً در فرمان های <code>ATD</code> و <code>AT+CMGS</code> قابل استفاده است.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3><code>bool PhoneNumber::assign(const char<em> raw, const char</em> country_code = "+98")</code></h3>
-<p>مرحله ۱ — استخراج: کاراکترهای غیررقمی حذف می‌شوند؛ فقط یک <code>+</code> در ابتدای رشته پذیرفته می‌شود (پرچم <code>plus</code>). بافر <code>digits</code> با اندازه ثابت <code>GSM_SMS_NUMBER_BYTES</code> پر می‌شود؛ ورودی بدون هیچ رقم → <code>false</code>.</p>
+<p>مرحله ۱ — استخراج: کاراکترهای غیررقمی حذف می شوند؛ فقط یک <code>+</code> در ابتدای رشته پذیرفته می شود (پرچم <code>plus</code>). بافر <code>digits</code> با اندازه ثابت <code>GSM_SMS_NUMBER_BYTES</code> پر می شود؛ ورودی بدون هیچ رقم → <code>false</code>.</p>
 <pre><code class="lang-cpp">for (const char* p = raw; *p &amp;&amp; n + 1u &lt; sizeof(digits); ++p)
 {
     if (*p == &#x27;+&#x27; &amp;&amp; n == 0) { plus = true; continue; }
     if (*p &gt;= &#x27;0&#x27; &amp;&amp; *p &lt;= &#x27;9&#x27;) digits[n++] = *p;
 }</code></pre>
-<p>مرحله ۲ — نرمال‌سازی (کد کشور پیش‌فرض <code>+98</code> برای ایران):</p>
+<p>مرحله ۲ — نرمال سازی (کد کشور پیش فرض <code>+98</code> برای ایران):</p>
 <table><thead><tr><th>ورودی</th><th>خروجی</th></tr></thead><tbody>
-<tr><td>با <code>+</code> (بین‌المللی)</td><td><code>+</code> + ارقام استخراج‌شده</td></tr>
+<tr><td>با <code>+</code> (بین المللی)</td><td><code>+</code> + ارقام استخراج شده</td></tr>
 <tr><td>بدون <code>+</code> ولی با پیشوند کد کشور (<code>98…</code>)</td><td><code>+</code> + ارقام (تشخیص با <code>memcmp</code> پیشوند)</td></tr>
 <tr><td>با صفر داخلی (<code>0912…</code>)</td><td><code>+98</code> + ارقام بدون صفر اول</td></tr>
 <tr><td>سایر (<code>912…</code>)</td><td><code>+98</code> + ارقام</td></tr>
 </tbody></table>
-<p>نتیجه نهایی با <code>valid()</code> (موجود و غیرخالی) سنجیده می‌شود.</p>
+<p>نتیجه نهایی با <code>valid()</code> (موجود و غیرخالی) سنجیده می شود.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">&quot;09123456789&quot;  ──► digits=&quot;09123456789&quot; ──► شروع با &#x27;0&#x27; ──► &quot;+989123456789&quot;
 &quot;+989123456789&quot; ──► plus=true ──────────────────────────► &quot;+989123456789&quot;
@@ -68,18 +68,18 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 &quot;abc&quot;          ──► هیچ رقمی ──► false (نامعتبر)</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>کد کشور قابل‌تغییر:</strong> پارامتر دوم <code>assign</code> به‌صورت پیش‌فرض <code>"+98"</code> است؛ برای محصولات غیر ایرانی می‌توان کد دیگری داد (با یا بدون <code>+</code>).</li>
-<li><strong>کوتاه‌سازی بی‌صدا:</strong> اگر ارقام بیش از ظرفیت <code>GSM_SMS_NUMBER_BYTES</code> (۲۴) باشند، ارقام اضافی در حلقه نادیده گرفته می‌شوند؛ برای شماره‌های واقعی کافی است اما در دیباگ ورودی‌های مخرب به چشم می‌آید.</li>
-<li><strong>تشخیص پیشوند کشور:</strong> با <code>memcmp</code> روی ابتدای ارقام؛ برای شماره‌هایی که با کد کشور شروع شده‌اند ولی <code>+</code> ندارند (<code>98912…</code>) درست کار می‌کند. شماره‌های کوتاه‌تر از کد کشور (<code>98…</code>) به‌اشتباه ممکن است بین‌المللی تفسیر نشوند — الگوریتم عامدانه ساده است.</li>
-<li><strong>همیشه <code>+</code> در خروجی:</strong> <code>ATD+98912…;</code> و <code>AT+CMGS="+98912…"</code> با این قالب برای اکثر مودم‌ها (و شبکه ایران) معتبر است.</li>
-<li><strong>بدون heap:</strong> <code>value_</code> یک <code>static_string</code> عضو کلاس است؛ <code>printf</code> داخلی آن با ظرفیت ثابت کار می‌کند.</li>
-<li><strong><code>e164()</code></strong> (در هدر) اشاره‌گر به رشته نرمال‌شده برمی‌گرداند که <code>CallService</code> و <code>SmsService</code> مستقیم در فرمان‌ها <code>snprintf</code> می‌کنند.</li>
+<li><strong>کد کشور قابل تغییر:</strong> پارامتر دوم <code>assign</code> به صورت پیش فرض <code>"+98"</code> است؛ برای محصولات غیر ایرانی می توان کد دیگری داد (با یا بدون <code>+</code>).</li>
+<li><strong>کوتاه سازی بی صدا:</strong> اگر ارقام بیش از ظرفیت <code>GSM_SMS_NUMBER_BYTES</code> (۲۴) باشند، ارقام اضافی در حلقه نادیده گرفته می شوند؛ برای شماره های واقعی کافی است اما در دیباگ ورودی های مخرب به چشم می آید.</li>
+<li><strong>تشخیص پیشوند کشور:</strong> با <code>memcmp</code> روی ابتدای ارقام؛ برای شماره هایی که با کد کشور شروع شده اند ولی <code>+</code> ندارند (<code>98912…</code>) درست کار می کند. شماره های کوتاه تر از کد کشور (<code>98…</code>) به اشتباه ممکن است بین المللی تفسیر نشوند — الگوریتم عامدانه ساده است.</li>
+<li><strong>همیشه <code>+</code> در خروجی:</strong> <code>ATD+98912…;</code> و <code>AT+CMGS="+98912…"</code> با این قالب برای اکثر مودم ها (و شبکه ایران) معتبر است.</li>
+<li><strong>بدون heap:</strong> <code>value_</code> یک <code>static_string</code> عضو کلاس است؛ <code>printf</code> داخلی آن با ظرفیت ثابت کار می کند.</li>
+<li><strong><code>e164()</code></strong> (در هدر) اشاره گر به رشته نرمال شده برمی گرداند که <code>CallService</code> و <code>SmsService</code> مستقیم در فرمان ها <code>snprintf</code> می کنند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/codec/phone_number.hpp</code> — تعریف کلاس، <code>assign</code>، <code>e164()</code>، <code>valid()</code>، <code>clear()</code>.</li>
-<li><code>src/call_service.cpp</code> — شماره طرف تماس (<code>peer_</code>)؛ شماره‌های دریافتی <code>+CLIP</code>/<code>+CLCC</code> (حتی UCS2) هم از همین فیلتر می‌گذرند.</li>
+<li><code>src/call_service.cpp</code> — شماره طرف تماس (<code>peer_</code>)؛ شماره های دریافتی <code>+CLIP</code>/<code>+CLCC</code> (حتی UCS2) هم از همین فیلتر می گذرند.</li>
 <li><code>src/sms_service.cpp</code> — شماره گیرنده (<code>recipient_</code>) در <code>start_send</code>.</li>
-<li><code>src/modem.cpp</code> — <code>send_sms</code> و <code>dial</code> مقدار <code>job.number</code> را به <code>assign</code> می‌سپارند.</li>
+<li><code>src/modem.cpp</code> — <code>send_sms</code> و <code>dial</code> مقدار <code>job.number</code> را به <code>assign</code> می سپارند.</li>
 <li><code>include/gsm/gsm_config.hpp</code> — <code>GSM_SMS_NUMBER_BYTES</code> (اندازه بافر ارقام).</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

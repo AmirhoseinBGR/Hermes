@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-توصیف‌های سخت‌افزاری هر خانوادهٔ ماژول GSM در قالب یک struct مقداردهی‌اولیه‌شده در زمان کامپایل (`DeviceTraits`) و سه مقدار آماده برای ماژول‌های پشتیبانی‌شده. تفاوت‌های ظریف بین ماژول‌ها (دستور قطع تماس، محل ذخیرهٔ پیامک، پارامترهای CSMP، timeoutها و اعتماد به `+CLCC`) اینجا متمرکز شده تا کد سرویس‌ها شرطی و پراکنده نشود.
+توصیف های سخت افزاری هر خانوادهٔ ماژول GSM در قالب یک struct مقداردهی اولیه شده در زمان کامپایل (`DeviceTraits`) و سه مقدار آماده برای ماژول های پشتیبانی شده. تفاوت های ظریف بین ماژول ها (دستور قطع تماس، محل ذخیرهٔ پیامک، پارامترهای CSMP، timeoutها و اعتماد به `+CLCC`) اینجا متمرکز شده تا کد سرویس ها شرطی و پراکنده نشود.
 
 ## ساختارهای کلیدی
 
@@ -27,7 +27,7 @@ struct DeviceTraits
 };
 ```
 
-### مقادیر ازپیش‌تعریف‌شده
+### مقادیر ازپیش تعریف شده
 
 | Trait | ماژول | hangup | storage | boot | clcc_authoritative |
 |---|---|---|---|---|---|
@@ -57,7 +57,7 @@ inline constexpr DeviceTraits kQuectelM08R{"M08R",
 // the module can wedge after interrupted SMS payloads. Call supervision therefore
 // relies on +CLCC polling (clcc_authoritative) plus the call watchdog.
 ```
-برای M08R، نظارت تماس به **polling متناوب `+CLCC`** به‌عنوان مرجع اصلی حقیقت تکیه می‌کند؛ URCهای پایان تماس صرفاً کمکی‌اند. این flag مستقیماً رفتار `CallService::monitor` را تغییر می‌دهد.
+برای M08R، نظارت تماس به **polling متناوب `+CLCC`** به عنوان مرجع اصلی حقیقت تکیه می کند؛ URCهای پایان تماس صرفاً کمکی اند. این flag مستقیماً رفتار `CallService::monitor` را تغییر می دهد.
 
 ## جریان کاری
 
@@ -80,16 +80,16 @@ gsm::Modem modem(uart, clock, gsm::kQuectelM08R, &power);
 
 ## نکات فنی
 
-- `constexpr` و `inline` — بدون هزینهٔ زمان اجرا؛ رشته‌های literal در حافظهٔ فقط‌خواندنی.
-- traitها با **اشاره‌گر const** نگهداری می‌شوند؛ از مقدارهای سراسری (`kSim800` و …) یا object با طول عمر کافی استفاده کنید.
+- `constexpr` و `inline` — بدون هزینهٔ زمان اجرا؛ رشته های literal در حافظهٔ فقط خواندنی.
+- traitها با **اشاره گر const** نگهداری می شوند؛ از مقدارهای سراسری (`kSim800` و …) یا object با طول عمر کافی استفاده کنید.
 - `csmp_ucs2` برای M08/M08R با مقدار DCS=8 و برای SIM800 با 25 متفاوت است — همین تفاوت ظریف دلیل وجود این struct است.
-- timeoutهای `prompt` و `send` به‌طور پیش‌فرض از `gsm_config.hpp` می‌آیند اما در trait قابل override ماژول‌محورند.
-- افزودن ماژول جدید = تعریف یک `DeviceTraits` جدید؛ نیازی به تغییر سرویس‌ها نیست.
+- timeoutهای `prompt` و `send` به طور پیش فرض از `gsm_config.hpp` می آیند اما در trait قابل override ماژول محورند.
+- افزودن ماژول جدید = تعریف یک `DeviceTraits` جدید؛ نیازی به تغییر سرویس ها نیست.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `gsm_config.hpp` — `GSM_AT_PROMPT_TIMEOUT`، `GSM_AT_CMGS_TIMEOUT`
 - `sms/sms_service.hpp` — پارامترهای CSMP، مسیر ذخیره، timeout ارسال، الزام شمارهٔ UCS2
 - `voice/call_service.hpp` — `hangup_cmd`، `supports_clcc`، `clcc_authoritative`
-- `status/status_service.hpp` — `storage_cmd` برای شمارش پیامک‌ها
-- `modem/modem.hpp` — سازندهٔ `Modem` trait را دریافت می‌کند
+- `status/status_service.hpp` — `storage_cmd` برای شمارش پیامک ها
+- `modem/modem.hpp` — سازندهٔ `Modem` trait را دریافت می کند

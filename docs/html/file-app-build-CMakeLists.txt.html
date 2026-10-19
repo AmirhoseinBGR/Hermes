@@ -41,64 +41,64 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>App/CMakeLists.txt</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>App/CMakeLists.txt</h1>
 <h2>نقش فایل</h2>
-<p>پیکربندی ساخت لایه‌ی اپلیکیشن «EvoHatch hub». این فایل کتابخانه‌ی <code>app</code> را به‌صورت OBJECT می‌سازد، منطق هسته (core، بدون HAL)، چسب STM32/LVGL (port)، ماژول هشدار (alarm) و ماژول CLI مودم GSM (<code>gsm_cli/cli.cpp</code>) را گرد هم می‌آورد، و به کتابخانه‌های وابسته (<code>def</code>, <code>etl</code>, <code>eeprom</code>, <code>user_ui</code>, <code>gsm_modem</code>) پیوند می‌دهد. سطح لاگ اپلیکیشن را هم تنظیم می‌کند.</p>
+<p>پیکربندی ساخت لایه ی اپلیکیشن «EvoHatch hub». این فایل کتابخانه ی <code>app</code> را به صورت OBJECT می سازد، منطق هسته (core، بدون HAL)، چسب STM32/LVGL (port)، ماژول هشدار (alarm) و ماژول CLI مودم GSM (<code>gsm_cli/cli.cpp</code>) را گرد هم می آورد، و به کتابخانه های وابسته (<code>def</code>, <code>etl</code>, <code>eeprom</code>, <code>user_ui</code>, <code>gsm_modem</code>) پیوند می دهد. سطح لاگ اپلیکیشن را هم تنظیم می کند.</p>
 <h2>ساختارها/توابع کلیدی</h2>
 <ul>
-<li>هدر توضیحی: ساختار پوشه‌ها را شرح می‌دهد:</li>
-<li><code>core/</code> — منطق بدون HAL (تست‌شده با <code>make -C tests run</code>).</li>
+<li>هدر توضیحی: ساختار پوشه ها را شرح می دهد:</li>
+<li><code>core/</code> — منطق بدون HAL (تست شده با <code>make -C tests run</code>).</li>
 <li><code>port/</code> — چسب STM32 + LVGL + user_ui.</li>
-<li><code>alarm/</code> — هوک خطا (نمونه‌ی کامل یا قالب خالی).</li>
+<li><code>alarm/</code> — هوک خطا (نمونه ی کامل یا قالب خالی).</li>
 </ul>
 <ul>
 <li><code>option(APP_ALARM_EXAMPLE "Build the worked alarm example instead of the empty template" OFF)</code></li>
 </ul>
-<p>انتخاب بین نمونه‌ی کامل هشدار و قالب خالی.</p>
+<p>انتخاب بین نمونه ی کامل هشدار و قالب خالی.</p>
 <ul>
 <li>انتخاب منبع alarm:</li>
 <li>اگر <code>APP_ALARM_EXAMPLE</code> روشن → <code>alarm/alarm_actions.c</code>.</li>
 <li>وگرنه → <code>alarm/alarm_actions_template.c</code>.</li>
 </ul>
 <ul>
-<li><code>add_library(app OBJECT ...)</code> — کتابخانه‌ی OBJECT از فایل‌ها:</li>
+<li><code>add_library(app OBJECT ...)</code> — کتابخانه ی OBJECT از فایل ها:</li>
 <li><code>core/device.c</code>, <code>core/errors.c</code>, <code>core/rs485.c</code>, <code>core/esp_link.c</code>, <code>core/settings_store.c</code></li>
 <li><code>port/app_main.c</code>, <code>port/board.c</code>, <code>port/ui_bridge.c</code>, <code>port/esp_sync.c</code>, <code>port/drivers.cpp</code></li>
 <li><code>${APP_ALARM_SRC}</code> (بسته به گزینه)</li>
 <li><code>gsm_cli/cli.cpp</code></li>
 </ul>
 <ul>
-<li><code>target_include_directories(app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})</code> — ریشه‌ی پوشه‌ی App مسیر include عمومی.</li>
+<li><code>target_include_directories(app PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})</code> — ریشه ی پوشه ی App مسیر include عمومی.</li>
 </ul>
 <ul>
-<li><code>target_link_libraries(app PRIVATE def etl eeprom user_ui gsm_modem)</code> — پیوند به کتابخانه‌های وابسته، از جمله <code>gsm_modem</code> (کتابخانه‌ی GSM).</li>
+<li><code>target_link_libraries(app PRIVATE def etl eeprom user_ui gsm_modem)</code> — پیوند به کتابخانه های وابسته، از جمله <code>gsm_modem</code> (کتابخانه ی GSM).</li>
 </ul>
 <ul>
-<li><code>target_compile_definitions(app PRIVATE APP_LOG_LEVEL=APP_LOG_WARN)</code> — سطح لاگ اپ (پیش‌فرض WARN؛ گزینه‌های ERROR/WARN/INFO/TRACE که TRACE هر تراکنش گذرگاه را چاپ می‌کند).</li>
+<li><code>target_compile_definitions(app PRIVATE APP_LOG_LEVEL=APP_LOG_WARN)</code> — سطح لاگ اپ (پیش فرض WARN؛ گزینه های ERROR/WARN/INFO/TRACE که TRACE هر تراکنش گذرگاه را چاپ می کند).</li>
 </ul>
 <h2>جریان کاری</h2>
 <ol>
-<li>CMake گزینه‌ی <code>APP_ALARM_EXAMPLE</code> را بررسی می‌کند و فایل منبع alarm مناسب را انتخاب می‌کند.</li>
-<li>کتابخانه‌ی OBJECT به نام <code>app</code> از فایل‌های core، port، alarm و <code>gsm_cli/cli.cpp</code> ساخته می‌شود.</li>
-<li>مسیر ریشه‌ی App به‌عنوان include عمومی اضافه می‌شود (دسترسی به <code>core/</code>, <code>port/</code>, <code>gsm_cli/</code> و…).</li>
-<li>کتابخانه به <code>def</code>, <code>etl</code>, <code>eeprom</code>, <code>user_ui</code> و <code>gsm_modem</code> پیوند می‌خورد؛ <code>gsm_modem</code> همان کتابخانه‌ی GSM است.</li>
-<li>سطح لاگ با <code>APP_LOG_LEVEL=APP_LOG_WARN</code> تعریف می‌شود.</li>
+<li>CMake گزینه ی <code>APP_ALARM_EXAMPLE</code> را بررسی می کند و فایل منبع alarm مناسب را انتخاب می کند.</li>
+<li>کتابخانه ی OBJECT به نام <code>app</code> از فایل های core، port، alarm و <code>gsm_cli/cli.cpp</code> ساخته می شود.</li>
+<li>مسیر ریشه ی App به عنوان include عمومی اضافه می شود (دسترسی به <code>core/</code>, <code>port/</code>, <code>gsm_cli/</code> و…).</li>
+<li>کتابخانه به <code>def</code>, <code>etl</code>, <code>eeprom</code>, <code>user_ui</code> و <code>gsm_modem</code> پیوند می خورد؛ <code>gsm_modem</code> همان کتابخانه ی GSM است.</li>
+<li>سطح لاگ با <code>APP_LOG_LEVEL=APP_LOG_WARN</code> تعریف می شود.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li><code>add_library(app OBJECT ...)</code> یعنی کتابخانه‌ی اشیاء (object files)؛ این فایل‌ها جداگانه آبجکت می‌شوند و در نهایت به اجرایی نهایی پیوند می‌خورند.</li>
-<li><code>gsm_cli/cli.cpp</code> (چسب کنسول مودم + پل وب) بخشی از همین کتابخانه‌ی app است؛ منطق کنسول خود در <code>gsm_modem</code> قرار دارد.</li>
-<li><code>APP_LOG_LEVEL</code> یک ماکروی کامپایل است؛ سطح <code>APP_LOG_WARN</code> پیش‌فرض است و <code>APP_LOG_TRACE</code> برای اشکال‌زدایی هر تراکنش گذرگاه (bus) به کار می‌رود.</li>
-<li>گزینه‌ی <code>APP_ALARM_EXAMPLE</code> پیش‌فرض <code>OFF</code> است؛ یعنی قالب خالی هشدار ساخته می‌شود مگر صراحتاً روشن شود.</li>
-<li>پیوندها <code>PRIVATE</code> هستند؛ جزئیات کتابخانه‌های وابسته به مصرف‌کنندگان app درز نمی‌کند.</li>
-<li><code>port/drivers.cpp</code> (پل وب/سریال) در همین کتابخانه است و از <code>gsm_cli/cli.cpp</code> (یعنی <code>set_web_output</code>/<code>exec_web</code>/<code>status_line</code>) استفاده می‌کند.</li>
+<li><code>add_library(app OBJECT ...)</code> یعنی کتابخانه ی اشیاء (object files)؛ این فایل ها جداگانه آبجکت می شوند و در نهایت به اجرایی نهایی پیوند می خورند.</li>
+<li><code>gsm_cli/cli.cpp</code> (چسب کنسول مودم + پل وب) بخشی از همین کتابخانه ی app است؛ منطق کنسول خود در <code>gsm_modem</code> قرار دارد.</li>
+<li><code>APP_LOG_LEVEL</code> یک ماکروی کامپایل است؛ سطح <code>APP_LOG_WARN</code> پیش فرض است و <code>APP_LOG_TRACE</code> برای اشکال زدایی هر تراکنش گذرگاه (bus) به کار می رود.</li>
+<li>گزینه ی <code>APP_ALARM_EXAMPLE</code> پیش فرض <code>OFF</code> است؛ یعنی قالب خالی هشدار ساخته می شود مگر صراحتاً روشن شود.</li>
+<li>پیوندها <code>PRIVATE</code> هستند؛ جزئیات کتابخانه های وابسته به مصرف کنندگان app درز نمی کند.</li>
+<li><code>port/drivers.cpp</code> (پل وب/سریال) در همین کتابخانه است و از <code>gsm_cli/cli.cpp</code> (یعنی <code>set_web_output</code>/<code>exec_web</code>/<code>status_line</code>) استفاده می کند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>App/gsm_cli/cli.cpp</code> / <code>App/gsm_cli/cli.hpp</code> — چسب کنسول مودم + پل وب که در این کتابخانه گنجانده شده.</li>
-<li><code>gsm/CMakeLists.txt</code> — کتابخانه‌ی <code>gsm_modem</code> که اینجا لینک می‌شود.</li>
-<li><code>App/port/drivers.cpp</code> — پل وب/سریال (مصرف‌کننده‌ی API وب کنسول).</li>
+<li><code>gsm/CMakeLists.txt</code> — کتابخانه ی <code>gsm_modem</code> که اینجا لینک می شود.</li>
+<li><code>App/port/drivers.cpp</code> — پل وب/سریال (مصرف کننده ی API وب کنسول).</li>
 <li><code>App/core/*</code> — منطق بدون HAL اپلیکیشن.</li>
-<li><code>App/backend/eeprom/</code> و <code>App/backend/user_ui/</code> — کتابخانه‌های <code>eeprom</code> و <code>user_ui</code> که لینک می‌شوند.</li>
-<li>کتابخانه‌های <code>def</code>, <code>etl</code> — وابستگی‌های عمومی ابزار/کانتینر.</li>
+<li><code>App/backend/eeprom/</code> و <code>App/backend/user_ui/</code> — کتابخانه های <code>eeprom</code> و <code>user_ui</code> که لینک می شوند.</li>
+<li>کتابخانه های <code>def</code>, <code>etl</code> — وابستگی های عمومی ابزار/کانتینر.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-کلاس اصلی (Facade) کتابخانه: `Modem` مالک همهٔ زیرسامانه‌هاست — موتور AT، مسیریاب URC، سرویس‌های SMS/تماس/وضعیت/USSD، صف Jobها و نگهبان تعمیراتی — و چرخهٔ عمر کامل مودم را مدیریت می‌کند: بوت، ثبت شبکه، پالس PWRKEY، صف‌بندی درخواست‌های کاربر، housekeeping دوره‌ای، بازیابی SIM و ریست/پاورچرخه. کاربر نهایی معمولاً فقط با همین کلاس در تعامل است.
+کلاس اصلی (Facade) کتابخانه: `Modem` مالک همهٔ زیرسامانه هاست — موتور AT، مسیریاب URC، سرویس های SMS/تماس/وضعیت/USSD، صف Jobها و نگهبان تعمیراتی — و چرخهٔ عمر کامل مودم را مدیریت می کند: بوت، ثبت شبکه، پالس PWRKEY، صف بندی درخواست های کاربر، housekeeping دوره ای، بازیابی SIM و ریست/پاورچرخه. کاربر نهایی معمولاً فقط با همین کلاس در تعامل است.
 
 ## ساختارهای کلیدی
 
@@ -60,12 +60,12 @@ bool pwrkey_asserted() const;  // پین همین حالا پایین نگه د�
 uint32_t pwrkey_pulse_ms() const;
 ```
 
-پولس PWRKEY **غیرمسدودکننده** است: `power_cycle()`/`pulse_pwrkey()` فقط وضعیت را به `PowerPulsing` می‌برند و `tick()` ترتیب
-`assert` → نگه داشتن به مدت `pwrkey_pulse_ms` → `release` → انتظار `GSM_MODEM_BOOT_GUARD_MS` → پروب `AT` را اجرا می‌کند.
-هیچ‌کدام از این توابع بلاک نمی‌کنند و هرگز نباید از داخل وقفه صدا زده شوند.
-`NORMAL POWER DOWN` حین این دنباله به‌معنی خاموش‌شدن است (پولس بعدی برای روشن کردن)؛ بعد از `AT`/`RDY` موفق پیام کهنه است.
+پولس PWRKEY **غیرمسدودکننده** است: `power_cycle()`/`pulse_pwrkey()` فقط وضعیت را به `PowerPulsing` می برند و `tick()` ترتیب
+`assert` → نگه داشتن به مدت `pwrkey_pulse_ms` → `release` → انتظار `GSM_MODEM_BOOT_GUARD_MS` → پروب `AT` را اجرا می کند.
+هیچ کدام از این توابع بلاک نمی کنند و هرگز نباید از داخل وقفه صدا زده شوند.
+`NORMAL POWER DOWN` حین این دنباله به معنی خاموش شدن است (پولس بعدی برای روشن کردن)؛ بعد از `AT`/`RDY` موفق پیام کهنه است.
 
-APIهای Job (همگی `JobId` برمی‌گردانند؛ callback اختیاری):
+APIهای Job (همگی `JobId` برمی گردانند؛ callback اختیاری):
 ```cpp
 JobId send_sms(const char* number, const char* utf8_text, JobCallback cb = {},
                SmsEncoding enc = SmsEncoding::Auto);
@@ -90,7 +90,7 @@ const Job* queued(uint8_t i) const;
 const Job& current_job() const;
 ```
 
-مشاهده و دسترسی به زیرسامانه‌ها:
+مشاهده و دسترسی به زیرسامانه ها:
 ```cpp
 ModemState          state() const;
 const char*         state_name() const;
@@ -121,7 +121,7 @@ void set_on_sim(SimEventCb cb);
 void set_auto_read_sms(bool on);   // default true
 ```
 
-متدهای خصوصی کلیدی: `handle_urc`/`urc_trampoline`، `enter`، `enqueue`/`start_job`/`finish_job`، `pump_services`/`pump_housekeeping`/`flush_cancelled`، `service_for`، `check_watchdog`/`handle_sim_recovery`، `is_call_job`/`preempt_for_call`/`maintenance_service`/`full_restart` و وضعیت‌های بازیابی (`consecutive_timeouts_`، `sim_recovery_phase_`: 0=پروب `AT+CPIN?`، 1=‏`CFUN=0`، 2=‏`CFUN=1`).
+متدهای خصوصی کلیدی: `handle_urc`/`urc_trampoline`، `enter`، `enqueue`/`start_job`/`finish_job`، `pump_services`/`pump_housekeeping`/`flush_cancelled`، `service_for`، `check_watchdog`/`handle_sim_recovery`، `is_call_job`/`preempt_for_call`/`maintenance_service`/`full_restart` و وضعیت های بازیابی (`consecutive_timeouts_`، `sim_recovery_phase_`: 0=پروب `AT+CPIN?`، 1=‏`CFUN=0`، 2=‏`CFUN=1`).
 
 ## جریان کاری
 
@@ -152,21 +152,21 @@ modem.set_on_health(on_health);
 
 ## نکات فنی
 
-- **بدون heap / بدون STL**: همهٔ سرویس‌ها به‌صورت member (نه new)؛ `current_` یک `Job` کامل روی object است.
-- **`call_gate()`** (ویژگی v0.4): وقتی تماسی در جریان است (`CallService::engaged`)، Jobهای غیرتماسی نگه داشته می‌شوند تا وقفهٔ تماس، صف را خراب یا متوقف نکند؛ `preempt_for_call` اولویت را به Jobهای تماس می‌دهد.
-- **بازیابی صنعتی**: timeoutهای پیاپی (`GSM_CONSECUTIVE_TIMEOUTS_RESET`) به بازیابی می‌انجامد؛ چرخهٔ SIM: پروب `AT+CPIN?` → `CFUN=0/1` → در نهایت power cycle سخت‌افزاری (پس از `GSM_HARDWARE_REBOOT_TIMEOUT_MS`).
-- **`maintenance_service`/`full_restart`**: بازنشانی‌های نگهبان دوگانه (دوره‌ای + بودجهٔ عملیات) را اجرا می‌کنند؛ `keep_jobs` مشخص می‌کند صف حفظ یا تخلیه شود.
-- `start_failures_` و `kErrJobStalled` مکانیزم جلوگیری از گیرافتادن صف روی Job غیرقابل‌شروع است.
-- `tick()` باید بدون وقفه و سریع صدا زده شود؛ همه‌چیز غیرمسدودکننده و event-driven است.
-- trait پیش‌فرض `kSim800` است؛ برای ماژول‌های M08/M08R صریحاً trait مناسب را بدهید (`kQuectelM08R` برای رفتار `clcc_authoritative`).
-- `IPowerControl*` اختیاری است؛ بدون آن `reset()` نرم می‌ماند و `power_cycle()` معادل ریست نرم است.
+- **بدون heap / بدون STL**: همهٔ سرویس ها به صورت member (نه new)؛ `current_` یک `Job` کامل روی object است.
+- **`call_gate()`** (ویژگی v0.4): وقتی تماسی در جریان است (`CallService::engaged`)، Jobهای غیرتماسی نگه داشته می شوند تا وقفهٔ تماس، صف را خراب یا متوقف نکند؛ `preempt_for_call` اولویت را به Jobهای تماس می دهد.
+- **بازیابی صنعتی**: timeoutهای پیاپی (`GSM_CONSECUTIVE_TIMEOUTS_RESET`) به بازیابی می انجامد؛ چرخهٔ SIM: پروب `AT+CPIN?` → `CFUN=0/1` → در نهایت power cycle سخت افزاری (پس از `GSM_HARDWARE_REBOOT_TIMEOUT_MS`).
+- **`maintenance_service`/`full_restart`**: بازنشانی های نگهبان دوگانه (دوره ای + بودجهٔ عملیات) را اجرا می کنند؛ `keep_jobs` مشخص می کند صف حفظ یا تخلیه شود.
+- `start_failures_` و `kErrJobStalled` مکانیزم جلوگیری از گیرافتادن صف روی Job غیرقابل شروع است.
+- `tick()` باید بدون وقفه و سریع صدا زده شود؛ همه چیز غیرمسدودکننده و event-driven است.
+- trait پیش فرض `kSim800` است؛ برای ماژول های M08/M08R صریحاً trait مناسب را بدهید (`kQuectelM08R` برای رفتار `clcc_authoritative`).
+- `IPowerControl*` اختیاری است؛ بدون آن `reset()` نرم می ماند و `power_cycle()` معادل ریست نرم است.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `core/at_engine.hpp`، `core/service.hpp`، `core/urc_router.hpp` — هستهٔ ارتباط AT
-- `sms/sms_service.hpp`، `voice/call_service.hpp`، `status/status_service.hpp`، `ussd/ussd_service.hpp` — سرویس‌ها
-- `queue/job.hpp`، `queue/job_queue.hpp` — صف درخواست‌ها
+- `sms/sms_service.hpp`، `voice/call_service.hpp`، `status/status_service.hpp`، `ussd/ussd_service.hpp` — سرویس ها
+- `queue/job.hpp`، `queue/job_queue.hpp` — صف درخواست ها
 - `maintenance/watchdog.hpp` — نگهبان تعمیراتی و health check
-- `device/device_traits.hpp` — رفتار ماژول‌محور
+- `device/device_traits.hpp` — رفتار ماژول محور
 - `hal/hal.hpp` — UART/Clock/Power
-- `cli/cli.hpp`، `tools/serial_bridge.hpp` — مصرف‌کنندگان سطح بالا
+- `cli/cli.hpp`، `tools/serial_bridge.hpp` — مصرف کنندگان سطح بالا

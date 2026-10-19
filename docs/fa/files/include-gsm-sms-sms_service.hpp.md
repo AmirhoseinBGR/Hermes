@@ -2,7 +2,7 @@
 
 ## نقش فایل
 
-سرویس پیامک کتابخانه: ماشین حالت چندمرحله‌ای برای ارسال، خواندن، اسکن و حذف پیامک‌ها روی مودم GSM. این سرویس همهٔ جزئیات پروتکل (حالت متن، رمزگذاری UCS2/GSM-7، پارامترهای CSMP، مسیر ذخیره‌سازی، prompt ارسال و ACK نهایی) را مدیریت می‌کند و در نسخهٔ v0.4 یک **نگهبان سخت‌گیرانهٔ طول پیامک خروجی** برای جلوگیری از هنگ‌کردن ماژول‌های خانوادهٔ M08R دریافت کرده است.
+سرویس پیامک کتابخانه: ماشین حالت چندمرحله ای برای ارسال، خواندن، اسکن و حذف پیامک ها روی مودم GSM. این سرویس همهٔ جزئیات پروتکل (حالت متن، رمزگذاری UCS2/GSM-7، پارامترهای CSMP، مسیر ذخیره سازی، prompt ارسال و ACK نهایی) را مدیریت می کند و در نسخهٔ v0.4 یک **نگهبان سخت گیرانهٔ طول پیامک خروجی** برای جلوگیری از هنگ کردن ماژول های خانوادهٔ M08R دریافت کرده است.
 
 ## ساختارهای کلیدی
 
@@ -50,7 +50,7 @@ bool start_delete_index(int16_t storage_index);
 bool start_delete_read();
 ```
 
-پیاده‌سازی `IService`:
+پیاده سازی `IService`:
 ```cpp
 bool            active() const override;   // step_ != SmsStep::Idle
 void            pump() override;
@@ -78,10 +78,10 @@ void     set_max_chars(uint16_t n);
 uint16_t max_chars() const;
 static uint16_t count_chars(const char* utf8);
 ```
-- سقف بر حسب **کاراکتر UTF-8** (نه بایت)؛ مقدار پیش‌فرض `GSM_SMS_MAX_CHARS = 60` — پایین‌تر از سقف ۷۰ کاراکتری یک پیامک UCS2.
+- سقف بر حسب **کاراکتر UTF-8** (نه بایت)؛ مقدار پیش فرض `GSM_SMS_MAX_CHARS = 60` — پایین تر از سقف ۷۰ کاراکتری یک پیامک UCS2.
 - متن بلندتر → خطا با `AtResult{status: Error, code: kErrSmsTooLong}` بدون ارسال هیچ دستوری.
-- `set_max_chars(0)` نگهبان را غیرفعال می‌کند.
-- دلیل: ماژول‌های خانوادهٔ M08R با payload بلند هنگ می‌کنند یا پیامک خالی می‌فرستند.
+- `set_max_chars(0)` نگهبان را غیرفعال می کند.
+- دلیل: ماژول های خانوادهٔ M08R با payload بلند هنگ می کنند یا پیامک خالی می فرستند.
 
 متدهای خصوصی کلیدی: `advance_step`، `fail`، `complete`، `wants_ucs2`، `parse_cmgr_header`، `store_body`، `queue_index`.
 
@@ -111,14 +111,14 @@ SetTextMode -> SetCharset -> SetCsmp -> SetStorage -> SendHeader (AT+CMGS)
 ## نکات فنی
 
 - **بدون تخصیص حافظه / بدون STL**: بافرهای `StaticString` و آرایهٔ ایستای `pending_[GSM_SMS_INBOX_SLOTS]`.
-- **نگهبان طول**: شمارش با `count_chars` واحدهای کدپوینت UTF-8 را می‌شمارد؛ برای متن فارسی (UCS2) سقف مؤثر ۷۰ است ولی پیش‌فرض ۶۰ عمداً محافظه‌کارانه است.
-- رمزگذاری پیش‌فرض سرویس `Ucs2` است؛ `SmsEncoding::Auto` بر اساس `codec::is_ascii_only` انتخاب می‌شود.
-- `csmp_ucs2`/`csmp_gsm` و `storage_cmd` از `DeviceTraits` می‌آیند — کد ماژول‌مستقل است.
-- در `SendHeader` نشان `>` منتظر می‌مانیم (`on_prompt`)؛ ارسال زودتر از prompt باعث خرابی payload می‌شود.
-- `cancel()` هر مرحله‌ای را می‌شکند و نتیجه را `Aborted` می‌کند؛ بعد از Ctrl-Z دیگر لغو ایمن نیست.
-- `session_` (`SessionState`) از اجرای دوبارهٔ `SetTextMode`/`SetCharset` جلوگیری می‌کند؛ بعد از `invalidate()` همه چیز دوباره اعمال می‌شود.
+- **نگهبان طول**: شمارش با `count_chars` واحدهای کدپوینت UTF-8 را می شمارد؛ برای متن فارسی (UCS2) سقف مؤثر ۷۰ است ولی پیش فرض ۶۰ عمداً محافظه کارانه است.
+- رمزگذاری پیش فرض سرویس `Ucs2` است؛ `SmsEncoding::Auto` بر اساس `codec::is_ascii_only` انتخاب می شود.
+- `csmp_ucs2`/`csmp_gsm` و `storage_cmd` از `DeviceTraits` می آیند — کد ماژول مستقل است.
+- در `SendHeader` نشان `>` منتظر می مانیم (`on_prompt`)؛ ارسال زودتر از prompt باعث خرابی payload می شود.
+- `cancel()` هر مرحله ای را می شکند و نتیجه را `Aborted` می کند؛ بعد از Ctrl-Z دیگر لغو ایمن نیست.
+- `session_` (`SessionState`) از اجرای دوبارهٔ `SetTextMode`/`SetCharset` جلوگیری می کند؛ بعد از `invalidate()` همه چیز دوباره اعمال می شود.
 
-## ارتباط با سایر فایل‌ها
+## ارتباط با سایر فایل ها
 
 - `core/service.hpp` — پایهٔ `IService` و `SessionState`
 - `core/at_engine.hpp` — اجرای دستورهای AT
@@ -126,6 +126,6 @@ SetTextMode -> SetCharset -> SetCsmp -> SetStorage -> SendHeader (AT+CMGS)
 - `sms/sms_types.hpp` — `SmsMessage`، `SmsSendReport`، `SmsEncoding`
 - `codec/phone_number.hpp` — `PhoneNumber recipient_`
 - `codec/ucs2.hpp` — تبدیل متن به hex-UCS2 برای payload
-- `gsm_config.hpp` — `GSM_SMS_MAX_CHARS` و اندازه‌های بافر
+- `gsm_config.hpp` — `GSM_SMS_MAX_CHARS` و اندازه های بافر
 - `core/at_types.hpp` — `kErrSmsTooLong`
 - `modem/modem.hpp` — Jobهای `SmsSend/SmsRead/SmsScan/SmsDelete*`

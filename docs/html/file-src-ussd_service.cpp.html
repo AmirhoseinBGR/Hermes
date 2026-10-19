@@ -41,35 +41,35 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/ussd_service.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/ussd_service.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی <code>gsm::UssdService</code>؛ سرویس کدهای USSD (مثل استعلام موجودی) با فرمان <code>AT+CUSD</code>. متن خروجی همیشه به هگز UCS2 کدبندی می‌شود، پاسخ شبکه به‌صورت URC ناخواسته (<code>+CUSD:</code>) دریافت و با توجه به <code>dcs</code> (یا بو کردن محتوا) به UTF-8 برگردانده می‌شود. نسخه فعلی «تعاملی» نیست: هر پاسخی (حتی درخواست ورودی بیشتر شبکه با <code>m=1</code>) با <code>AT+CUSD=2</code> بسته می‌شود؛ مسیر جلسه باز (<code>SessionOpen</code>/<code>send_reply</code>) در کد حاضر است ولی غیرفعال شده است.</p>
+<p>پیاده سازی <code>gsm::UssdService</code>؛ سرویس کدهای USSD (مثل استعلام موجودی) با فرمان <code>AT+CUSD</code>. متن خروجی همیشه به هگز UCS2 کدبندی می شود، پاسخ شبکه به صورت URC ناخواسته (<code>+CUSD:</code>) دریافت و با توجه به <code>dcs</code> (یا بو کردن محتوا) به UTF-8 برگردانده می شود. نسخه فعلی «تعاملی» نیست: هر پاسخی (حتی درخواست ورودی بیشتر شبکه با <code>m=1</code>) با <code>AT+CUSD=2</code> بسته می شود؛ مسیر جلسه باز (<code>SessionOpen</code>/<code>send_reply</code>) در کد حاضر است ولی غیرفعال شده است.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3>توابع متنی</h3>
 <p><code>to_string(UssdStep)</code> → <code>"cusd-enable" | "cusd-send" | "cusd-reply" | "wait-cusd-urc" | "session-open" | "cusd-end"</code> (+ <code>"idle"/"done"</code>).</p>
 <h3>توابع ایستای کمکی (anonymous namespace)</h3>
 <ul>
-<li><strong><code>encode_ussd_text(text, out, cap, dcs)</code></strong> — تبدیل UTF-8 → هگز UCS2 با <code>codec::utf8_to_ucs2_hex</code> و مقداردهی <code>dcs = 15</code>. (کامنت داخل کد تأکید می‌کند با dcs=15 هم کار می‌کند چون payload ذاتاً UCS2 hex است.)</li>
-<li><strong><code>build_cusd_command(text, cmd, cap)</code></strong> — ساخت فرمان کامل و رد در صورت شکست رمزنگاری یا بریده‌شدن:</li>
+<li><strong><code>encode_ussd_text(text, out, cap, dcs)</code></strong> — تبدیل UTF-8 → هگز UCS2 با <code>codec::utf8_to_ucs2_hex</code> و مقداردهی <code>dcs = 15</code>. (کامنت داخل کد تأکید می کند با dcs=15 هم کار می کند چون payload ذاتاً UCS2 hex است.)</li>
+<li><strong><code>build_cusd_command(text, cmd, cap)</code></strong> — ساخت فرمان کامل و رد در صورت شکست رمزنگاری یا بریده شدن:</li>
 </ul>
 <pre><code class="lang-cpp">std::snprintf(cmd, cmd_cap, &quot;AT+CUSD=1,\&quot;%s\&quot;,%u&quot;, payload, dcs);
 return n &gt; 0 &amp;&amp; static_cast&lt;uint16_t&gt;(n) &lt; cmd_cap;   // truncation check</code></pre>
 <ul>
-<li><strong><code>decode_ussd_text(raw, dcs, out)</code></strong> (قالبی/template) — رمزگشایی پاسخ: <code>dcs == 72</code> → UCS2، <code>dcs == 15</code> → خام، نامشخص → <code>looks_like_ucs2_hex</code>؛ یک <strong>تور ایمنی</strong> هم دارد: حتی اگر dcs بگوید خام، اگر payload آشکارا هگز UCS2 باشد UCS2 رمزگشایی می‌شود (مودم‌هایی با dcs گزارش‌شده غلط).</li>
+<li><strong><code>decode_ussd_text(raw, dcs, out)</code></strong> (قالبی/template) — رمزگشایی پاسخ: <code>dcs == 72</code> → UCS2، <code>dcs == 15</code> → خام، نامشخص → <code>looks_like_ucs2_hex</code>؛ یک <strong>تور ایمنی</strong> هم دارد: حتی اگر dcs بگوید خام، اگر payload آشکارا هگز UCS2 باشد UCS2 رمزگشایی می شود (مودم هایی با dcs گزارش شده غلط).</li>
 </ul>
 <h3><code>const char* UssdService::default_balance_code(Operator op)</code></h3>
-<p>کد پیش‌فرض استعلام موجودی اپراتورهای ایرانی: Irancell → <code><em>141</em>1#</code>، MCI → <code><em>140</em>11#</code>، RighTel و ناشناخته → <code>*140#</code>. (از <code>StatusService::detect_operator</code> تغذیه می‌شود.)</p>
+<p>کد پیش فرض استعلام موجودی اپراتورهای ایرانی: Irancell → <code><em>141</em>1#</code>، MCI → <code><em>140</em>11#</code>، RighTel و ناشناخته → <code>*140#</code>. (از <code>StatusService::detect_operator</code> تغذیه می شود.)</p>
 <h3>شروع/کنترل جلسه</h3>
 <ul>
-<li>**<code>start_query(const char* ussd_code)</code>** — شروع استعلام؛ کد در <code>code_</code> ذخیره، <code>report_</code> ریست و به گام <code>SetUssdMode</code> می‌رود.</li>
-<li><strong><code>start_balance_query(Operator)</code></strong> — نسخه ساده‌شده با کد پیش‌فرض.</li>
-<li>**<code>send_reply(const char* text)</code>** — ادامه جلسه تعاملی (فقط وقتی <code>session_open_</code>)؛ در نسخه فعلی عملاً غیرقابل‌دسترس است چون <code>session_open_</code> هرگز true نمی‌شود.</li>
+<li>**<code>start_query(const char* ussd_code)</code>** — شروع استعلام؛ کد در <code>code_</code> ذخیره، <code>report_</code> ریست و به گام <code>SetUssdMode</code> می رود.</li>
+<li><strong><code>start_balance_query(Operator)</code></strong> — نسخه ساده شده با کد پیش فرض.</li>
+<li>**<code>send_reply(const char* text)</code>** — ادامه جلسه تعاملی (فقط وقتی <code>session_open_</code>)؛ در نسخه فعلی عملاً غیرقابل دسترس است چون <code>session_open_</code> هرگز true نمی شود.</li>
 <li><strong><code>end_session()</code></strong> — بستن مؤدبانه جلسه با <code>AT+CUSD=2</code> (گام <code>EndSession</code>).</li>
-<li><strong><code>cancel()</code></strong> — لغو: ابتدا <code>AT+CUSD=2</code> خام (بدون فرمان AT ثبت‌شده) نوشته می‌شود تا جلسه شبکه بسته شود، سپس <code>at_.abort()</code> و <code>complete(Aborted, -1)</code>.</li>
+<li><strong><code>cancel()</code></strong> — لغو: ابتدا <code>AT+CUSD=2</code> خام (بدون فرمان AT ثبت شده) نوشته می شود تا جلسه شبکه بسته شود، سپس <code>at_.abort()</code> و <code>complete(Aborted, -1)</code>.</li>
 </ul>
-<h3><code>void UssdService::pump()</code> — ماشین گام‌ها</h3>
+<h3><code>void UssdService::pump()</code> — ماشین گام ها</h3>
 <ul>
-<li><strong><code>SetUssdMode</code></strong> — دو فراخوانی پشت‌سرهم <code>execute</code> دارد (یکی از نکات مهم این نسخه، پایین‌تر):</li>
+<li><strong><code>SetUssdMode</code></strong> — دو فراخوانی پشت سرهم <code>execute</code> دارد (یکی از نکات مهم این نسخه، پایین تر):</li>
 </ul>
 <pre><code class="lang-cpp">case UssdStep::SetUssdMode:
     // AT+CUSD=1 enables presentation of USSD responses
@@ -82,17 +82,17 @@ return n &gt; 0 &amp;&amp; static_cast&lt;uint16_t&gt;(n) &lt; cmd_cap;   // tru
 <li><strong><code>EndSession</code></strong> — <code>AT+CUSD=2</code> با timeout ۵s.</li>
 </ul>
 <h3><code>void UssdService::on_line(...)</code> / <code>notify_cusd(const char* line)</code></h3>
-<p>هر خط <code>+CUSD:</code> (چه از URC و چه پاسخ فرمان) به <code>notify_cusd</code> می‌رود. ساختار: <code>+CUSD: &lt;m&gt;,"&lt;str&gt;",&lt;dcs&gt;</code>:</p>
+<p>هر خط <code>+CUSD:</code> (چه از URC و چه پاسخ فرمان) به <code>notify_cusd</code> می رود. ساختار: <code>+CUSD: &lt;m&gt;,"&lt;str&gt;",&lt;dcs&gt;</code>:</p>
 <ol>
 <li>استخراج <code>m</code> (کد وضعیت) و <code>dcs</code> با <code>csv_field</code>.</li>
 <li>رمزگشایی payload با <code>decode_ussd_text</code> به <code>report_.response</code>؛ <code>report_.status_code = m</code>.</li>
-<li>اگر در گام انتظار نباشیم (<code>SendQuery</code>/<code>SendReply</code>/<code>WaitUrc</code>)، پاسخ ناخواسته نادیده گرفته می‌شود (رویداد ثبت ولی کامل نمی‌شود).</li>
-<li><strong><code>m == 1</code></strong> (شبکه ورودی بیشتر می‌خواهد): در این نسخه جلسه بسته و <code>complete(Ok, 0)</code> می‌شود — مسیر <code>SessionOpen</code>/<code>on_done_</code> کامنت شده است.</li>
+<li>اگر در گام انتظار نباشیم (<code>SendQuery</code>/<code>SendReply</code>/<code>WaitUrc</code>)، پاسخ ناخواسته نادیده گرفته می شود (رویداد ثبت ولی کامل نمی شود).</li>
+<li><strong><code>m == 1</code></strong> (شبکه ورودی بیشتر می خواهد): در این نسخه جلسه بسته و <code>complete(Ok, 0)</code> می شود — مسیر <code>SessionOpen</code>/<code>on_done_</code> کامنت شده است.</li>
 <li>سایر مقادیر (<code>0</code> موفقیت، <code>2</code> قطع توسط شبکه و …): <code>AT+CUSD=2</code> خام + <code>complete(Ok, m)</code>.</li>
 </ol>
 <h3><code>void UssdService::on_final(const AtResult&amp; res)</code></h3>
 <ul>
-<li>نتیجه «ول‌شده» (stray): اگر گام <code>Idle</code> یا <code>SessionOpen</code> باشد نادیده گرفته می‌شود (پاسخ URC زودتر از OK فرمان رسیده و تکلیف را روشن کرده است).</li>
+<li>نتیجه «ول شده» (stray): اگر گام <code>Idle</code> یا <code>SessionOpen</code> باشد نادیده گرفته می شود (پاسخ URC زودتر از OK فرمان رسیده و تکلیف را روشن کرده است).</li>
 <li>خطا → <code>complete(res.status, res.code)</code>.</li>
 <li><code>SetUssdMode</code> موفق → <code>SendQuery</code>.</li>
 <li><code>SendQuery</code>/<code>SendReply</code> موفق → <code>WaitUrc</code> (ثبت <code>wait_start_</code>).</li>
@@ -117,20 +117,20 @@ on_final(OK) ──────────────────────�
                      └─► on_done_(UssdResult{response, status_code, result})</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>رفتار <code>SetUssdMode</code> (نکته مهم این نسخه):</strong> دو <code>execute</code> پشت‌سرهم داده می‌شود در حالی که <code>AtEngine</code> فقط یک فرمان در پرواز می‌پذیرد؛ فراخوانی دوم (وقتی اولی هنوز تمام نشده) <code>false</code> برمی‌گرداند و <code>issued_</code> را <code>false</code> می‌کند. عملاً فقط <code>AT+CUSD=2</code> به مودم می‌رود و فرمان <code>AT+CSCS="UCS2"</code> در این مسیر ارسال نمی‌شود (و اگر <code>pump</code> دوباره صدا زده شود، <code>execute</code>های بعدی هم تا پایان فرمان اول رد می‌شوند). خوشبختانه bootstrap مودم (<code>kBoot</code> در <code>modem.cpp</code>) از قبل <code>AT+CSCS="UCS2"</code> را اجرا کرده و payload همیشه هگز UCS2 است؛ اما ناسازگاری کامنت (<code>AT+CUSD=1</code>) با کد (<code>AT+CUSD=2</code>) هم قابل‌توجه است — کد فعلی عملاً «بستن جلسه» می‌فرستد.</li>
-<li><strong><code>AT+CUSD=2</code> خام در چند مسیر:</strong> در <code>cancel</code>، timeout <code>WaitUrc</code>، <code>m==1</code> و پایان <code>EndSession</code> نوشته می‌شود؛ چون این مسیرها «فرمان AT ثبت‌شده» ندارند، از <code>write_raw</code> استفاده شده تا ماشین گام‌ها به‌هم نریزد.</li>
-<li><strong>کدبندی همیشه UCS2:</strong> برخلاف SMS (که GSM7/UCS2 انتخابی است)، کدها و پاسخ‌های USSD با dcs=15 و payload هگز UCS2 رد و بدل می‌شوند؛ برای متن فارسی پاسخ‌ها ضروری است.</li>
-<li><strong>کد خطای <code>-2</code>:</strong> شکست رمزنگاری خروجی (متن نامعتبر UTF-8 یا کمبود بافر) با <code>complete(Aborted, -2)</code> گزارش می‌شود؛ این کد داخلی سرویس است نه CME/CMS.</li>
-<li><strong>پاسخ‌های ناخواسته:</strong> <code>+CUSD</code> ممکن است خارج از درخواست ما بیاید (مثلاً پیامک تعاملی شبکه)؛ شرط گام در <code>notify_cusd</code> جلوی کامل‌شدن کاذب را می‌گیرد ولی <code>report_.response</code> با آخرین مقدار به‌روز می‌شود.</li>
-<li><strong>ظرفیت‌ها:</strong> بافرهای <code>raw</code>/<code>payload</code> با <code>GSM_USSD_RESPONSE_BYTES</code> (۵۱۲) و <code>GSM_CMD_MAX</code> (۲۵۶) محدودند؛ <code>build_cusd_command</code> بریده‌شدن را صریح رد می‌کند.</li>
-<li><strong>بدون heap:</strong> همه رشته‌ها (<code>code_</code>، <code>report_.response</code>) از نوع <code>static_string</code> عضو کلاس‌اند.</li>
+<li><strong>رفتار <code>SetUssdMode</code> (نکته مهم این نسخه):</strong> دو <code>execute</code> پشت سرهم داده می شود در حالی که <code>AtEngine</code> فقط یک فرمان در پرواز می پذیرد؛ فراخوانی دوم (وقتی اولی هنوز تمام نشده) <code>false</code> برمی گرداند و <code>issued_</code> را <code>false</code> می کند. عملاً فقط <code>AT+CUSD=2</code> به مودم می رود و فرمان <code>AT+CSCS="UCS2"</code> در این مسیر ارسال نمی شود (و اگر <code>pump</code> دوباره صدا زده شود، <code>execute</code>های بعدی هم تا پایان فرمان اول رد می شوند). خوشبختانه bootstrap مودم (<code>kBoot</code> در <code>modem.cpp</code>) از قبل <code>AT+CSCS="UCS2"</code> را اجرا کرده و payload همیشه هگز UCS2 است؛ اما ناسازگاری کامنت (<code>AT+CUSD=1</code>) با کد (<code>AT+CUSD=2</code>) هم قابل توجه است — کد فعلی عملاً «بستن جلسه» می فرستد.</li>
+<li><strong><code>AT+CUSD=2</code> خام در چند مسیر:</strong> در <code>cancel</code>، timeout <code>WaitUrc</code>، <code>m==1</code> و پایان <code>EndSession</code> نوشته می شود؛ چون این مسیرها «فرمان AT ثبت شده» ندارند، از <code>write_raw</code> استفاده شده تا ماشین گام ها به هم نریزد.</li>
+<li><strong>کدبندی همیشه UCS2:</strong> برخلاف SMS (که GSM7/UCS2 انتخابی است)، کدها و پاسخ های USSD با dcs=15 و payload هگز UCS2 رد و بدل می شوند؛ برای متن فارسی پاسخ ها ضروری است.</li>
+<li><strong>کد خطای <code>-2</code>:</strong> شکست رمزنگاری خروجی (متن نامعتبر UTF-8 یا کمبود بافر) با <code>complete(Aborted, -2)</code> گزارش می شود؛ این کد داخلی سرویس است نه CME/CMS.</li>
+<li><strong>پاسخ های ناخواسته:</strong> <code>+CUSD</code> ممکن است خارج از درخواست ما بیاید (مثلاً پیامک تعاملی شبکه)؛ شرط گام در <code>notify_cusd</code> جلوی کامل شدن کاذب را می گیرد ولی <code>report_.response</code> با آخرین مقدار به روز می شود.</li>
+<li><strong>ظرفیت ها:</strong> بافرهای <code>raw</code>/<code>payload</code> با <code>GSM_USSD_RESPONSE_BYTES</code> (۵۱۲) و <code>GSM_CMD_MAX</code> (۲۵۶) محدودند؛ <code>build_cusd_command</code> بریده شدن را صریح رد می کند.</li>
+<li><strong>بدون heap:</strong> همه رشته ها (<code>code_</code>، <code>report_.response</code>) از نوع <code>static_string</code> عضو کلاس اند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/ussd/ussd_service.hpp</code> — <code>UssdStep</code>، <code>UssdResult</code>، <code>session_open_</code>، <code>on_done_</code>.</li>
 <li><code>gsm/core/at_engine.hpp</code> — <code>execute</code>، <code>write_raw</code>، <code>abort</code>، <code>now</code>.</li>
 <li><code>gsm/codec/ucs2.hpp</code> + <code>src/ucs2.cpp</code> — <code>utf8_to_ucs2_hex</code>، <code>ucs2_hex_to_utf8</code>، <code>looks_like_ucs2_hex</code>.</li>
-<li><code>src/urc_router.cpp</code> — مسیریابی <code>+CUSD:</code> به‌عنوان <code>Urc::Ussd</code> → <code>Modem::handle_urc</code> → <code>notify_cusd</code>.</li>
+<li><code>src/urc_router.cpp</code> — مسیریابی <code>+CUSD:</code> به عنوان <code>Urc::Ussd</code> → <code>Modem::handle_urc</code> → <code>notify_cusd</code>.</li>
 <li><code>src/status_service.cpp</code> — <code>Operator</code> برای <code>default_balance_code</code>.</li>
 <li><code>src/modem.cpp</code> — job <code>UssdQuery</code> و <code>check_balance</code>؛ کپی <code>ussd_response</code> در <code>finish_job</code>.</li>
 <li><code>include/gsm/gsm_config.hpp</code> — <code>GSM_USSD_RESPONSE_BYTES</code>، <code>GSM_AT_USSD_TIMEOUT</code>، <code>GSM_CMD_MAX</code>.</li>

@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/util/ring_buffer.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/util/ring_buffer.hpp</h1>
 <h2>نقش فایل</h2>
-<p>بافر حلقوی (FIFO) بایت‌محور با اندازهٔ ثابت و بدون heap، مناسب بافر دریافت UART در سطح راه‌انداز یا هر جریان بایتی دیگر. سر و ته بافر <code>volatile</code> هستند تا در حالت‌های وقفه‌ای (ISR تولیدکننده / حلقهٔ اصلی مصرف‌کننده) قابل استفاده باشد؛ overflow به‌صورت صریح علامت‌گذاری می‌شود.</p>
+<p>بافر حلقوی (FIFO) بایت محور با اندازهٔ ثابت و بدون heap، مناسب بافر دریافت UART در سطح راه انداز یا هر جریان بایتی دیگر. سر و ته بافر <code>volatile</code> هستند تا در حالت های وقفه ای (ISR تولیدکننده / حلقهٔ اصلی مصرف کننده) قابل استفاده باشد؛ overflow به صورت صریح علامت گذاری می شود.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>template &lt;uint16_t N&gt; class RingBuffer</code></h3>
 <pre><code class="lang-cpp">template &lt;uint16_t N&gt; class RingBuffer
@@ -66,11 +66,11 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     volatile bool     overflow_ = false;
 };</code></pre>
 <ul>
-<li><code>push(byte)</code>: درج در <code>head_</code>؛ اگر <code>advance(head_) == tail_</code> باشد بافر پر است → <code>false</code> و <code>overflow_ = true</code> (بایت جدید <strong>دور انداخته می‌شود</strong>، بافر بازنویسی نمی‌شود).</li>
-<li><code>push(data, n)</code>: حداکثر <code>n</code> بایت را قبول می‌کند و تعداد پذیرفته‌شده را برمی‌گرداند (توقف در اولین پرشدگی).</li>
+<li><code>push(byte)</code>: درج در <code>head_</code>؛ اگر <code>advance(head_) == tail_</code> باشد بافر پر است → <code>false</code> و <code>overflow_ = true</code> (بایت جدید <strong>دور انداخته می شود</strong>، بافر بازنویسی نمی شود).</li>
+<li><code>push(data, n)</code>: حداکثر <code>n</code> بایت را قبول می کند و تعداد پذیرفته شده را برمی گرداند (توقف در اولین پرشدگی).</li>
 <li><code>pop(out)</code>: برداشت یک بایت از <code>tail_</code>؛ خالی → <code>false</code>.</li>
-<li><code>size()</code>: تعداد بایت‌های موجود (مقاوم در برابر wrap).</li>
-<li><code>overflowed()</code> / <code>clear_overflow()</code>: پرچم overflow برای تشخیص از‌دست‌رفتن داده در سطح بالاتر.</li>
+<li><code>size()</code>: تعداد بایت های موجود (مقاوم در برابر wrap).</li>
+<li><code>overflowed()</code> / <code>clear_overflow()</code>: پرچم overflow برای تشخیص از دست رفتن داده در سطح بالاتر.</li>
 </ul>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">ISR / producer                         main loop / consumer
@@ -90,18 +90,18 @@ uint8_t b;
 while (rx.pop(b)) { /* feed LineReader / engine */ }</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون heap / بدون STL / بدون قفل</strong>: آرایهٔ ایستا و ایندکس‌های <code>volatile</code>; امن برای یک تولیدکننده/یک مصرف‌کننده (SPSC) بدون mutex.</li>
+<li><strong>بدون heap / بدون STL / بدون قفل</strong>: آرایهٔ ایستا و ایندکس های <code>volatile</code>; امن برای یک تولیدکننده/یک مصرف کننده (SPSC) بدون mutex.</li>
 <li>ظرفیت واقعی <code>N - 1</code> بایت است (یک خانه برای تفکیک full از empty رزرو شده).</li>
-<li>overflow داده را از دست می‌دهد ولی ساختار را خراب نمی‌کند؛ پرچم آن برای لاگ/تشخیص افت بسته ضروری است.</li>
-<li>درصد باقیماندهٔ <code>(i + 1) % N</code> اگر <code>N</code> توان ۲ باشد به mask bit ارتقا می‌یابد (کامپایلر بهینه می‌کند)؛ <code>N</code> دلخواه هم مجاز است.</li>
-<li>توابع <code>push</code>/<code>pop</code> کوتاه و قابل inline شدن‌اند؛ مناسب ISR.</li>
-<li>این بافر بایت‌است و مفاهیم خط/فرمان ندارد — لایهٔ <code>LineReader</code> بالای آن (یا مستقیم روی UART) کار قاب‌بندی را می‌کند.</li>
-<li><code>head_</code>/<code>tail_</code> فقط در یک سمت نوشته می‌شوند (هر کدام توسط یک نقش)، بنابراین الگوی SPSC بدون hazard است؛ برای چندمصرف‌کننده طراحی نشده.</li>
+<li>overflow داده را از دست می دهد ولی ساختار را خراب نمی کند؛ پرچم آن برای لاگ/تشخیص افت بسته ضروری است.</li>
+<li>درصد باقیماندهٔ <code>(i + 1) % N</code> اگر <code>N</code> توان ۲ باشد به mask bit ارتقا می یابد (کامپایلر بهینه می کند)؛ <code>N</code> دلخواه هم مجاز است.</li>
+<li>توابع <code>push</code>/<code>pop</code> کوتاه و قابل inline شدن اند؛ مناسب ISR.</li>
+<li>این بافر بایت است و مفاهیم خط/فرمان ندارد — لایهٔ <code>LineReader</code> بالای آن (یا مستقیم روی UART) کار قاب بندی را می کند.</li>
+<li><code>head_</code>/<code>tail_</code> فقط در یک سمت نوشته می شوند (هر کدام توسط یک نقش)، بنابراین الگوی SPSC بدون hazard است؛ برای چندمصرف کننده طراحی نشده.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>hal/hal.hpp</code> — <code>IUart::read/available</code> اغلب با همین بافر در راه‌انداز برد پیاده می‌شود</li>
+<li><code>hal/hal.hpp</code> — <code>IUart::read/available</code> اغلب با همین بافر در راه انداز برد پیاده می شود</li>
 <li><code>gsm_config.hpp</code> — <code>GSM_RX_RING_SIZE</code> (اندازهٔ معمول بافر دریافت)</li>
-<li><code>util/static_string.hpp</code> — مکمل این بافر برای ذخیرهٔ رشته‌ای</li>
-<li><code>core/line_reader.hpp</code> — لایهٔ قاب‌بندی خط روی جریان بایتی</li>
+<li><code>util/static_string.hpp</code> — مکمل این بافر برای ذخیرهٔ رشته ای</li>
+<li><code>core/line_reader.hpp</code> — لایهٔ قاب بندی خط روی جریان بایتی</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

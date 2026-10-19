@@ -41,7 +41,7 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>معماری کتابخانه GSM (SIM800 / Quectel M08 / M08R)</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>معماری کتابخانه GSM (SIM800 / Quectel M08 / M08R)</h1>
 <p>هدف: یک درایور غیرمسدودکننده (non-blocking) با <code>tick()</code>، ماشین حالت اصلی + زیرحالت،</p>
 <p>صف کار، و پیش فرض «SMS فارسی در Text Mode با UCS2». بدون STL، بدون heap،</p>
 <p>بدون exception/RTTI.</p>
@@ -51,10 +51,10 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 --------------------------------------------------------------
 L3  Modem                    main FSM + JobQueue + Housekeeping + گیت تماس
     ├── SmsService           زیرحالت ارسال/خواندن/حذف + گارد طول پیام
-    ├── CallService          سرپرستی تماس (تایمر قطع خودکار + پرس‌وجوی +CLCC)
+    ├── CallService          سرپرستی تماس (تایمر قطع خودکار + پرس وجوی +CLCC)
     ├── StatusService        CSQ / CREG / CPIN / CPMS / COPS
     ├── UssdService          کدهای USSD و استعلام شارژ
-    └── MaintenanceWatchdog  دو ریست‌کننده دوره‌ای + بررسی سلامت
+    └── MaintenanceWatchdog  دو ریست کننده دوره ای + بررسی سلامت
 --------------------------------------------------------------
 L2  AtEngine                 یک فرمان در پرواز، تایم اوت، prompt، ESC
     ├── LineReader           بایت → خط (و تشخیص «&gt; » بدون terminator)
@@ -122,17 +122,17 @@ L0  hal::IUart / IClock / IPowerControl   ← تنها نقطه ی وابستگ�
 <h2>۶) جریان گیت تماس و سرپرستی (v0.4)</h2>
 <pre><code>Modem::tick() (هر تیک):
   at_.tick()                    ← خواندن UART و توزیع خطوط/URC
-  check_watchdog()              ← واچ‌داگ صنعتی قبلی
-  call_.monitor(now, idle)      ← تایمر قطع خودکار + پرس‌وجوی +CLCC
-  maintenance_service()         ← دو ریست‌کننده دوره‌ای
+  check_watchdog()              ← واچ داگ صنعتی قبلی
+  call_.monitor(now, idle)      ← تایمر قطع خودکار + پرس وجوی +CLCC
+  maintenance_service()         ← دو ریست کننده دوره ای
   ... ماشین حالت اصلی ...
   pump_services()               ← اجرای صف (با گیت تماس)
-  watchdog_.pump(...)           ← پروب‌های سلامت فقط وقتی همه‌چیز بیکار است</code></pre>
-<p><strong>گیت تماس</strong>: وقتی <code>call_.state() != Idle</code> باشد، جاب‌های غیرتماسی شروع نمی‌شوند</p>
-<p>(در صف یا <code>current_</code> نگه داشته می‌شوند). اگر تماس ورودی وسط یک جاب برسد،</p>
-<p><code>preempt_for_call()</code> جاب را با ESC به‌صورت امن لغو و <code>deferred</code> می‌کند؛</p>
-<p>بعد از پایان تماس، جاب بدون از دست دادن بودجه تلاش مجدد از سر گرفته می‌شود.</p>
+  watchdog_.pump(...)           ← پروب های سلامت فقط وقتی همه چیز بیکار است</code></pre>
+<p><strong>گیت تماس</strong>: وقتی <code>call_.state() != Idle</code> باشد، جاب های غیرتماسی شروع نمی شوند</p>
+<p>(در صف یا <code>current_</code> نگه داشته می شوند). اگر تماس ورودی وسط یک جاب برسد،</p>
+<p><code>preempt_for_call()</code> جاب را با ESC به صورت امن لغو و <code>deferred</code> می کند؛</p>
+<p>بعد از پایان تماس، جاب بدون از دست دادن بودجه تلاش مجدد از سر گرفته می شود.</p>
 <p><strong>ضد گیر کردن صف</strong>: اگر سرویسی از شروع جاب امتناع کند، چند بار تلاش و سپس</p>
-<p>جاب با <code>kErrJobStalled</code> تمام می‌شود — صف هرگز نمی‌ایستد.</p>
-<p><strong>ریست نگه‌بانی</strong>: <code>full_restart(hardware, keep_jobs=true)</code> جاب‌های صف‌کشیده را</p>
-<p>نگه می‌دارد؛ بعد از رسیدن به <code>Ready</code>، بررسی سلامت اجرا و نتیجه گزارش می‌شود.</p></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>
+<p>جاب با <code>kErrJobStalled</code> تمام می شود — صف هرگز نمی ایستد.</p>
+<p><strong>ریست نگه بانی</strong>: <code>full_restart(hardware, keep_jobs=true)</code> جاب های صف کشیده را</p>
+<p>نگه می دارد؛ بعد از رسیدن به <code>Ready</code>، بررسی سلامت اجرا و نتیجه گزارش می شود.</p></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

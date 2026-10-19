@@ -41,49 +41,49 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>راهنمای سیاست سخت‌گیرانه طول پیامک (SMS Length Guard)</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>راهنمای سیاست سخت گیرانه طول پیامک (SMS Length Guard)</h1>
 <blockquote><p>نسخه ۰.۴ — محافظت در برابر هنگ ماژول و ارسال پیام خالی در M08R</p></blockquote>
 <h2>۱. مشکل</h2>
-<p>ماژول‌های خانواده M08R در شرایط خاصی (به‌خصوص متن‌های بلند یا ارسال در میانه عملیات دیگر) هنگ می‌کنند و گاهی <strong>پیامک خالی</strong> ارسال می‌کنند. برای حاشیه امن، کتابخانه یک محدودیت <strong>سخت‌گیرانه و قابل تنظیم</strong> روی طول متن خروجی دارد.</p>
+<p>ماژول های خانواده M08R در شرایط خاصی (به خصوص متن های بلند یا ارسال در میانه عملیات دیگر) هنگ می کنند و گاهی <strong>پیامک خالی</strong> ارسال می کنند. برای حاشیه امن، کتابخانه یک محدودیت <strong>سخت گیرانه و قابل تنظیم</strong> روی طول متن خروجی دارد.</p>
 <h2>۲. قانون</h2>
 <ul>
-<li>طول پیام با <strong>تعداد کاراکترهای UTF-8</strong> (کاراکترهایی که کاربر می‌بیند، نه بایت‌ها) سنجیده می‌شود.</li>
-<li>یک پیامک UCS2 تک‌بخشی حداکثر <strong>۷۰ کاراکتر</strong> است.</li>
-<li>پیش‌فرض کتابخانه <strong>۶۰ کاراکتر</strong> است — یعنی <strong>کمتر از یک پیام</strong>، برای حاشیه امن.</li>
-<li>اگر متن بلندتر باشد، پیام <strong>ارسال نمی‌شود</strong> و فوراً با کد خطای <code>kErrSmsTooLong = -100</code> رد می‌شود.</li>
+<li>طول پیام با <strong>تعداد کاراکترهای UTF-8</strong> (کاراکترهایی که کاربر می بیند، نه بایت ها) سنجیده می شود.</li>
+<li>یک پیامک UCS2 تک بخشی حداکثر <strong>۷۰ کاراکتر</strong> است.</li>
+<li>پیش فرض کتابخانه <strong>۶۰ کاراکتر</strong> است — یعنی <strong>کمتر از یک پیام</strong>، برای حاشیه امن.</li>
+<li>اگر متن بلندتر باشد، پیام <strong>ارسال نمی شود</strong> و فوراً با کد خطای <code>kErrSmsTooLong = -100</code> رد می شود.</li>
 </ul>
 <h2>۳. تنظیم طول مجاز</h2>
 <h3>زمان کامپایل:</h3>
 <pre><code class="lang-c">// در gsm_config.hpp یا فایل کانفیگ کاربر
 #define GSM_SMS_MAX_CHARS 60</code></pre>
 <h3>زمان اجرا:</h3>
-<pre><code class="lang-cpp">modem.sms().set_max_chars(45);   // سخت‌گیرانه‌تر
+<pre><code class="lang-cpp">modem.sms().set_max_chars(45);   // سخت گیرانه تر
 uint16_t now = modem.sms().max_chars();
 modem.sms().set_max_chars(0);    // 0 = غیرفعال کردن گارد (فقط برای شرایط خاص!)</code></pre>
 <h2>۴. رفتار در هنگام رد شدن</h2>
 <h3>از طریق API مودم (پیشنهادی):</h3>
 <pre><code class="lang-cpp">JobId id = modem.send_sms(&quot;0912...&quot;, text, my_callback);
 if (id == kInvalidJob) {
-    // یا صف پر بود یا متن بلند بود — دلیل در لاگ و کال‌بک مشخص است
+    // یا صف پر بود یا متن بلند بود — دلیل در لاگ و کال بک مشخص است
 }</code></pre>
-<p>کال‌بک بلافاصله با یک جاب <code>Failed</code> صدا زده می‌شود:</p>
+<p>کال بک بلافاصله با یک جاب <code>Failed</code> صدا زده می شود:</p>
 <pre><code class="lang-cpp">void my_callback(void*, const Job&amp; job) {
     if (job.result.code == kErrSmsTooLong) {
-        // متن بلند بود؛ هیچ فرمان AT‌ای ارسال نشده است
+        // متن بلند بود؛ هیچ فرمان AT ای ارسال نشده است
     }
 }</code></pre>
 <h3>از طریق SmsService (استفاده مستقیم):</h3>
 <pre><code class="lang-cpp">if (!modem.sms().start_send(number, text)) {
     // یا سرویس مشغول بود یا متن بلند (result = Error/kErrSmsTooLong)
 }</code></pre>
-<p>نکته: این خطا <strong>تلاش مجدد نمی‌شود</strong> (non-retryable) — چون تکرار همان متن بلند فقط تلف کردن وقت است.</p>
+<p>نکته: این خطا <strong>تلاش مجدد نمی شود</strong> (non-retryable) — چون تکرار همان متن بلند فقط تلف کردن وقت است.</p>
 <h2>۵. شمارش کاراکتر</h2>
 <pre><code class="lang-cpp">uint16_t n = gsm::SmsService::count_chars(&quot;سلام دنیا&quot;); // = 9</code></pre>
-<p>تابع <code>count_chars</code> بایت‌های ادامه‌دهنده UTF-8 را نمی‌شمارد؛ «سلام» ۴ کاراکتر است نه ۱۲ بایت.</p>
-<h2>۶. ارتباط با سایر محافظت‌ها</h2>
+<p>تابع <code>count_chars</code> بایت های ادامه دهنده UTF-8 را نمی شمارد؛ «سلام» ۴ کاراکتر است نه ۱۲ بایت.</p>
+<h2>۶. ارتباط با سایر محافظت ها</h2>
 <table><thead><tr><th>محافظت</th><th>فایل</th><th>توضیح</th></tr></thead><tbody>
 <tr><td>گارد طول</td><td><code>sms_service.cpp</code></td><td>رد متن بلند قبل از هر فرمان AT</td></tr>
 <tr><td>ESC ایمن</td><td><code>sms_service.cpp</code></td><td>خروج از حالت prompt با ESC در صورت خطا/لغو</td></tr>
-<tr><td>گیت تماس</td><td><code>modem.cpp</code></td><td>ارسال پیامک در حین تماس اصلاً شروع نمی‌شود</td></tr>
-<tr><td>ریست‌های دوره‌ای</td><td><code>watchdog.cpp</code></td><td>جلوگیری از انباشت خرابی ماژول در درازمدت</td></tr>
+<tr><td>گیت تماس</td><td><code>modem.cpp</code></td><td>ارسال پیامک در حین تماس اصلاً شروع نمی شود</td></tr>
+<tr><td>ریست های دوره ای</td><td><code>watchdog.cpp</code></td><td>جلوگیری از انباشت خرابی ماژول در درازمدت</td></tr>
 </tbody></table></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

@@ -41,69 +41,69 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/tests/host_smoke.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/tests/host_smoke.cpp</h1>
 <h2>نقش فایل</h2>
-<p>تست دود (smoke test) میزبان برای کتابخانه‌ی GSM. این تست بدون سخت‌افزار واقعی و با استفاده از پُرت میزبان (<code>HostUart</code>/<code>HostClock</code>/<code>HostPowerControl</code>) تمام رفتارهای بحرانی هسته را به‌صورت قطعی (deterministic) راستی‌آزمایی می‌کند: کدک‌های UCS2، تشخیص اپراتور، ترتیب بوت، کد USSD تعادل، نگهبان سخت‌گیرانه‌ی طول پیامک، نظارت تماس با قطع خودکار، تشخیص URC پایان تماس از‌دست‌رفته، دروازه‌ی صف در برابر تماس، بودجه‌های دوگانه‌ی بازنشانی نگهداری، پروب‌های سلامت، بازیابی SIM، پاک‌سازی صف و واچ‌داگ سخت‌افزاری.</p>
+<p>تست دود (smoke test) میزبان برای کتابخانه ی GSM. این تست بدون سخت افزار واقعی و با استفاده از پُرت میزبان (<code>HostUart</code>/<code>HostClock</code>/<code>HostPowerControl</code>) تمام رفتارهای بحرانی هسته را به صورت قطعی (deterministic) راستی آزمایی می کند: کدک های UCS2، تشخیص اپراتور، ترتیب بوت، کد USSD تعادل، نگهبان سخت گیرانه ی طول پیامک، نظارت تماس با قطع خودکار، تشخیص URC پایان تماس از دست رفته، دروازه ی صف در برابر تماس، بودجه های دوگانه ی بازنشانی نگهداری، پروب های سلامت، بازیابی SIM، پاک سازی صف و واچ داگ سخت افزاری.</p>
 <h2>ساختارها/توابع کلیدی</h2>
-<p>نمونه‌های سراسری:</p>
+<p>نمونه های سراسری:</p>
 <ul>
-<li><code>static port::HostUart&lt;2048&gt; uart</code> — UART شبیه‌سازی‌شده (تزریق/بازرسی).</li>
-<li><code>static port::HostClock clock_</code> — زمان‌سنج مصنوعی (<code>now</code>).</li>
-<li><code>static port::HostPowerControl pwr</code> — شمارنده‌ی پالس تغذیه.</li>
+<li><code>static port::HostUart&lt;2048&gt; uart</code> — UART شبیه سازی شده (تزریق/بازرسی).</li>
+<li><code>static port::HostClock clock_</code> — زمان سنج مصنوعی (<code>now</code>).</li>
+<li><code>static port::HostPowerControl pwr</code> — شمارنده ی پالس تغذیه.</li>
 <li><code>static Modem modem(uart, clock_, kSim800, &amp;pwr)</code> — مودم SIM800 زیر تست.</li>
 </ul>
 <p>توابع کمکی:</p>
 <ul>
 <li><code>static void advance(uint32_t ms, uint8_t rounds = 4)</code></li>
 </ul>
-<p>زمان <code>clock_.now</code> را <code>ms</code> جلو می‌برد و <code>modem.tick()</code> را <code>rounds</code> بار صدا می‌زند (پیشرفت زمان کنترل‌شده).</p>
+<p>زمان <code>clock_.now</code> را <code>ms</code> جلو می برد و <code>modem.tick()</code> را <code>rounds</code> بار صدا می زند (پیشرفت زمان کنترل شده).</p>
 <ul>
 <li><code>static bool tx_has(const char* needle)</code></li>
 </ul>
-<p>بررسی می‌کند آیا <code>needle</code> در بافر ارسالی (<code>uart.tx()</code>) وجود دارد (یعنی مودم چنین دستوری صادر کرده).</p>
+<p>بررسی می کند آیا <code>needle</code> در بافر ارسالی (<code>uart.tx()</code>) وجود دارد (یعنی مودم چنین دستوری صادر کرده).</p>
 <ul>
 <li><code>int main()</code></li>
 </ul>
-<p>تمام سناریوها را به‌ترتیب اجرا و با <code>assert</code> راستی‌آزمایی می‌کند.</p>
+<p>تمام سناریوها را به ترتیب اجرا و با <code>assert</code> راستی آزمایی می کند.</p>
 <h2>جریان کاری</h2>
-<p>تست‌ها در <code>main</code> به‌ترتیب:</p>
+<p>تست ها در <code>main</code> به ترتیب:</p>
 <ol>
-<li><strong>کدک‌ها و تشخیص اپراتور:</strong> <code>codec::utf8_to_ucs2_hex("سلام")</code> → <code>"0633064406270645"</code>؛ <code>detect_operator</code> برای Irancell/MCI/RighTel؛ کدهای پیش‌فرض تعادل USSD (<code><em>141</em>1#</code>, <code><em>140</em>11#</code>, <code>*140#</code>).</li>
-<li><strong>ترتیب بوت:</strong> <code>modem.begin()</code> → پاسخ <code>AT</code> → <code>OK</code> → <code>WaitingRegistration</code> → تزریق <code>+CREG: 0,1</code> → پاسخ به فرمان‌های بوت‌استرپ تا <code>modem.ready()</code>.</li>
-<li><strong>پرس‌وجوی USSD:</strong> <code>modem.check_balance()</code> → <code>AT+CUSD=</code> → تزریق <code>+CUSD</code> → اتمام شغل (<code>JobKind::None</code>).</li>
-<li><strong>نگهبان سخت‌گیرانه‌ی طول پیامک:</strong> متن خیلی بلند → <code>kErrSmsTooLong</code> و <code>kInvalidJob</code> بدون <code>AT+CMGS</code>؛ محدودیت با <code>set_max_chars</code> قابل تنظیم؛ متن کوتاه قبول می‌شود.</li>
-<li><strong>نظارت تماس (قطع خودکار پس از ۲۰ ثانیه):</strong> <code>modem.dial</code> → <code>ATD...;</code> → <code>CallState::Outgoing</code> → حلقه‌ی زمان → <code>AT+CHUP</code>/<code>ATH</code> → <code>CallState::Idle</code> با <code>CallEndReason::Timeout</code>.</li>
-<li><strong>تشخیص URC پایان تماس از‌دست‌رفته + دروازه‌ی صف:</strong> تماس دوم → پیامک در حین تماس نگه داشته می‌شود (بدون <code>AT+CMGS</code>) → لیست <code>+CLCC</code> خالی (مثل M08R که <code>NO CARRIER</code> نمی‌فرستد) → پایان تماس با <code>CallEndReason::NoAnswer</code> → صف دوباره حرکت می‌کند.</li>
-<li><strong>بازنشانی‌های دوگانه‌ی نگهداری (بودجه):</strong> <code>MaintenanceWatchdog</code> با <code>periodic_ms=1000</code> و <code>ops_period=3</code> → بودجه‌ی زمانی (<code>ResetReason::Periodic</code>) → بودجه‌ی عملیات (<code>ResetReason::OpsBudget</code>) → درخواست دستی (<code>ResetReason::Manual</code>).</li>
+<li><strong>کدک ها و تشخیص اپراتور:</strong> <code>codec::utf8_to_ucs2_hex("سلام")</code> → <code>"0633064406270645"</code>؛ <code>detect_operator</code> برای Irancell/MCI/RighTel؛ کدهای پیش فرض تعادل USSD (<code><em>141</em>1#</code>, <code><em>140</em>11#</code>, <code>*140#</code>).</li>
+<li><strong>ترتیب بوت:</strong> <code>modem.begin()</code> → پاسخ <code>AT</code> → <code>OK</code> → <code>WaitingRegistration</code> → تزریق <code>+CREG: 0,1</code> → پاسخ به فرمان های بوت استرپ تا <code>modem.ready()</code>.</li>
+<li><strong>پرس وجوی USSD:</strong> <code>modem.check_balance()</code> → <code>AT+CUSD=</code> → تزریق <code>+CUSD</code> → اتمام شغل (<code>JobKind::None</code>).</li>
+<li><strong>نگهبان سخت گیرانه ی طول پیامک:</strong> متن خیلی بلند → <code>kErrSmsTooLong</code> و <code>kInvalidJob</code> بدون <code>AT+CMGS</code>؛ محدودیت با <code>set_max_chars</code> قابل تنظیم؛ متن کوتاه قبول می شود.</li>
+<li><strong>نظارت تماس (قطع خودکار پس از ۲۰ ثانیه):</strong> <code>modem.dial</code> → <code>ATD...;</code> → <code>CallState::Outgoing</code> → حلقه ی زمان → <code>AT+CHUP</code>/<code>ATH</code> → <code>CallState::Idle</code> با <code>CallEndReason::Timeout</code>.</li>
+<li><strong>تشخیص URC پایان تماس از دست رفته + دروازه ی صف:</strong> تماس دوم → پیامک در حین تماس نگه داشته می شود (بدون <code>AT+CMGS</code>) → لیست <code>+CLCC</code> خالی (مثل M08R که <code>NO CARRIER</code> نمی فرستد) → پایان تماس با <code>CallEndReason::NoAnswer</code> → صف دوباره حرکت می کند.</li>
+<li><strong>بازنشانی های دوگانه ی نگهداری (بودجه):</strong> <code>MaintenanceWatchdog</code> با <code>periodic_ms=1000</code> و <code>ops_period=3</code> → بودجه ی زمانی (<code>ResetReason::Periodic</code>) → بودجه ی عملیات (<code>ResetReason::OpsBudget</code>) → درخواست دستی (<code>ResetReason::Manual</code>).</li>
 <li><strong>بررسی سلامت پس از بازنشانی:</strong> <code>maintenance().start_check()</code> → پاسخ به <code>AT+CSQ</code>/<code>AT+CPIN?</code>/<code>AT+CREG?</code> → <code>health().at_ok</code> و <code>rssi_dbm == -113 + 2*20</code>.</li>
 <li><strong>حذف SIM:</strong> تزریق <code>+CPIN: NOT INSERTED</code> → <code>ModemState::SimMissing</code> + رویداد <code>SimState::Removed</code>.</li>
-<li><strong>بازیابی SIM با چرخه‌ی CFUN:</strong> مشاهده‌ی <code>AT+CFUN=0</code> و <code>AT+CFUN=1</code> → تزریق <code>+CPIN: READY</code> → <code>ModemState::WaitingRegistration</code>.</li>
-<li><strong>واچ‌داگ و پاک‌سازی صف:</strong> <code>pause_queue</code> → شغل SMS → جلو بردن ۴۶ ثانیه (بیش از <code>GSM_JOB_MAX_AGE_MS=45000</code>) → صف خالی (<code>queue_size()==0</code>).</li>
-<li><strong>واچ‌داگ تایم‌اوت‌های متوالی:</strong> سه بار ارسال ناموفق → افزایش <code>pwr.pulse_count</code> (پاورسایکل سخت‌افزاری).</li>
-<li><strong>پولس غیرمسدودکننده‌ی PWRKEY + boot guard:</strong> <code>power_cycle()</code> بلافاصله برمی‌گردد (پین را خودش دست نمی‌زند)، <code>tick()</code> پین را پایین می‌کشد، ۱۲۰۰ms نگه می‌دارد، رها می‌کند و تا پایان <code>GSM_MODEM_BOOT_GUARD_MS</code> هیچ <code>AT</code> نمی‌فرستد؛ سپس مودم تا <code>Ready</code> بالا می‌آید.</li>
-<li><strong>پاسخ‌دادن مجدد به ماژول خاموش‌شده:</strong> با سکوت ماژول، کتابخانه خودش پولس بعدی را می‌زند (off → on) و پس از پاسخ <code>OK</code> وضعیت به <code>WaitingRegistration</code> می‌رود؛ پین PWRKEY هیچ‌وقت asserted باقی نمی‌ماند.</li>
+<li><strong>بازیابی SIM با چرخه ی CFUN:</strong> مشاهده ی <code>AT+CFUN=0</code> و <code>AT+CFUN=1</code> → تزریق <code>+CPIN: READY</code> → <code>ModemState::WaitingRegistration</code>.</li>
+<li><strong>واچ داگ و پاک سازی صف:</strong> <code>pause_queue</code> → شغل SMS → جلو بردن ۴۶ ثانیه (بیش از <code>GSM_JOB_MAX_AGE_MS=45000</code>) → صف خالی (<code>queue_size()==0</code>).</li>
+<li><strong>واچ داگ تایم اوت های متوالی:</strong> سه بار ارسال ناموفق → افزایش <code>pwr.pulse_count</code> (پاورسایکل سخت افزاری).</li>
+<li><strong>پولس غیرمسدودکننده ی PWRKEY + boot guard:</strong> <code>power_cycle()</code> بلافاصله برمی گردد (پین را خودش دست نمی زند)، <code>tick()</code> پین را پایین می کشد، ۱۲۰۰ms نگه می دارد، رها می کند و تا پایان <code>GSM_MODEM_BOOT_GUARD_MS</code> هیچ <code>AT</code> نمی فرستد؛ سپس مودم تا <code>Ready</code> بالا می آید.</li>
+<li><strong>پاسخ دادن مجدد به ماژول خاموش شده:</strong> با سکوت ماژول، کتابخانه خودش پولس بعدی را می زند (off → on) و پس از پاسخ <code>OK</code> وضعیت به <code>WaitingRegistration</code> می رود؛ پین PWRKEY هیچ وقت asserted باقی نمی ماند.</li>
 </ol>
-<p>در پایان <code>"ALL TESTS PASSED!"</code> چاپ می‌شود.</p>
+<p>در پایان <code>"ALL TESTS PASSED!"</code> چاپ می شود.</p>
 <h2>نکات فنی</h2>
 <ul>
-<li>تست‌ها قطعی هستند؛ زمان با <code>advance</code> و پاسخ‌ها با <code>uart.inject</code> کنترل می‌شوند (بدون خواب واقعی).</li>
-<li>برای ترافیک AT قطعی، <code>housekeeping().enabled=false</code> و <code>maintenance().policy().health_check=false</code> در بخش‌های مربوطه ست می‌شوند.</li>
-<li>نگهبان طول پیامک: <code>kErrSmsTooLong</code> باید در <code>JobCallback</code> گزارش شود و هیچ <code>AT+CMGS</code> ارسال نشود؛ محدودیت با <code>modem.sms().set_max_chars</code> در زمان اجرا تغییر می‌کند.</li>
-<li>نظارت تماس: قطع خودکار پس از ~۲۰ ثانیه؛ حالت <code>+CLCC: 1,0,3,0,0</code> (زنگ/هشدار) نگه داشته می‌شود تا سرانجام <code>ATH</code>/<code>AT+CHUP</code>.</li>
-<li>دروازه‌ی صف: در حین تماس، شغل‌های SMS ارسال نمی‌شوند و پس از پایان تماس دوباره فعال می‌شوند.</li>
-<li>URC پایان تماس از‌دست‌رفته: مودم‌هایی مثل M08R <code>NO CARRIER</code>/<code>BUSY</code> نمی‌فرستند؛ لیست خالی <code>+CLCC</code> باید پایان تماس را آشکار کند.</li>
-<li>بازنشانی نگهداری: هم بودجه‌ی زمانی (<code>periodic_ms</code>) و هم بودجه‌ی عملیات (<code>ops_period</code>) باید مستقل کار کنند.</li>
-<li>سلامت: <code>rssi_dbm</code> از <code>+CSQ: 20,0</code> با فرمول <code>-113 + 2*rssi</code> محاسبه می‌شود.</li>
-<li>بازیابی SIM: چرخه‌ی <code>AT+CFUN=0/1</code> (بر مبنای فرمان‌های مشاهده‌شده، نه زمان) و سپس <code>+CPIN: READY</code>.</li>
-<li>پاک‌سازی صف: شغل‌های کهنه‌تر از <code>GSM_JOB_MAX_AGE_MS</code> (۴۵۰۰۰ms) توسط واچ‌داگ حذف می‌شوند.</li>
-<li>واچ‌داگ سخت‌افزاری: تایم‌اوت‌های متوالی ارسال → پاورسایکل (افزایش <code>pulse_count</code>).</li>
+<li>تست ها قطعی هستند؛ زمان با <code>advance</code> و پاسخ ها با <code>uart.inject</code> کنترل می شوند (بدون خواب واقعی).</li>
+<li>برای ترافیک AT قطعی، <code>housekeeping().enabled=false</code> و <code>maintenance().policy().health_check=false</code> در بخش های مربوطه ست می شوند.</li>
+<li>نگهبان طول پیامک: <code>kErrSmsTooLong</code> باید در <code>JobCallback</code> گزارش شود و هیچ <code>AT+CMGS</code> ارسال نشود؛ محدودیت با <code>modem.sms().set_max_chars</code> در زمان اجرا تغییر می کند.</li>
+<li>نظارت تماس: قطع خودکار پس از ~۲۰ ثانیه؛ حالت <code>+CLCC: 1,0,3,0,0</code> (زنگ/هشدار) نگه داشته می شود تا سرانجام <code>ATH</code>/<code>AT+CHUP</code>.</li>
+<li>دروازه ی صف: در حین تماس، شغل های SMS ارسال نمی شوند و پس از پایان تماس دوباره فعال می شوند.</li>
+<li>URC پایان تماس از دست رفته: مودم هایی مثل M08R <code>NO CARRIER</code>/<code>BUSY</code> نمی فرستند؛ لیست خالی <code>+CLCC</code> باید پایان تماس را آشکار کند.</li>
+<li>بازنشانی نگهداری: هم بودجه ی زمانی (<code>periodic_ms</code>) و هم بودجه ی عملیات (<code>ops_period</code>) باید مستقل کار کنند.</li>
+<li>سلامت: <code>rssi_dbm</code> از <code>+CSQ: 20,0</code> با فرمول <code>-113 + 2*rssi</code> محاسبه می شود.</li>
+<li>بازیابی SIM: چرخه ی <code>AT+CFUN=0/1</code> (بر مبنای فرمان های مشاهده شده، نه زمان) و سپس <code>+CPIN: READY</code>.</li>
+<li>پاک سازی صف: شغل های کهنه تر از <code>GSM_JOB_MAX_AGE_MS</code> (۴۵۰۰۰ms) توسط واچ داگ حذف می شوند.</li>
+<li>واچ داگ سخت افزاری: تایم اوت های متوالی ارسال → پاورسایکل (افزایش <code>pulse_count</code>).</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>gsm/ports/host/gsm_port_host.hpp</code> — شبیه‌ساز UART/Clock/Power که تست بر پایه‌ی آن است.</li>
+<li><code>gsm/ports/host/gsm_port_host.hpp</code> — شبیه ساز UART/Clock/Power که تست بر پایه ی آن است.</li>
 <li><code>gsm/modem/modem.hpp</code> — API اصلی زیر تست (<code>Modem</code>، <code>dial</code>، <code>send_sms</code>، <code>check_balance</code>، صف، نگهداری).</li>
 <li><code>gsm/codec/ucs2.hpp</code> — <code>codec::utf8_to_ucs2_hex</code> برای تست کدک.</li>
-<li><code>gsm/CMakeLists.txt</code> — با <code>GSM_BUILD_TESTS</code> هدف <code>host_smoke</code> را می‌سازد و با <code>add_test</code> ثبت می‌کند.</li>
-<li>پیکربندی‌ها/ثابت‌ها: <code>GSM_SMS_MAX_CHARS</code>، <code>GSM_JOB_MAX_AGE_MS</code> (از <code>gsm/gsm_config.hpp</code>).</li>
-<li>کلاس‌های <code>JobCallback</code>، <code>JobState</code>، <code>CallState</code>، <code>CallEndReason</code>، <code>HealthState</code>، <code>ResetReason</code> از هسته‌ی کتابخانه.</li>
+<li><code>gsm/CMakeLists.txt</code> — با <code>GSM_BUILD_TESTS</code> هدف <code>host_smoke</code> را می سازد و با <code>add_test</code> ثبت می کند.</li>
+<li>پیکربندی ها/ثابت ها: <code>GSM_SMS_MAX_CHARS</code>، <code>GSM_JOB_MAX_AGE_MS</code> (از <code>gsm/gsm_config.hpp</code>).</li>
+<li>کلاس های <code>JobCallback</code>، <code>JobState</code>، <code>CallState</code>، <code>CallEndReason</code>، <code>HealthState</code>، <code>ResetReason</code> از هسته ی کتابخانه.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

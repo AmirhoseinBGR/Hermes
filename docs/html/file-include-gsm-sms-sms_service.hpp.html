@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/sms/sms_service.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/sms/sms_service.hpp</h1>
 <h2>نقش فایل</h2>
-<p>سرویس پیامک کتابخانه: ماشین حالت چندمرحله‌ای برای ارسال، خواندن، اسکن و حذف پیامک‌ها روی مودم GSM. این سرویس همهٔ جزئیات پروتکل (حالت متن، رمزگذاری UCS2/GSM-7، پارامترهای CSMP، مسیر ذخیره‌سازی، prompt ارسال و ACK نهایی) را مدیریت می‌کند و در نسخهٔ v0.4 یک <strong>نگهبان سخت‌گیرانهٔ طول پیامک خروجی</strong> برای جلوگیری از هنگ‌کردن ماژول‌های خانوادهٔ M08R دریافت کرده است.</p>
+<p>سرویس پیامک کتابخانه: ماشین حالت چندمرحله ای برای ارسال، خواندن، اسکن و حذف پیامک ها روی مودم GSM. این سرویس همهٔ جزئیات پروتکل (حالت متن، رمزگذاری UCS2/GSM-7، پارامترهای CSMP، مسیر ذخیره سازی، prompt ارسال و ACK نهایی) را مدیریت می کند و در نسخهٔ v0.4 یک <strong>نگهبان سخت گیرانهٔ طول پیامک خروجی</strong> برای جلوگیری از هنگ کردن ماژول های خانوادهٔ M08R دریافت کرده است.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>enum class SmsStep : uint8_t</code></h3>
 <p>مراحل ماشین حالت:</p>
@@ -79,7 +79,7 @@ bool start_read(int16_t storage_index, bool delete_after = true);
 bool start_scan_unread();
 bool start_delete_index(int16_t storage_index);
 bool start_delete_read();</code></pre>
-<p>پیاده‌سازی <code>IService</code>:</p>
+<p>پیاده سازی <code>IService</code>:</p>
 <pre><code class="lang-cpp">bool            active() const override;   // step_ != SmsStep::Idle
 void            pump() override;
 void            cancel() override;
@@ -100,10 +100,10 @@ void     set_max_chars(uint16_t n);
 uint16_t max_chars() const;
 static uint16_t count_chars(const char* utf8);</code></pre>
 <ul>
-<li>سقف بر حسب <strong>کاراکتر UTF-8</strong> (نه بایت)؛ مقدار پیش‌فرض <code>GSM_SMS_MAX_CHARS = 60</code> — پایین‌تر از سقف ۷۰ کاراکتری یک پیامک UCS2.</li>
+<li>سقف بر حسب <strong>کاراکتر UTF-8</strong> (نه بایت)؛ مقدار پیش فرض <code>GSM_SMS_MAX_CHARS = 60</code> — پایین تر از سقف ۷۰ کاراکتری یک پیامک UCS2.</li>
 <li>متن بلندتر → خطا با <code>AtResult{status: Error, code: kErrSmsTooLong}</code> بدون ارسال هیچ دستوری.</li>
-<li><code>set_max_chars(0)</code> نگهبان را غیرفعال می‌کند.</li>
-<li>دلیل: ماژول‌های خانوادهٔ M08R با payload بلند هنگ می‌کنند یا پیامک خالی می‌فرستند.</li>
+<li><code>set_max_chars(0)</code> نگهبان را غیرفعال می کند.</li>
+<li>دلیل: ماژول های خانوادهٔ M08R با payload بلند هنگ می کنند یا پیامک خالی می فرستند.</li>
 </ul>
 <p>متدهای خصوصی کلیدی: <code>advance_step</code>، <code>fail</code>، <code>complete</code>، <code>wants_ucs2</code>، <code>parse_cmgr_header</code>، <code>store_body</code>، <code>queue_index</code>.</p>
 <h2>جریان کاری</h2>
@@ -125,14 +125,14 @@ SetTextMode -&gt; SetCharset -&gt; SetCsmp -&gt; SetStorage -&gt; SendHeader (AT
 <h2>نکات فنی</h2>
 <ul>
 <li><strong>بدون تخصیص حافظه / بدون STL</strong>: بافرهای <code>StaticString</code> و آرایهٔ ایستای <code>pending_[GSM_SMS_INBOX_SLOTS]</code>.</li>
-<li><strong>نگهبان طول</strong>: شمارش با <code>count_chars</code> واحدهای کدپوینت UTF-8 را می‌شمارد؛ برای متن فارسی (UCS2) سقف مؤثر ۷۰ است ولی پیش‌فرض ۶۰ عمداً محافظه‌کارانه است.</li>
-<li>رمزگذاری پیش‌فرض سرویس <code>Ucs2</code> است؛ <code>SmsEncoding::Auto</code> بر اساس <code>codec::is_ascii_only</code> انتخاب می‌شود.</li>
-<li><code>csmp_ucs2</code>/<code>csmp_gsm</code> و <code>storage_cmd</code> از <code>DeviceTraits</code> می‌آیند — کد ماژول‌مستقل است.</li>
-<li>در <code>SendHeader</code> نشان <code>&gt;</code> منتظر می‌مانیم (<code>on_prompt</code>)؛ ارسال زودتر از prompt باعث خرابی payload می‌شود.</li>
-<li><code>cancel()</code> هر مرحله‌ای را می‌شکند و نتیجه را <code>Aborted</code> می‌کند؛ بعد از Ctrl-Z دیگر لغو ایمن نیست.</li>
-<li><code>session_</code> (<code>SessionState</code>) از اجرای دوبارهٔ <code>SetTextMode</code>/<code>SetCharset</code> جلوگیری می‌کند؛ بعد از <code>invalidate()</code> همه چیز دوباره اعمال می‌شود.</li>
+<li><strong>نگهبان طول</strong>: شمارش با <code>count_chars</code> واحدهای کدپوینت UTF-8 را می شمارد؛ برای متن فارسی (UCS2) سقف مؤثر ۷۰ است ولی پیش فرض ۶۰ عمداً محافظه کارانه است.</li>
+<li>رمزگذاری پیش فرض سرویس <code>Ucs2</code> است؛ <code>SmsEncoding::Auto</code> بر اساس <code>codec::is_ascii_only</code> انتخاب می شود.</li>
+<li><code>csmp_ucs2</code>/<code>csmp_gsm</code> و <code>storage_cmd</code> از <code>DeviceTraits</code> می آیند — کد ماژول مستقل است.</li>
+<li>در <code>SendHeader</code> نشان <code>&gt;</code> منتظر می مانیم (<code>on_prompt</code>)؛ ارسال زودتر از prompt باعث خرابی payload می شود.</li>
+<li><code>cancel()</code> هر مرحله ای را می شکند و نتیجه را <code>Aborted</code> می کند؛ بعد از Ctrl-Z دیگر لغو ایمن نیست.</li>
+<li><code>session_</code> (<code>SessionState</code>) از اجرای دوبارهٔ <code>SetTextMode</code>/<code>SetCharset</code> جلوگیری می کند؛ بعد از <code>invalidate()</code> همه چیز دوباره اعمال می شود.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/service.hpp</code> — پایهٔ <code>IService</code> و <code>SessionState</code></li>
 <li><code>core/at_engine.hpp</code> — اجرای دستورهای AT</li>
@@ -140,7 +140,7 @@ SetTextMode -&gt; SetCharset -&gt; SetCsmp -&gt; SetStorage -&gt; SendHeader (AT
 <li><code>sms/sms_types.hpp</code> — <code>SmsMessage</code>، <code>SmsSendReport</code>، <code>SmsEncoding</code></li>
 <li><code>codec/phone_number.hpp</code> — <code>PhoneNumber recipient_</code></li>
 <li><code>codec/ucs2.hpp</code> — تبدیل متن به hex-UCS2 برای payload</li>
-<li><code>gsm_config.hpp</code> — <code>GSM_SMS_MAX_CHARS</code> و اندازه‌های بافر</li>
+<li><code>gsm_config.hpp</code> — <code>GSM_SMS_MAX_CHARS</code> و اندازه های بافر</li>
 <li><code>core/at_types.hpp</code> — <code>kErrSmsTooLong</code></li>
 <li><code>modem/modem.hpp</code> — Jobهای <code>SmsSend/SmsRead/SmsScan/SmsDelete*</code></li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

@@ -41,7 +41,7 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>مستند جامع و مرجع فنی کتابخانه GSM (SIM800 / Quectel M08)</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>مستند جامع و مرجع فنی کتابخانه GSM (SIM800 / Quectel M08)</h1>
 <p>یک درایور غیرمسدودکننده (Non-blocking) و کاملاً ماژولار به زبان <strong>C++17</strong> جهت ارتباط پایدار با ماژول های سلولار نظیر <strong>SIM800 / SIM900</strong> و <strong>Quectel M08 / M66</strong>.</p>
 <p>این کتابخانه بر اساس اصول مهندسی سیستم های امبدد طراحی شده است:</p>
 <ul>
@@ -105,7 +105,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <li>مجدداً دستورات پروب <code>AT</code> ارسال می شوند. اگر باز هم پاسخی دریافت نشود، یک بار دیگر پولس PWRKEY اعمال می شود و در صورت عدم دریافت پاسخ وارد وضعیت <code>Fault</code> می گردد.</li>
 </ol>
 <blockquote><p><strong>پولس PWRKEY غیرمسدودکننده است:</strong> پورت HAL فقط سطح پین را ست/ریست می کند و همه ی زمان بندی (<code>assert</code> → نگه داشتن → <code>release</code> → انتظار <code>GSM_MODEM_BOOT_GUARD_MS</code> پیش فرض ۲۵۰۰ms → سپس پروب <code>AT</code>) داخل <code>Modem::tick()</code> انجام می شود.</p></blockquote>
-<blockquote><p>در پورت STM32 هیچ <code>HAL_Delay</code> وجود ندارد و <code>power_key()</code> نباید از داخل وقفه صدا زده شود (دستورهای کنسول هم در حلقه ی اصلی اجرا می شوند، نه در ISR یو‌آرت).</p></blockquote>
+<blockquote><p>در پورت STM32 هیچ <code>HAL_Delay</code> وجود ندارد و <code>power_key()</code> نباید از داخل وقفه صدا زده شود (دستورهای کنسول هم در حلقه ی اصلی اجرا می شوند، نه در ISR یو آرت).</p></blockquote>
 <p>نحوه ی راه اندازی در STM32:</p>
 <pre><code class="lang-cpp">static port::Stm32PowerControl pwr(GPIOB, GPIO_PIN_12); // پین PWRKEY
 static Modem modem(gsm_uart, clk, kSim800, &amp;pwr);</code></pre>
@@ -246,11 +246,11 @@ git submodule add https://github.com/&lt;your-username&gt;/gsm-modem.git Librari
 git commit -m &quot;chore: add gsm library as git submodule&quot;
 git push</code></pre>
 <hr>
-<h2>افزوده‌های نسخه ۰.۴ (مهم)</h2>
+<h2>افزوده های نسخه ۰.۴ (مهم)</h2>
 <table><thead><tr><th>موضوع</th><th>مستند اختصاصی</th></tr></thead><tbody>
-<tr><td>مدیریت تماس: قطع خودکار ۲۰ ثانیه‌ای، تشخیص رد/بی‌جوابی با +CLCC، گیت صف</td><td><code>CALL_MANAGEMENT.md</code></td></tr>
-<tr><td>محدودیت سخت‌گیرانه طول پیامک (پیش‌فرض ۶۰ کاراکتر، قابل تنظیم)</td><td><code>SMS_POLICY.md</code></td></tr>
-<tr><td>دو ریست‌کننده دوره‌ای (زمانی/تعداد عملیات) + بررسی سلامت</td><td><code>WATCHDOG.md</code></td></tr>
-<tr><td>کنسول تعاملی به‌عنوان قابلیت هسته کتابخانه (<code>gsm::cli::Console</code>)</td><td><code>CLI.md</code></td></tr>
-<tr><td>راهنمای فایل‌به‌فایل و نسخه HTML مستندات</td><td><code>fa/</code> و <code>html/</code></td></tr>
+<tr><td>مدیریت تماس: قطع خودکار ۲۰ ثانیه ای، تشخیص رد/بی جوابی با +CLCC، گیت صف</td><td><code>CALL_MANAGEMENT.md</code></td></tr>
+<tr><td>محدودیت سخت گیرانه طول پیامک (پیش فرض ۶۰ کاراکتر، قابل تنظیم)</td><td><code>SMS_POLICY.md</code></td></tr>
+<tr><td>دو ریست کننده دوره ای (زمانی/تعداد عملیات) + بررسی سلامت</td><td><code>WATCHDOG.md</code></td></tr>
+<tr><td>کنسول تعاملی به عنوان قابلیت هسته کتابخانه (<code>gsm::cli::Console</code>)</td><td><code>CLI.md</code></td></tr>
+<tr><td>راهنمای فایل به فایل و نسخه HTML مستندات</td><td><code>fa/</code> و <code>html/</code></td></tr>
 </tbody></table></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

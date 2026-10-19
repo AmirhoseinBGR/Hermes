@@ -41,22 +41,22 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/ucs2.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/ucs2.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی <code>gsm::codec</code>؛ مبدل‌های متنی بین UTF-8 (قالب داخلی کتابخانه) و هگز UCS2/UTF-16 (قالب موردنیاز مودم‌ها وقتی <code>AT+CSCS="UCS2"</code> فعال است). این فایل هم برای <strong>ارسال</strong> (متن پیامک و شماره مقصد → هگز UCS2) و هم برای <strong>دریافت</strong> (هگز UCS2 مودم → UTF-8) به کار می‌رود و چند تابع کمکی تشخیص/شمارش هم دارد. همه تبدیل‌ها بدون heap و با مدیریت صریح ظرفیت بافر انجام می‌شوند.</p>
+<p>پیاده سازی <code>gsm::codec</code>؛ مبدل های متنی بین UTF-8 (قالب داخلی کتابخانه) و هگز UCS2/UTF-16 (قالب موردنیاز مودم ها وقتی <code>AT+CSCS="UCS2"</code> فعال است). این فایل هم برای <strong>ارسال</strong> (متن پیامک و شماره مقصد → هگز UCS2) و هم برای <strong>دریافت</strong> (هگز UCS2 مودم → UTF-8) به کار می رود و چند تابع کمکی تشخیص/شمارش هم دارد. همه تبدیل ها بدون heap و با مدیریت صریح ظرفیت بافر انجام می شوند.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3>توابع داخلی (anonymous namespace)</h3>
 <ul>
-<li><code>hex_digit(uint8_t)</code> / <code>hex_val(char)</code> — تبدیل رقم ↔ نویسه هگز (ورودی کوچک/بزرگ هر دو پذیرفته می‌شود).</li>
-<li><code>utf8_next(const char* s, uint32_t&amp; cp)</code> — دیکودر یک نقطه کد UTF-8 (۱ تا ۴ بایت)؛ طول مصرف‌شده را برمی‌گرداند و در دنباله نامعتبر (بایت ادامه بدون سر) صفر برمی‌گرداند.</li>
-<li><code>put_unit(char* out, cap, w, unit)</code> — نوشتن یک واحد ۱۶ بیتی به‌صورت ۴ نویسه هگز؛ کمبود ظرفیت → <code>false</code>.</li>
+<li><code>hex_digit(uint8_t)</code> / <code>hex_val(char)</code> — تبدیل رقم ↔ نویسه هگز (ورودی کوچک/بزرگ هر دو پذیرفته می شود).</li>
+<li><code>utf8_next(const char* s, uint32_t&amp; cp)</code> — دیکودر یک نقطه کد UTF-8 (۱ تا ۴ بایت)؛ طول مصرف شده را برمی گرداند و در دنباله نامعتبر (بایت ادامه بدون سر) صفر برمی گرداند.</li>
+<li><code>put_unit(char* out, cap, w, unit)</code> — نوشتن یک واحد ۱۶ بیتی به صورت ۴ نویسه هگز؛ کمبود ظرفیت → <code>false</code>.</li>
 </ul>
 <h3><code>uint16_t utf8_to_ucs2_hex(const char<em> utf8, char</em> out, uint16_t out_cap)</code></h3>
-<p>هر نقطه کد UTF-8 را به واحد UTF-16 تبدیل و به‌صورت هگز می‌نویسد:</p>
+<p>هر نقطه کد UTF-8 را به واحد UTF-16 تبدیل و به صورت هگز می نویسد:</p>
 <ul>
 <li>کاراکترهای BMP (<code>cp ≤ 0xFFFF</code>) → یک واحد ۴ رقمی.</li>
 <li>کاراکترهای فراتر از BMP (ایموجی و …) → <strong>جفت سورگیت</strong> (<code>0xD800 + …</code> و <code>0xDC00 + …</code>)، یعنی دو واحد.</li>
-<li>دنباله UTF-8 خراب یا کمبود ظرفیت → خروجی تا همان‌جا نوشته و <code>0</code> برمی‌گردد.</li>
+<li>دنباله UTF-8 خراب یا کمبود ظرفیت → خروجی تا همان جا نوشته و <code>0</code> برمی گردد.</li>
 </ul>
 <pre><code class="lang-cpp">if (cp &lt;= 0xFFFF) { put_unit(..., cp); }
 else {
@@ -66,15 +66,15 @@ else {
     put_unit(..., hi) &amp;&amp; put_unit(..., lo);
 }</code></pre>
 <h3><code>uint16_t ascii_to_ucs2_hex(const char<em> ascii, char</em> out, uint16_t out_cap)</code></h3>
-<p>نام‌گذاری مجدد همان تابع بالا (برای شماره‌های مبدأ ASCII مثل <code>+98912…</code> در <code>AT+CMGS</code>).</p>
+<p>نام گذاری مجدد همان تابع بالا (برای شماره های مبدأ ASCII مثل <code>+98912…</code> در <code>AT+CMGS</code>).</p>
 <h3><code>uint16_t ucs2_hex_to_utf8(const char<em> hex, char</em> out, uint16_t out_cap)</code></h3>
-<p>مسیر برگشت: گروه‌های ۴ رقم هگز → واحد UTF-16 → بازسازی جفت سورگیت (<code>D800–DBFF</code> به‌عنوان high نگه داشته می‌شود و با <code>DC00–DFFF</code> ترکیب می‌شود) → کدبندی UTF-8 (۱/۲/۳/۴ بایت). روی ظرفیت کافی یا هگز نامعتبر متوقف می‌شود؛ خروجی همیشه null-terminated است.</p>
+<p>مسیر برگشت: گروه های ۴ رقم هگز → واحد UTF-16 → بازسازی جفت سورگیت (<code>D800–DBFF</code> به عنوان high نگه داشته می شود و با <code>DC00–DFFF</code> ترکیب می شود) → کدبندی UTF-8 (۱/۲/۳/۴ بایت). روی ظرفیت کافی یا هگز نامعتبر متوقف می شود؛ خروجی همیشه null-terminated است.</p>
 <h3><code>bool looks_like_ucs2_hex(const char* s)</code></h3>
-<p>تشخیص اینکه یک رشته دریافتی از مودم «احتمالاً هگز UCS2» است: همه نویسه‌ها هگز، طول ≥ ۴ و مضرب ۴. این تابع ستون فقرات «بو کردن» رمزنگاری در <code>SmsService</code> و <code>UssdService</code> است.</p>
+<p>تشخیص اینکه یک رشته دریافتی از مودم «احتمالاً هگز UCS2» است: همه نویسه ها هگز، طول ≥ ۴ و مضرب ۴. این تابع ستون فقرات «بو کردن» رمزنگاری در <code>SmsService</code> و <code>UssdService</code> است.</p>
 <h3><code>uint16_t ucs2_units(const char* utf8)</code></h3>
-<p>تعداد واحدهای UTF-16 موردنیاز برای یک متن UTF-8 (کاراکترهای فراتر از BMP دو واحد حساب می‌شوند)؛ برای گزارش ظرفیت پیامک به کار می‌رود.</p>
+<p>تعداد واحدهای UTF-16 موردنیاز برای یک متن UTF-8 (کاراکترهای فراتر از BMP دو واحد حساب می شوند)؛ برای گزارش ظرفیت پیامک به کار می رود.</p>
 <h3><code>bool is_ascii_only(const char* utf8)</code></h3>
-<p>بررسی اینکه آیا متن فقط بایت‌های ۷ بیتی دارد (تصمیم <code>SmsService</code> برای ماندن روی GSM7 به‌جای UCS2).</p>
+<p>بررسی اینکه آیا متن فقط بایت های ۷ بیتی دارد (تصمیم <code>SmsService</code> برای ماندن روی GSM7 به جای UCS2).</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">ارسال پیامک (UCS2):
    &quot;سلام&quot; (UTF-8) ──utf8_to_ucs2_hex──► &quot;0633064406270645&quot; ──► write_raw + Ctrl+Z
@@ -82,22 +82,22 @@ else {
 دریافت پیامک:
    &quot;+CMGL: …&quot; متن هگز ──looks_like_ucs2_hex──► true ──ucs2_hex_to_utf8──► UTF-8
 
-شماره مقصد (مودم‌های با ucs2_recipient_required):
+شماره مقصد (مودم های با ucs2_recipient_required):
    &quot;+98912…&quot; ──ascii_to_ucs2_hex──► هگز UCS2 داخل AT+CMGS=&quot;…&quot;</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>جفت سورگیت کامل:</strong> هر دو جهت تبدیل از جفت‌های سورگیت UTF-16 پشتیبانی می‌کنند؛ ایموجی و نشانه‌های فراتر از BMP بدون خرابی منتقل می‌شوند.</li>
-<li><strong>پشتیبانی کامل UTF-8:</strong> دیکودر <code>utf8_next</code> تا ۴ بایت را می‌پذیرد؛ دنباله‌های خراب → بازگشت صفر و شکست تبدیل (بدون رفتار تعریف‌نشده).</li>
-<li><strong>سیاست شکست:</strong> <code>utf8_to_ucs2_hex</code> در صورت کمبود ظرفیت، خروجی را null-terminate و <code>0</code> برمی‌گرداند؛ فراخواننده (<code>SmsService::advance_step</code>) با <code>write_escape()</code> + <code>fail</code> واکنش نشان می‌دهد.</li>
-<li><strong><code>looks_like_ucs2_hex</code> ممکن است مثبت کاذب داشته باشد</strong> (مثلاً متن انگلیسی خالص از اعداد/حروف A–F)؛ برای همین <code>decode_ussd_text</code> در <code>ussd_service.cpp</code> اول به <code>dcs</code> گزارش‌شده اعتماد می‌کند و فقط در نامشخص‌بودن، «بو» می‌کند.</li>
-<li><strong>بدون heap:</strong> همه بافرها (<code>out</code>) توسط فراخواننده با اندازه ثابت (<code>GSM_SMS_TEXT_BYTES</code>، <code>GSM_SMS_NUMBER_BYTES</code>) تأمین می‌شوند.</li>
-<li><strong>هگز بزرگ/کوچک:</strong> <code>hex_val</code> هر دو را می‌پذیرد؛ <code>hex_digit</code> همیشه بزرگ تولید می‌کند (سازگار با انتظار مودم‌ها).</li>
+<li><strong>جفت سورگیت کامل:</strong> هر دو جهت تبدیل از جفت های سورگیت UTF-16 پشتیبانی می کنند؛ ایموجی و نشانه های فراتر از BMP بدون خرابی منتقل می شوند.</li>
+<li><strong>پشتیبانی کامل UTF-8:</strong> دیکودر <code>utf8_next</code> تا ۴ بایت را می پذیرد؛ دنباله های خراب → بازگشت صفر و شکست تبدیل (بدون رفتار تعریف نشده).</li>
+<li><strong>سیاست شکست:</strong> <code>utf8_to_ucs2_hex</code> در صورت کمبود ظرفیت، خروجی را null-terminate و <code>0</code> برمی گرداند؛ فراخواننده (<code>SmsService::advance_step</code>) با <code>write_escape()</code> + <code>fail</code> واکنش نشان می دهد.</li>
+<li><strong><code>looks_like_ucs2_hex</code> ممکن است مثبت کاذب داشته باشد</strong> (مثلاً متن انگلیسی خالص از اعداد/حروف A–F)؛ برای همین <code>decode_ussd_text</code> در <code>ussd_service.cpp</code> اول به <code>dcs</code> گزارش شده اعتماد می کند و فقط در نامشخص بودن، «بو» می کند.</li>
+<li><strong>بدون heap:</strong> همه بافرها (<code>out</code>) توسط فراخواننده با اندازه ثابت (<code>GSM_SMS_TEXT_BYTES</code>، <code>GSM_SMS_NUMBER_BYTES</code>) تأمین می شوند.</li>
+<li><strong>هگز بزرگ/کوچک:</strong> <code>hex_val</code> هر دو را می پذیرد؛ <code>hex_digit</code> همیشه بزرگ تولید می کند (سازگار با انتظار مودم ها).</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/codec/ucs2.hpp</code> — اعلان توابع.</li>
 <li><code>src/sms_service.cpp</code> — رمزنگاری متن و شماره در <code>SendHeader</code>/<code>WritePayload</code> و رمزگشایی در <code>parse_cmgr_header</code>/<code>store_body</code>.</li>
-<li><code>src/call_service.cpp</code> — رمزگشایی شماره UCS2 در پاسخ‌های <code>+CLIP</code>/<code>+CLCC</code>.</li>
-<li><code>src/ussd_service.cpp</code> — <code>encode_ussd_text</code>/<code>decode_ussd_text</code> (پیام‌های <code>+CUSD</code>).</li>
+<li><code>src/call_service.cpp</code> — رمزگشایی شماره UCS2 در پاسخ های <code>+CLIP</code>/<code>+CLCC</code>.</li>
+<li><code>src/ussd_service.cpp</code> — <code>encode_ussd_text</code>/<code>decode_ussd_text</code> (پیام های <code>+CUSD</code>).</li>
 <li><code>src/at_types.cpp</code> — کد خطای CMS 3518 (مقصد UCS2 نشده) دقیقاً به همین مبدل مربوط است.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

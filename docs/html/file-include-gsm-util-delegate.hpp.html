@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/util/delegate.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/util/delegate.hpp</h1>
 <h2>نقش فایل</h2>
-<p>جایگزین سبک‌وزن و بدون heap برای <code>std::function</code>: یک «delegate» قالب‌بندی‌شده با امضای دلخواه که از یک <strong>تابع + اشاره‌گر context</strong> تشکیل شده است. همهٔ callbackهای کتابخانه (رویدادهای SMS/تماس/Job/URC/سلامت) از این نوع‌اند تا بدون RTTI، استثنا یا تخصیص حافظهٔ پویا کار کنند.</p>
+<p>جایگزین سبک وزن و بدون heap برای <code>std::function</code>: یک «delegate» قالب بندی شده با امضای دلخواه که از یک <strong>تابع + اشاره گر context</strong> تشکیل شده است. همهٔ callbackهای کتابخانه (رویدادهای SMS/تماس/Job/URC/سلامت) از این نوع اند تا بدون RTTI، استثنا یا تخصیص حافظهٔ پویا کار کنند.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>template &lt;typename... Args&gt; class Delegate</code></h3>
 <pre><code class="lang-cpp">template &lt;typename... Args&gt; class Delegate
@@ -66,9 +66,9 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 };</code></pre>
 <ul>
 <li>سازندهٔ صریح: <code>Delegate(fn, ctx)</code> — تابع ایستا با context دلخواه.</li>
-<li><code>operator()</code>: فراخوانی؛ اگر bind نشده باشد بی‌صدا کاری نمی‌کند (فراخوانی امن روی delegate خالی).</li>
+<li><code>operator()</code>: فراخوانی؛ اگر bind نشده باشد بی صدا کاری نمی کند (فراخوانی امن روی delegate خالی).</li>
 <li><code>operator bool</code>: بررسی bind بودن.</li>
-<li><strong><code>bind&lt;T, &amp;T::method&gt;(obj)</code></strong>: اتصال متد عضو یک object بدون lambda یا heap؛ از یک lambda بدون capture (تبدیل‌شونده به اشاره‌گر تابع) استفاده می‌کند که <code>ctx</code> را به <code>T*</code> cast می‌کند.</li>
+<li><strong><code>bind&lt;T, &amp;T::method&gt;(obj)</code></strong>: اتصال متد عضو یک object بدون lambda یا heap؛ از یک lambda بدون capture (تبدیل شونده به اشاره گر تابع) استفاده می کند که <code>ctx</code> را به <code>T*</code> cast می کند.</li>
 </ul>
 <p>نمونه:</p>
 <pre><code class="lang-cpp">// Free function + context (used by Modem&#x27;s URC trampoline).
@@ -88,14 +88,14 @@ static void urc_trampoline(void* ctx, const UrcEvent&amp; ev)
 { static_cast&lt;Modem*&gt;(ctx)-&gt;handle_urc(ev); }</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون heap، بدون STL، بدون closure</strong>: فقط یک اشاره‌گر تابع + یک <code>void*</code>؛ اندازهٔ object ثابت و کوچک (معمولاً ۸/۱۶ بایت).</li>
-<li><code>constexpr</code> بودن سازنده‌ها اجازه می‌دهد delegateها در مقداردهی اولیهٔ سراسری ساخته شوند.</li>
-<li>ایمنی نوعی <code>bind&lt;T, &amp;T::M&gt;</code> در زمان کامپایل بررسی می‌شود (قالب عضو با امضای دقیق)؛ خبری از <code>dynamic_cast</code> نیست.</li>
-<li>delegate خالی ایمن است: <code>operator()</code> بدون <code>fn_</code> هیچ کاری نمی‌کند — نیازی به بررسی قبل از فراخوانی نیست (هرچند <code>operator bool</code> موجود است).</li>
-<li>محدودیت: فقط اشاره‌گر ساده به object؛ هوشمندی مالکیت (shared_ptr و …) ندارد — طول عمر object بر عهدهٔ کاربر است.</li>
+<li><strong>بدون heap، بدون STL، بدون closure</strong>: فقط یک اشاره گر تابع + یک <code>void*</code>؛ اندازهٔ object ثابت و کوچک (معمولاً ۸/۱۶ بایت).</li>
+<li><code>constexpr</code> بودن سازنده ها اجازه می دهد delegateها در مقداردهی اولیهٔ سراسری ساخته شوند.</li>
+<li>ایمنی نوعی <code>bind&lt;T, &amp;T::M&gt;</code> در زمان کامپایل بررسی می شود (قالب عضو با امضای دقیق)؛ خبری از <code>dynamic_cast</code> نیست.</li>
+<li>delegate خالی ایمن است: <code>operator()</code> بدون <code>fn_</code> هیچ کاری نمی کند — نیازی به بررسی قبل از فراخوانی نیست (هرچند <code>operator bool</code> موجود است).</li>
+<li>محدودیت: فقط اشاره گر ساده به object؛ هوشمندی مالکیت (shared_ptr و …) ندارد — طول عمر object بر عهدهٔ کاربر است.</li>
 <li>الگوی استاندارد کتابخانه: <code>using X = Delegate&lt;Args...&gt;;</code> مثل <code>JobCallback</code>، <code>UrcRouter::Handler</code>، <code>SmsService::Received</code>، <code>MaintenanceWatchdog::ReportCb</code>.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/urc_router.hpp</code> — <code>UrcRouter::Handler</code></li>
 <li><code>queue/job.hpp</code> — <code>JobCallback</code></li>

@@ -41,16 +41,16 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/line_reader.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/line_reader.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی <code>gsm::LineReader</code>؛ توکنایزر بایت‌به‌بایت جریان UART مودم که بایت‌های خام را به سه نوع توکن تبدیل می‌کند: خط کامل (<code>Token::Line</code>)، پرامپت ورود داده (<code>Token::Prompt</code>، یعنی <code>&gt;</code> معروف <code>AT+CMGS</code>) و سرریز بافر (<code>Token::Overflow</code>). این کوچک‌ترین فایل کتابخانه است اما پایه صحت همه پردازش پاسخ‌های AT است.</p>
+<p>پیاده سازی <code>gsm::LineReader</code>؛ توکنایزر بایت به بایت جریان UART مودم که بایت های خام را به سه نوع توکن تبدیل می کند: خط کامل (<code>Token::Line</code>)، پرامپت ورود داده (<code>Token::Prompt</code>، یعنی <code>&gt;</code> معروف <code>AT+CMGS</code>) و سرریز بافر (<code>Token::Overflow</code>). این کوچک ترین فایل کتابخانه است اما پایه صحت همه پردازش پاسخ های AT است.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3><code>Token LineReader::feed(uint8_t byte)</code></h3>
-<p>کل منطق در یک تابع؛ قواعد به‌ترتیب بررسی می‌شوند:</p>
-<pre><code class="lang-cpp">if (byte == &#x27;\r&#x27;) return Token::None;          // CR نادیده گرفته می‌شود
+<p>کل منطق در یک تابع؛ قواعد به ترتیب بررسی می شوند:</p>
+<pre><code class="lang-cpp">if (byte == &#x27;\r&#x27;) return Token::None;          // CR نادیده گرفته می شود
 if (byte == &#x27;\n&#x27;)
 {
-    if (buf_.empty()) return Token::None;      // خط خالی (CRLF اضافی) → بی‌اثر
+    if (buf_.empty()) return Token::None;      // خط خالی (CRLF اضافی) → بی اثر
     return Token::Line;                        // پایان یک خط معتبر
 }
 if (byte == &#x27;&gt;&#x27; &amp;&amp; buf_.empty())
@@ -62,14 +62,14 @@ if (byte == 0) return Token::None;             // NUL نادیده
 if (!buf_.push_back(static_cast&lt;char&gt;(byte))) { return Token::Overflow; }
 return Token::None;</code></pre>
 <ul>
-<li><strong><code>\r</code> هرگز ذخیره نمی‌شود</strong> (پروتکل مودم‌ها CRLF می‌فرستد؛ فقط LF معنادار است).</li>
-<li><strong><code>&gt;</code> فقط در ابتدای خط</strong> پرامپت تلقی می‌شود؛ اگر <code>&gt;</code> در میانه یک خط بیاید (مثلاً در متن یک پیامک) مثل کاراکتر عادی در بافر می‌نشیند.</li>
-<li><strong>خط خالی</strong> (بلافاصله بعد از LF قبلی) توکنی تولید نمی‌کند؛ از <code>Token::Line</code>های توخالی جلوگیری می‌شود.</li>
-<li><strong>سرریز:</strong> اگر <code>push_back</code> به دلیل پرشدن بافر (<code>GSM_LINE_MAX</code>، پیش‌فرض ۵۱۲) شکست بخورد، <code>Token::Overflow</code> برمی‌گردد و فراخواننده (<code>AtEngine::tick</code>) با <code>reset()</code> بافر را دور می‌ریزد.</li>
+<li><strong><code>\r</code> هرگز ذخیره نمی شود</strong> (پروتکل مودم ها CRLF می فرستد؛ فقط LF معنادار است).</li>
+<li><strong><code>&gt;</code> فقط در ابتدای خط</strong> پرامپت تلقی می شود؛ اگر <code>&gt;</code> در میانه یک خط بیاید (مثلاً در متن یک پیامک) مثل کاراکتر عادی در بافر می نشیند.</li>
+<li><strong>خط خالی</strong> (بلافاصله بعد از LF قبلی) توکنی تولید نمی کند؛ از <code>Token::Line</code>های توخالی جلوگیری می شود.</li>
+<li><strong>سرریز:</strong> اگر <code>push_back</code> به دلیل پرشدن بافر (<code>GSM_LINE_MAX</code>، پیش فرض ۵۱۲) شکست بخورد، <code>Token::Overflow</code> برمی گردد و فراخواننده (<code>AtEngine::tick</code>) با <code>reset()</code> بافر را دور می ریزد.</li>
 </ul>
-<p>متدهای دیگر (در هدر، اینلاین): <code>line()</code> اشاره‌گر به بافر null-terminated، <code>length()</code> طول خط، <code>reset()</code> تخلیه بافر و <code>empty()</code>.</p>
+<p>متدهای دیگر (در هدر، اینلاین): <code>line()</code> اشاره گر به بافر null-terminated، <code>length()</code> طول خط، <code>reset()</code> تخلیه بافر و <code>empty()</code>.</p>
 <h2>جریان کاری</h2>
-<pre><code class="lang-text">بایت‌های UART ──► feed(byte)
+<pre><code class="lang-text">بایت های UART ──► feed(byte)
                     │
                     ├─ &#x27;\r&#x27; / NUL          → None (نادیده)
                     ├─ &#x27;\n&#x27; + بافر خالی    → None
@@ -80,14 +80,14 @@ return Token::None;</code></pre>
 <h2>نکات فنی</h2>
 <ul>
 <li><strong>بافر <code>static_string</code>/<code>ring</code> داخلی:</strong> <code>push_back</code> بدون تخصیص حافظه پویا؛ اندازه با <code>GSM_LINE_MAX</code> (۵۱۲ بایت) در <code>gsm_config.hpp</code> قابل تنظیم است.</li>
-<li><strong>پروتکل <code>&gt;</code> بدون CRLF:</strong> برخی مودم‌ها پرامپت <code>CMGS</code> را بدون <code>\r\n</code> می‌فرستند؛ شرط <code>buf_.empty()</code> دقیقاً همین حالت را می‌گیرد و در عین حال <code>&gt;</code> داخل payload را خراب نمی‌کند.</li>
-<li><strong>تشخیص اکو:</strong> چون متن اکوی فرمان (مثلاً <code>AT+CMGS="…"</code>) مثل یک خط عادی تحویل داده می‌شود، <code>AtEngine</code> آن را با <code>sent_</code> مقایسه و حذف می‌کند؛ <code>LineReader</code> عمداً در این مورد دخالت نمی‌کند.</li>
-<li><strong>NUL حذف می‌شود</strong> تا رشته‌های C همیشه null-terminated معتبر بمانند.</li>
-<li><strong>رفتار در CR تنها:</strong> برخی مودم‌های قدیمی فقط <code>\r</code> می‌فرستند؛ این پیاده‌سازی LF-محور است (با <code>Token::Line</code> روی <code>\n</code>). مستندات <code>QUIRKS.md</code> برای سازگاری چنین مودم‌هایی راهکار دارد.</li>
+<li><strong>پروتکل <code>&gt;</code> بدون CRLF:</strong> برخی مودم ها پرامپت <code>CMGS</code> را بدون <code>\r\n</code> می فرستند؛ شرط <code>buf_.empty()</code> دقیقاً همین حالت را می گیرد و در عین حال <code>&gt;</code> داخل payload را خراب نمی کند.</li>
+<li><strong>تشخیص اکو:</strong> چون متن اکوی فرمان (مثلاً <code>AT+CMGS="…"</code>) مثل یک خط عادی تحویل داده می شود، <code>AtEngine</code> آن را با <code>sent_</code> مقایسه و حذف می کند؛ <code>LineReader</code> عمداً در این مورد دخالت نمی کند.</li>
+<li><strong>NUL حذف می شود</strong> تا رشته های C همیشه null-terminated معتبر بمانند.</li>
+<li><strong>رفتار در CR تنها:</strong> برخی مودم های قدیمی فقط <code>\r</code> می فرستند؛ این پیاده سازی LF-محور است (با <code>Token::Line</code> روی <code>\n</code>). مستندات <code>QUIRKS.md</code> برای سازگاری چنین مودم هایی راهکار دارد.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/core/line_reader.hpp</code> — تعریف <code>Token</code>، متدهای <code>line()</code>/<code>length()</code>/<code>reset()</code>.</li>
-<li><code>src/at_engine.cpp</code> — تنها مصرف‌کننده: در <code>tick()</code> هر بایت UART به <code>feed</code> داده می‌شود.</li>
+<li><code>src/at_engine.cpp</code> — تنها مصرف کننده: در <code>tick()</code> هر بایت UART به <code>feed</code> داده می شود.</li>
 <li><code>include/gsm/gsm_config.hpp</code> — <code>GSM_LINE_MAX</code> (اندازه بافر خط).</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

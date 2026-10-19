@@ -41,12 +41,12 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/cli/cli.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/cli/cli.hpp</h1>
 <h2>نقش فایل</h2>
-<p>کنسول تعاملی صنعتی کتابخانه (<code>cli::Console</code>) — همان چیزی که قبلاً در برنامهٔ کاربردی به‌نام <code>gsm_cli</code> وجود داشت و اکنون به یک قابلیت رسمی <strong>در هستهٔ کتابخانه</strong> تبدیل شده است. هر میزبانی (STM32، Arduino، تست میزبان) کافی است بایت‌های ورودی را به <code>feed()</code> بدهد و خروجی را به یک <code>TextSink</code> وصل کند تا همان منوی مدیریتی (وضعیت زنده، صف، نگهبان، دستورات SMS/تماس/USSD، حالت raw AT) را داشته باشد. فرمان‌ها از وب/پل سریال هم با <code>exec_web</code> قابل اجراست.</p>
+<p>کنسول تعاملی صنعتی کتابخانه (<code>cli::Console</code>) — همان چیزی که قبلاً در برنامهٔ کاربردی به نام <code>gsm_cli</code> وجود داشت و اکنون به یک قابلیت رسمی <strong>در هستهٔ کتابخانه</strong> تبدیل شده است. هر میزبانی (STM32، Arduino، تست میزبان) کافی است بایت های ورودی را به <code>feed()</code> بدهد و خروجی را به یک <code>TextSink</code> وصل کند تا همان منوی مدیریتی (وضعیت زنده، صف، نگهبان، دستورات SMS/تماس/USSD، حالت raw AT) را داشته باشد. فرمان ها از وب/پل سریال هم با <code>exec_web</code> قابل اجراست.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>struct TextSink</code></h3>
-<p>خروجی قابل حمل بایت‌محور (پورت سریال، کنسول وب، هارنس تست):</p>
+<p>خروجی قابل حمل بایت محور (پورت سریال، کنسول وب، هارنس تست):</p>
 <pre><code class="lang-cpp">struct TextSink
 {
     void (*write)(void* ud, const char* data, uint16_t len) = nullptr;
@@ -80,9 +80,9 @@ void set_passthrough(bool on);
 // IAtObserver for the raw &quot;at&quot; command
 void on_line(const char* line, uint16_t len) override;
 void on_final(const AtResult&amp; res) override;</code></pre>
-<p>حالت‌های داخلی:</p>
+<p>حالت های داخلی:</p>
 <pre><code class="lang-cpp">enum class Mode : uint8_t { Menu, LiveStatus, Passthrough };</code></pre>
-<p>بخش‌های خصوصی (نمایش و فرمان):</p>
+<p>بخش های خصوصی (نمایش و فرمان):</p>
 <ul>
 <li>rendering: <code>out</code>/<code>outf</code>، <code>web_event</code>/<code>web_out_chunk</code>، <code>ansi_bar</code>/<code>ansi_divider</code>/<code>ansi_clear</code>، <code>kv</code>، <code>draw_menu</code>/<code>draw_live_status</code>/<code>draw_queue</code>/<code>draw_status_bar</code>/<code>draw_watchdog</code>/<code>prompt</code>/<code>redraw_current</code></li>
 <li>command handling: <code>handle(char* line)</code>، <code>cycle_level()</code> (چرخش سطح لاگ)</li>
@@ -93,7 +93,7 @@ void on_final(const AtResult&amp; res) override;</code></pre>
 console.set_output(sink);
 console.init();          // registers callbacks, draws the menu
 while (true) { console.tick(); ... console.feed(byte); }</code></pre>
-<p>مرجع فرمان‌ها: <code>docs/CLI.md</code> (فارسی) و <code>docs/html/cli.html</code>.</p>
+<p>مرجع فرمان ها: <code>docs/CLI.md</code> (فارسی) و <code>docs/html/cli.html</code>.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">console byte stream (UART / USB / web)
     |
@@ -114,21 +114,21 @@ Modem callbacks (on_sms / on_call / on_call_ended / on_sim / on_job / on_health)
 <h2>نکات فنی</h2>
 <ul>
 <li><strong>بدون heap</strong>: بافر خط ورودی <code>char line_[128]</code> و بافر وب <code>wline_[192]</code> روی object؛ هیچ <code>std::string</code>/<code>iostream</code> در کار نیست.</li>
-<li><code>Console</code> همزمان یک <code>IAtObserver</code> است (برای دستور raw <code>at</code>)؛ اجرای دستور با timeout ده‌ثانیه‌ای و نمایش وضعیت نهایی.</li>
-<li><strong>خروجی دوگانه</strong>: همهٔ خروجی‌ها به <code>TextSink</code> اصلی و در صورت تنظیم، به آینهٔ وب (<code>web_write_</code>) هم می‌روند — مناسب پنل تحت وب متصل به همان مودم.</li>
-<li><code>install_log_mirror</code> با <code>log::WriterSink</code> رکوردهای <code>gsm::log</code> را به کنسول می‌آورد؛ برای دیباگ میدانی بدون ابزار جانبی.</li>
-<li><code>status_line</code> یک CSV فشرده از وضعیت می‌دهد (برای اسکریپت/تله‌متری)؛ <code>draw_watchdog</code> وضعیت <code>MaintenanceWatchdog</code> (بودجه‌ها، resetها، health) را نشان می‌دهد.</li>
-<li><code>set_loop_rate_display</code> نرخ حلقهٔ اصلی را نمایش می‌دهد (ابزار پایش کارایی روی میکروکنترلر).</li>
-<li>ثبت callbackها در <code>init()</code> انجام می‌شود (callbackهای <code>Modem</code> را بازنویسی می‌کند)؛ اگر خودتان callback ثبت کرده‌اید، بعد از <code>init()</code> این کار را بکنید.</li>
-<li><code>Mode::Passthrough</code> بایت‌ها را مستقیم به موتور AT می‌فرستد (مشابه <code>tools::SerialBridge</code>).</li>
+<li><code>Console</code> همزمان یک <code>IAtObserver</code> است (برای دستور raw <code>at</code>)؛ اجرای دستور با timeout ده ثانیه ای و نمایش وضعیت نهایی.</li>
+<li><strong>خروجی دوگانه</strong>: همهٔ خروجی ها به <code>TextSink</code> اصلی و در صورت تنظیم، به آینهٔ وب (<code>web_write_</code>) هم می روند — مناسب پنل تحت وب متصل به همان مودم.</li>
+<li><code>install_log_mirror</code> با <code>log::WriterSink</code> رکوردهای <code>gsm::log</code> را به کنسول می آورد؛ برای دیباگ میدانی بدون ابزار جانبی.</li>
+<li><code>status_line</code> یک CSV فشرده از وضعیت می دهد (برای اسکریپت/تله متری)؛ <code>draw_watchdog</code> وضعیت <code>MaintenanceWatchdog</code> (بودجه ها، resetها، health) را نشان می دهد.</li>
+<li><code>set_loop_rate_display</code> نرخ حلقهٔ اصلی را نمایش می دهد (ابزار پایش کارایی روی میکروکنترلر).</li>
+<li>ثبت callbackها در <code>init()</code> انجام می شود (callbackهای <code>Modem</code> را بازنویسی می کند)؛ اگر خودتان callback ثبت کرده اید، بعد از <code>init()</code> این کار را بکنید.</li>
+<li><code>Mode::Passthrough</code> بایت ها را مستقیم به موتور AT می فرستد (مشابه <code>tools::SerialBridge</code>).</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>modem/modem.hpp</code> — شیء تحت کنترل؛ همهٔ callbackها از همین‌جا وصل می‌شوند</li>
+<li><code>modem/modem.hpp</code> — شیء تحت کنترل؛ همهٔ callbackها از همین جا وصل می شوند</li>
 <li><code>core/at_types.hpp</code> — <code>IAtObserver</code> برای دستور raw <code>at</code></li>
 <li><code>hal/hal.hpp</code> — <code>IClock</code> برای timestamp و نرخ حلقه</li>
 <li><code>log/log.hpp</code> — <code>install_log_mirror</code> و <code>WriterSink</code></li>
 <li><code>maintenance/watchdog.hpp</code> — <code>HealthReport</code> برای <code>draw_watchdog</code> و <code>on_health_thunk</code></li>
 <li><code>tools/serial_bridge.hpp</code> — جایگزین مینیمال برای حالت passthrough</li>
-<li><code>gsm_config.hpp</code> — اندازه‌های بافر و سطوح لاگ</li>
+<li><code>gsm_config.hpp</code> — اندازه های بافر و سطوح لاگ</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

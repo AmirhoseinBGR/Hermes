@@ -41,15 +41,15 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>App/gsm_cli/cli.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>App/gsm_cli/cli.cpp</h1>
 <h2>نقش فایل</h2>
-<p>چسب STM32 + پل وب (web bridge) برای کنسول کتابخانه‌ی GSM. این فایل سخت‌افزار (UART مودم، UART دیباگ، زمان‌سنج، کنترل تغذیه)، نمونه‌ی مودم <code>kQuectelM08R</code> و پل پنل وب را می‌سازد و همه را به کنسول کتابخانه <code>gsm::cli::Console</code> وصل می‌کند. خود کنسول یک قابلیت کتابخانه است (<code>gsm/cli/cli.{hpp,cpp}</code>)؛ این فایل فقط سیم‌کشی سخت‌افزار، نمونه‌ی مودم M08R و پل وب را انجام می‌دهد.</p>
+<p>چسب STM32 + پل وب (web bridge) برای کنسول کتابخانه ی GSM. این فایل سخت افزار (UART مودم، UART دیباگ، زمان سنج، کنترل تغذیه)، نمونه ی مودم <code>kQuectelM08R</code> و پل پنل وب را می سازد و همه را به کنسول کتابخانه <code>gsm::cli::Console</code> وصل می کند. خود کنسول یک قابلیت کتابخانه است (<code>gsm/cli/cli.{hpp,cpp}</code>)؛ این فایل فقط سیم کشی سخت افزار، نمونه ی مودم M08R و پل وب را انجام می دهد.</p>
 <h2>ساختارها/توابع کلیدی</h2>
-<p>نمونه‌های ایستای سطح فایل:</p>
+<p>نمونه های ایستای سطح فایل:</p>
 <ul>
 <li><code>static port::Stm32Uart&lt;512&gt; s_gsm_uart(&amp;huart7)</code> — UART مودم (UART7، DMA ۵۱۲).</li>
 <li><code>static port::Stm32Uart&lt;256&gt; s_dbg_uart(&amp;huart1)</code> — UART دیباگ/کنسول (USART1، DMA ۲۵۶).</li>
-<li><code>static port::Stm32Clock s_clk</code> — زمان‌سنج <code>HAL_GetTick</code>.</li>
+<li><code>static port::Stm32Clock s_clk</code> — زمان سنج <code>HAL_GetTick</code>.</li>
 <li><code>static port::Stm32PowerControl s_gsmpwr(...)</code> — (شرطی با <code>GSM_PWR_GPIO_Port</code>/<code>GSM_PWR_Pin</code>) کنترل PWRKEY.</li>
 <li><code>static Modem s_modem(s_gsm_uart, s_clk, kQuectelM08R, ...)</code> — مودم M08R؛ در نبود پین تغذیه، <code>nullptr</code>.</li>
 <li><code>static void uart_write(void<em>, const char</em> data, uint16_t len)</code> — خروجی کنسول روی UART دیباگ.</li>
@@ -57,13 +57,13 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 </ul>
 <p>متغیر سراسری:</p>
 <ul>
-<li><code>extern "C" bool g_sim_state</code> — وضعیت آماده‌بودن مودم/SIM برای مصرف بیرونی؛ در <code>tick</code> با <code>s_modem.ready()</code> به‌روز می‌شود.</li>
+<li><code>extern "C" bool g_sim_state</code> — وضعیت آماده بودن مودم/SIM برای مصرف بیرونی؛ در <code>tick</code> با <code>s_modem.ready()</code> به روز می شود.</li>
 </ul>
 <p>توابع عمومی <code>namespace cli</code>:</p>
 <ul>
 <li><code>void init()</code> — <code>s_gsm_uart.begin()</code>، <code>s_dbg_uart.begin()</code>، <code>s_console.set_output(...)</code>، تنظیم housekeeping (<code>signal_ms=15000</code>, <code>sms_scan_ms=20000</code>, <code>full_sweep_ms=60000</code>, <code>cleanup_ms=300000</code>)، سپس <code>s_modem.begin()</code> و <code>s_console.init()</code>.</li>
-<li><code>void tick()</code> — اگر <code>s_console.passthrough()</code> باشد فقط <code>s_console.tick()</code> (پل خام مودم↔کنسول)؛ وگرنه <code>s_modem.tick()</code> + <code>s_console.tick()</code> و به‌روزرسانی <code>g_sim_state</code>.</li>
-<li><code>void on_uart_rx(...)</code> — داده‌ی UART7 → <code>s_gsm_uart.on_rx_event</code>؛ USART1 → <code>s_dbg_uart.on_rx_event</code> + تغذیه‌ی بایت‌ها به <code>s_console.feed(b)</code>.</li>
+<li><code>void tick()</code> — اگر <code>s_console.passthrough()</code> باشد فقط <code>s_console.tick()</code> (پل خام مودم↔کنسول)؛ وگرنه <code>s_modem.tick()</code> + <code>s_console.tick()</code> و به روزرسانی <code>g_sim_state</code>.</li>
+<li><code>void on_uart_rx(...)</code> — داده ی UART7 → <code>s_gsm_uart.on_rx_event</code>؛ USART1 → <code>s_dbg_uart.on_rx_event</code> + تغذیه ی بایت ها به <code>s_console.feed(b)</code>.</li>
 <li><code>void on_uart_error(...)</code> — بازیابی دریافت هر UART با <code>on_error()</code>.</li>
 <li><code>void set_web_output(void (<em>out)(const char</em>, void<em>), void</em> ud)</code> → <code>s_console.set_web_output(out, ud)</code>.</li>
 <li><code>void exec_web(const char* line)</code> → <code>s_console.exec_web(line)</code>.</li>
@@ -71,32 +71,32 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 </ul>
 <h2>جریان کاری</h2>
 <ol>
-<li><strong>راه‌اندازی:</strong> <code>cli::init()</code> → شروع UARTها → تنظیم خروجی کنسول → تنظیم housekeeping → <code>modem.begin()</code> → <code>console.init()</code>.</li>
+<li><strong>راه اندازی:</strong> <code>cli::init()</code> → شروع UARTها → تنظیم خروجی کنسول → تنظیم housekeeping → <code>modem.begin()</code> → <code>console.init()</code>.</li>
 <li><strong>حلقه:</strong> <code>cli::tick()</code>:</li>
 </ol>
 <ul>
-<li>در حالت <strong>پاس‌ترو</strong> (<code>passthrough()</code>): فقط <code>console.tick()</code> (پل خام بین مودم و کنسول).</li>
-<li>در حالت عادی: <code>modem.tick()</code> + <code>console.tick()</code> + به‌روزرسانی <code>g_sim_state</code>.</li>
+<li>در حالت <strong>پاس ترو</strong> (<code>passthrough()</code>): فقط <code>console.tick()</code> (پل خام بین مودم و کنسول).</li>
+<li>در حالت عادی: <code>modem.tick()</code> + <code>console.tick()</code> + به روزرسانی <code>g_sim_state</code>.</li>
 </ul>
 <ol>
-<li><strong>ورودی کاربر/دیباگ:</strong> وقفه‌ی USART1 → <code>on_uart_rx</code> → <code>console.feed(b)</code> برای هر بایت.</li>
-<li><strong>پل وب:</strong> <code>set_web_output</code> مخاطب وب را ثبت می‌کند؛ <code>exec_web</code> دستور وب را اجرا می‌کند؛ <code>status_line</code> وضعیت فشرده‌ی زنده را می‌سازد.</li>
+<li><strong>ورودی کاربر/دیباگ:</strong> وقفه ی USART1 → <code>on_uart_rx</code> → <code>console.feed(b)</code> برای هر بایت.</li>
+<li><strong>پل وب:</strong> <code>set_web_output</code> مخاطب وب را ثبت می کند؛ <code>exec_web</code> دستور وب را اجرا می کند؛ <code>status_line</code> وضعیت فشرده ی زنده را می سازد.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li>تفاوت کلیدی با <code>gsm/user_code/cli.cpp</code>: این نسخه <strong>حالت پاس‌ترو</strong> و <strong>پل وب</strong> دارد؛ در پاس‌ترو، <code>modem.tick()</code> صدا زده نمی‌شود و کنسول پل خام مودم↔کنسول است.</li>
-<li><code>g_sim_state</code> با <code>extern "C"</code> در دسترس سایر بخش‌های C اپ (<code>App/port/drivers.cpp</code>) قرار می‌گیرد.</li>
-<li>منطق کنسول (منو، وضعیت زنده، دستورات، پاس‌ترو، وب) همگی در <code>gsm::cli::Console</code> است؛ این فایل فقط سیم‌کشی می‌کند.</li>
+<li>تفاوت کلیدی با <code>gsm/user_code/cli.cpp</code>: این نسخه <strong>حالت پاس ترو</strong> و <strong>پل وب</strong> دارد؛ در پاس ترو، <code>modem.tick()</code> صدا زده نمی شود و کنسول پل خام مودم↔کنسول است.</li>
+<li><code>g_sim_state</code> با <code>extern "C"</code> در دسترس سایر بخش های C اپ (<code>App/port/drivers.cpp</code>) قرار می گیرد.</li>
+<li>منطق کنسول (منو، وضعیت زنده، دستورات، پاس ترو، وب) همگی در <code>gsm::cli::Console</code> است؛ این فایل فقط سیم کشی می کند.</li>
 <li>پین تغذیه با <code>#if defined(GSM_PWR_GPIO_Port) &amp;&amp; defined(GSM_PWR_Pin)</code> اختیاری است.</li>
 <li><code>kQuectelM08R</code> نوع دستگاه است (برخلاف <code>kSim800</code> در مثال آردوینو).</li>
-<li>توابع وب (<code>set_web_output</code>/<code>exec_web</code>/<code>status_line</code>) مستقیماً به متدهای هم‌نام <code>s_console</code> forwarding می‌شوند.</li>
+<li>توابع وب (<code>set_web_output</code>/<code>exec_web</code>/<code>status_line</code>) مستقیماً به متدهای هم نام <code>s_console</code> forwarding می شوند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>App/gsm_cli/cli.hpp</code> — رابط عمومی که این فایل پیاده می‌کند.</li>
+<li><code>App/gsm_cli/cli.hpp</code> — رابط عمومی که این فایل پیاده می کند.</li>
 <li><code>gsm/include/gsm/cli/cli.hpp</code> — <code>gsm::cli::Console</code> (منطق کنسول + متدهای وب).</li>
 <li><code>gsm/ports/stm32/gsm_port_stm32.hpp</code> — <code>Stm32Uart</code>/<code>Stm32Clock</code>/<code>Stm32PowerControl</code>.</li>
 <li><code>gsm/modem/modem.hpp</code> — کلاس <code>Modem</code> و <code>kQuectelM08R</code>.</li>
-<li><code>App/port/drivers.cpp</code> — مصرف‌کننده‌ی پل وب و <code>g_sim_state</code>.</li>
-<li><code>gsm/user_code/cli.cpp</code> — نسخه‌ی ساده‌تر (بدون پاس‌ترو/وب) برای نمونه‌ی کتابخانه.</li>
+<li><code>App/port/drivers.cpp</code> — مصرف کننده ی پل وب و <code>g_sim_state</code>.</li>
+<li><code>gsm/user_code/cli.cpp</code> — نسخه ی ساده تر (بدون پاس ترو/وب) برای نمونه ی کتابخانه.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

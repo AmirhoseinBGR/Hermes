@@ -41,12 +41,12 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/at_types.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/at_types.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی توابع کمکی متنی برای انواع نتیجه فرمان‌های AT: تبدیل <code>AtStatus</code> به رشته قابل‌خواندن برای لاگ، و جدول‌های «راهنمای خطا» برای کدهای <code>+CMS ERROR</code> و <code>+CME ERROR</code>. این فایل هیچ منطق اجرایی ندارد و صرفاً پل ارتباطی بین کدهای عددی مودم و انسان (لاگ/کنسول) است.</p>
+<p>پیاده سازی توابع کمکی متنی برای انواع نتیجه فرمان های AT: تبدیل <code>AtStatus</code> به رشته قابل خواندن برای لاگ، و جدول های «راهنمای خطا» برای کدهای <code>+CMS ERROR</code> و <code>+CME ERROR</code>. این فایل هیچ منطق اجرایی ندارد و صرفاً پل ارتباطی بین کدهای عددی مودم و انسان (لاگ/کنسول) است.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3><code>const char* to_string(AtStatus s)</code></h3>
-<p>نگاشت یک‌به‌یک حالت‌های <code>AtStatus</code> به رشته‌های ثابت:</p>
+<p>نگاشت یک به یک حالت های <code>AtStatus</code> به رشته های ثابت:</p>
 <table><thead><tr><th><code>AtStatus</code></th><th>خروجی</th></tr></thead><tbody>
 <tr><td><code>Pending</code></td><td><code>"PENDING"</code></td></tr>
 <tr><td><code>Ok</code></td><td><code>"OK"</code></td></tr>
@@ -60,13 +60,13 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <tr><td><code>NoCarrier</code></td><td><code>"NO_CARRIER"</code></td></tr>
 <tr><td><code>NoAnswer</code></td><td><code>"NO_ANSWER"</code></td></tr>
 </tbody></table>
-<p>برای مقدار خارج از enum مقدار <code>"?"</code> برمی‌گردد (مسیر ایمنی).</p>
+<p>برای مقدار خارج از enum مقدار <code>"?"</code> برمی گردد (مسیر ایمنی).</p>
 <h3><code>const char* cms_error_hint(int16_t code)</code></h3>
-<p>توضیح کوتاه انگلیسی برای رایج‌ترین خطاهای SMS (CMS):</p>
+<p>توضیح کوتاه انگلیسی برای رایج ترین خطاهای SMS (CMS):</p>
 <table><thead><tr><th>کد</th><th>معنا</th></tr></thead><tbody>
-<tr><td>310</td><td>SIM not inserted (سیم‌کارت نیست)</td></tr>
+<tr><td>310</td><td>SIM not inserted (سیم کارت نیست)</td></tr>
 <tr><td>311</td><td>SIM PIN required (نیاز به PIN)</td></tr>
-<tr><td>313</td><td>SIM failure (خرابی سیم‌کارت)</td></tr>
+<tr><td>313</td><td>SIM failure (خرابی سیم کارت)</td></tr>
 <tr><td>321</td><td>invalid memory index (ایندکس حافظه نامعتبر)</td></tr>
 <tr><td>322</td><td>memory full (حافظه پیامک پر است)</td></tr>
 <tr><td>330</td><td>SMSC address unknown (آدرس مرکز پیامک نامشخص)</td></tr>
@@ -75,7 +75,7 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 <tr><td>520</td><td>malformed payload: CRLF sent before Ctrl+Z</td></tr>
 <tr><td>3518</td><td>destination not UCS2-encoded while CSCS=UCS2</td></tr>
 </tbody></table>
-<p>برای کدهای دیگر <code>"see module CMS error table"</code> برمی‌گردد.</p>
+<p>برای کدهای دیگر <code>"see module CMS error table"</code> برمی گردد.</p>
 <h3><code>const char* cme_error_hint(int16_t code)</code></h3>
 <p>همان کار برای خطاهای عمومی تجهیز (CME):</p>
 <table><thead><tr><th>کد</th><th>معنا</th></tr></thead><tbody>
@@ -88,21 +88,21 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
 </tbody></table>
 <p>برای کدهای دیگر <code>"see module CME error table"</code>.</p>
 <h2>جریان کاری</h2>
-<p>این فایل state-less است؛ در <code>AtEngine::tick</code> هنگام دیدن <code>+CME ERROR</code> / <code>+CMS ERROR</code> فراخوانی می‌شود:</p>
+<p>این فایل state-less است؛ در <code>AtEngine::tick</code> هنگام دیدن <code>+CME ERROR</code> / <code>+CMS ERROR</code> فراخوانی می شود:</p>
 <pre><code class="lang-text">AtEngine::tick ──► classify_final() ──► finish(status, code)
                           │
                           └─► kLog.warn(&quot;CMS %d: %s&quot;, code, cms_error_hint(code))</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>کد ۵۲۰ (CMS):</strong> نشانه کلاسیک اشتباه در فاز payload پیامک است — ارسال CRLF قبل از Ctrl+Z باعث می‌شود مودم payload را خراب تفسیر کند. <code>SmsService</code> برای همین متن را بدون واسطه و فقط با <code>write_ctrl_z()</code> پایان می‌دهد.</li>
-<li><strong>کد 3518 (CMS):</strong> وقتی <code>AT+CSCS="UCS2"</code> فعال است و شماره مقصد UCS2-encode نشده باشد رخ می‌دهد؛ <code>SmsService::advance_step</code> در مرحله <code>SendHeader</code> با <code>traits_.ucs2_recipient_required</code> این را پیشگیری می‌کند.</li>
-<li><strong>کد ۵۸ (CME):</strong> معروف به گیر کردن مودم در پرامپت ورود داده؛ راه‌حل کتابخانه <code>write_escape()</code> در <code>AtEngine::abort</code> و timeoutهای <code>expect_prompt</code> است.</li>
-<li>همه رشته‌های خروجی ثابت (static const) هستند؛ بازگشت اشاره‌گر کاملاً امن و بدون تخصیص حافظه است.</li>
-<li>جدول‌ها «راهنما» هستند نه منطق کنترلی؛ هیچ‌کدام از کدها بر تصمیم‌گیری FSM تأثیر ندارند و فقط برای خوانایی لاگ به کار می‌روند.</li>
+<li><strong>کد ۵۲۰ (CMS):</strong> نشانه کلاسیک اشتباه در فاز payload پیامک است — ارسال CRLF قبل از Ctrl+Z باعث می شود مودم payload را خراب تفسیر کند. <code>SmsService</code> برای همین متن را بدون واسطه و فقط با <code>write_ctrl_z()</code> پایان می دهد.</li>
+<li><strong>کد 3518 (CMS):</strong> وقتی <code>AT+CSCS="UCS2"</code> فعال است و شماره مقصد UCS2-encode نشده باشد رخ می دهد؛ <code>SmsService::advance_step</code> در مرحله <code>SendHeader</code> با <code>traits_.ucs2_recipient_required</code> این را پیشگیری می کند.</li>
+<li><strong>کد ۵۸ (CME):</strong> معروف به گیر کردن مودم در پرامپت ورود داده؛ راه حل کتابخانه <code>write_escape()</code> در <code>AtEngine::abort</code> و timeoutهای <code>expect_prompt</code> است.</li>
+<li>همه رشته های خروجی ثابت (static const) هستند؛ بازگشت اشاره گر کاملاً امن و بدون تخصیص حافظه است.</li>
+<li>جدول ها «راهنما» هستند نه منطق کنترلی؛ هیچ کدام از کدها بر تصمیم گیری FSM تأثیر ندارند و فقط برای خوانایی لاگ به کار می روند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>gsm/core/at_types.hpp</code> — تعریف <code>AtStatus</code>، <code>AtResult</code> و ثابت‌های خطای کتابخانه‌ای (<code>kErrSmsTooLong = -100</code>، <code>kErrCallTimeout = -101</code>، <code>kErrJobStalled = -102</code>).</li>
-<li><code>src/at_engine.cpp</code> — مصرف‌کننده اصلی این توابع در لاگ نتایج نهایی.</li>
+<li><code>gsm/core/at_types.hpp</code> — تعریف <code>AtStatus</code>، <code>AtResult</code> و ثابت های خطای کتابخانه ای (<code>kErrSmsTooLong = -100</code>، <code>kErrCallTimeout = -101</code>، <code>kErrJobStalled = -102</code>).</li>
+<li><code>src/at_engine.cpp</code> — مصرف کننده اصلی این توابع در لاگ نتایج نهایی.</li>
 <li><code>src/cli.cpp</code> — <code>to_string(AtStatus)</code> در نمایش نتیجه دستور <code>at &lt;cmd&gt;</code> و رویدادهای <code>[JOB#…]</code>.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

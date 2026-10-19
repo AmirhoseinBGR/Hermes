@@ -41,72 +41,72 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/src/sms_service.cpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/src/sms_service.cpp</h1>
 <h2>نقش فایل</h2>
-<p>پیاده‌سازی <code>gsm::SmsService</code>؛ ماشین وضعیت چندمرحله‌ای برای ارسال، خواندن، اسکن و حذف پیامک در حالت متنی (<code>AT+CMGF=1</code>). سرویس تنظیمات جلسه (متن‌بودن، charset، پارامترهای CSMP، مخزن پیامک) را کش می‌کند تا فرمان‌های تکراری نفرستد، رمزنگاری UCS2/GSM7 را خودکار انتخاب می‌کند، و در نسخه v0.4 یک «محافظ سخت‌گیرانه طول متن خروجی» دارد: متن‌های بلندتر از <code>max_chars</code> (پیش‌فرض ۶۰ نویسه UTF-8) همان اول کار با کد خطای <code>kErrSmsTooLong</code> رد می‌شوند تا مودم‌های خانواده M08R که با payload بزرگ هنگ می‌کنند یا پیامک خالی می‌فرستند، از ریشه در امان بمانند.</p>
+<p>پیاده سازی <code>gsm::SmsService</code>؛ ماشین وضعیت چندمرحله ای برای ارسال، خواندن، اسکن و حذف پیامک در حالت متنی (<code>AT+CMGF=1</code>). سرویس تنظیمات جلسه (متن بودن، charset، پارامترهای CSMP، مخزن پیامک) را کش می کند تا فرمان های تکراری نفرستد، رمزنگاری UCS2/GSM7 را خودکار انتخاب می کند، و در نسخه v0.4 یک «محافظ سخت گیرانه طول متن خروجی» دارد: متن های بلندتر از <code>max_chars</code> (پیش فرض ۶۰ نویسه UTF-8) همان اول کار با کد خطای <code>kErrSmsTooLong</code> رد می شوند تا مودم های خانواده M08R که با payload بزرگ هنگ می کنند یا پیامک خالی می فرستند، از ریشه در امان بمانند.</p>
 <h2>توابع و منطق کلیدی</h2>
 <h3><code>to_string(SmsStep)</code></h3>
-<p>نام گام‌ها برای لاگ/diag: <code>"cmgf" | "cscs" | "csmp" | "cpms" | "cmgs-header" | "payload" | "wait-cmgs" | "cmgl" | "cmgr" | "cmgd" | "cmgd-read" | …</code></p>
+<p>نام گام ها برای لاگ/diag: <code>"cmgf" | "cscs" | "csmp" | "cpms" | "cmgs-header" | "payload" | "wait-cmgs" | "cmgl" | "cmgr" | "cmgd" | "cmgd-read" | …</code></p>
 <h3><code>uint16_t SmsService::count_chars(const char* utf8)</code> — (ایستا)</h3>
-<p>تعداد «نقاط کد» UTF-8 را می‌شمارد (چیزی که کاربر به‌عنوان کاراکتر می‌بیند)، نه بایت‌ها:</p>
+<p>تعداد «نقاط کد» UTF-8 را می شمارد (چیزی که کاربر به عنوان کاراکتر می بیند)، نه بایت ها:</p>
 <pre><code class="lang-cpp">for (const unsigned char* p = ...; *p; ++p)
     if ((*p &amp; 0xC0) != 0x80) ++n; // count lead bytes only</code></pre>
-<p>فقط بایت‌های آغازین (lead bytes) شمرده می‌شوند؛ بایت‌های ادامه (continuation) با ماسک <code>10xxxxxx</code> حذف می‌شوند. این همان متریکی است که <code>max_chars</code> با آن مقایسه می‌شود.</p>
+<p>فقط بایت های آغازین (lead bytes) شمرده می شوند؛ بایت های ادامه (continuation) با ماسک <code>10xxxxxx</code> حذف می شوند. این همان متریکی است که <code>max_chars</code> با آن مقایسه می شود.</p>
 <h3><code>bool SmsService::start_send(const char<em> number, const char</em> utf8_text, SmsEncoding enc)</code></h3>
 <p>شروع ارسال. ترتیب اعتبارسنجی:</p>
 <ol>
 <li>اگر سرویس مشغول باشد → <code>false</code>.</li>
 <li><strong>محافظ طول (v0.4):</strong> اگر <code>max_chars_ != 0</code> و <code>count_chars(utf8_text) &gt; max_chars_</code> → لاگ خطا، <code>result_ = AtResult{AtStatus::Error, kErrSmsTooLong}</code> و <code>false</code>.</li>
 <li>شماره گیرنده باید با <code>PhoneNumber::assign</code> معتبر شود.</li>
-<li>انتخاب رمزنگاری: <code>Auto</code> → <code>default_enc_</code>؛ اگر GSM7 انتخاب شده باشد ولی متن غیر-ASCII باشد، با هشدار به UCS2 ارتقا داده می‌شود.</li>
-<li>گزارش ارسال (<code>SmsSendReport</code>) ریست و به گام <code>SetTextMode</code> می‌رود.</li>
+<li>انتخاب رمزنگاری: <code>Auto</code> → <code>default_enc_</code>؛ اگر GSM7 انتخاب شده باشد ولی متن غیر-ASCII باشد، با هشدار به UCS2 ارتقا داده می شود.</li>
+<li>گزارش ارسال (<code>SmsSendReport</code>) ریست و به گام <code>SetTextMode</code> می رود.</li>
 </ol>
 <h3><code>bool SmsService::start_read(int16_t index, bool delete_after)</code> / <code>start_scan_unread()</code> / <code>start_delete_index(int16_t)</code> / <code>start_delete_read()</code></h3>
-<p>ورودی‌های دیگر سرویس. <code>start_read</code> همیشه UCS2 می‌خواند؛ <code>start_scan_unread</code> شمارنده <code>pending_count_</code> را صفر می‌کند؛ نسخه‌های حذف مستقیم به گام <code>DeleteIndex</code>/<code>DeleteRead</code> می‌پرند.</p>
+<p>ورودی های دیگر سرویس. <code>start_read</code> همیشه UCS2 می خواند؛ <code>start_scan_unread</code> شمارنده <code>pending_count_</code> را صفر می کند؛ نسخه های حذف مستقیم به گام <code>DeleteIndex</code>/<code>DeleteRead</code> می پرند.</p>
 <h3><code>void SmsService::queue_index(int16_t index)</code></h3>
-<p>ایندکس پیامک خوانده‌نشده را در بافر <code>pending_</code> (حداکثر <code>GSM_SMS_INBOX_SLOTS = 4</code>) صف می‌کند.</p>
+<p>ایندکس پیامک خوانده نشده را در بافر <code>pending_</code> (حداکثر <code>GSM_SMS_INBOX_SLOTS = 4</code>) صف می کند.</p>
 <h3><code>void SmsService::cancel()</code> / <code>fail(...)</code> / <code>complete()</code></h3>
 <ul>
 <li><code>cancel</code> — لغو ESC-safe: <code>at_.abort()</code> (ارسال ESC اگر در پرامپت CMGS باشیم)، نتیجه <code>Aborted</code>.</li>
-<li><code>fail(st, code)</code> — ثبت نتیجه در <code>result_</code> و <code>report_.result</code>، بازگشت به <code>Idle</code> و <strong>باطل‌سازی جلسه</strong> با <code>session_.invalidate()</code>؛ چون بعد از خطا وضعیت charset/پرامپت مودم ممکن است نامشخص باشد و کش جلسه نباید به حافظه‌اش اعتماد کند.</li>
+<li><code>fail(st, code)</code> — ثبت نتیجه در <code>result_</code> و <code>report_.result</code>، بازگشت به <code>Idle</code> و <strong>باطل سازی جلسه</strong> با <code>session_.invalidate()</code>؛ چون بعد از خطا وضعیت charset/پرامپت مودم ممکن است نامشخص باشد و کش جلسه نباید به حافظه اش اعتماد کند.</li>
 <li><code>complete</code> — نتیجه موفق <code>Ok</code>.</li>
 </ul>
 <h3><code>void SmsService::pump()</code></h3>
-<p>حلقه‌ای با حداکثر ۸ پله <code>advance_step()</code>؛ گام‌هایی که به لطف کش جلسه فوراً skip می‌شوند در همان فراخوانی زنجیر می‌خورند بدون اینکه نوبت tick بعدی منتظر بمانند:</p>
+<p>حلقه ای با حداکثر ۸ پله <code>advance_step()</code>؛ گام هایی که به لطف کش جلسه فوراً skip می شوند در همان فراخوانی زنجیر می خورند بدون اینکه نوبت tick بعدی منتظر بمانند:</p>
 <pre><code class="lang-cpp">for (uint8_t guard = 0; guard &lt; 8; ++guard)
 {
     const SmsStep before = step_;
     advance_step();
     if (issued_ || !active() || step_ == before) return;
 }</code></pre>
-<h3><code>void SmsService::advance_step()</code> — ماشین گام‌ها</h3>
+<h3><code>void SmsService::advance_step()</code> — ماشین گام ها</h3>
 <p>مسیر مشترک تنظیمات (با کش جلسه):</p>
 <table><thead><tr><th>گام</th><th>فرمان</th><th>شرط skip</th></tr></thead><tbody>
 <tr><td><code>SetTextMode</code></td><td><code>AT+CMGF=1</code></td><td><code>session_.text_mode</code></td></tr>
 <tr><td><code>SetCharset</code></td><td><code>AT+CSCS="UCS2"</code> یا <code>"GSM"</code></td><td><code>session_.charset</code> برابر مقدار مطلوب</td></tr>
-<tr><td><code>SetCsmp</code></td><td><code>traits_.csmp_ucs2</code> / <code>traits_.csmp_gsm</code></td><td><code>session_.csmp_ucs2</code> هم‌فاز و charset شناخته‌شده</td></tr>
+<tr><td><code>SetCsmp</code></td><td><code>traits_.csmp_ucs2</code> / <code>traits_.csmp_gsm</code></td><td><code>session_.csmp_ucs2</code> هم فاز و charset شناخته شده</td></tr>
 <tr><td><code>SetStorage</code></td><td><code>traits_.storage_cmd</code></td><td><code>session_.storage_ready</code> یا بدون دستور مخزن</td></tr>
 </tbody></table>
 <p>سپس انشعاب بر اساس هدف: <code>target_index_ &gt;= 0</code> → <code>ReadMessage</code>؛ گیرنده نامعتبر → <code>ListUnread</code>؛ در غیر این صورت → <code>SendHeader</code>.</p>
-<p><strong>مرحله <code>SendHeader</code>:</strong> شماره مقصد در صورت نیاز دستگاه (<code>traits_.ucs2_recipient_required</code>) با <code>codec::ascii_to_ucs2_hex</code> به هگز UCS2 تبدیل می‌شود، سپس:</p>
+<p><strong>مرحله <code>SendHeader</code>:</strong> شماره مقصد در صورت نیاز دستگاه (<code>traits_.ucs2_recipient_required</code>) با <code>codec::ascii_to_ucs2_hex</code> به هگز UCS2 تبدیل می شود، سپس:</p>
 <pre><code class="lang-cpp">std::snprintf(cmd, sizeof(cmd), &quot;AT+CMGS=\&quot;%s\&quot;&quot;, dest);
 req.expect_prompt = true;                 // wait for &#x27;&gt;&#x27; prompt
 req.timeout_ms    = traits_.prompt_timeout_ms;</code></pre>
-<p><strong>مرحله <code>WritePayload</code>:</strong> متن UCS2 (با <code>utf8_to_ucs2_hex</code>) یا خام نوشته می‌شود، بلافاصله <code>at_.write_ctrl_z()</code> پایان payload را اعلام می‌کند و با <code>at_.await_final(traits_.send_timeout_ms, this)</code> منتظر <code>+CMGS:</code> / <code>OK</code> می‌ماند. در شکست رمزنگاری، ابتدا <code>write_escape()</code> و سپس <code>fail</code> اجرا می‌شود.</p>
+<p><strong>مرحله <code>WritePayload</code>:</strong> متن UCS2 (با <code>utf8_to_ucs2_hex</code>) یا خام نوشته می شود، بلافاصله <code>at_.write_ctrl_z()</code> پایان payload را اعلام می کند و با <code>at_.await_final(traits_.send_timeout_ms, this)</code> منتظر <code>+CMGS:</code> / <code>OK</code> می ماند. در شکست رمزنگاری، ابتدا <code>write_escape()</code> و سپس <code>fail</code> اجرا می شود.</p>
 <p><strong>مراحل خواندن/حذف:</strong> <code>AT+CMGL="REC UNREAD"</code> (۱۵s)، <code>AT+CMGR=%d</code> (۵s)، <code>AT+CMGD=%d</code> (۵s) و <code>AT+CMGD=1,1</code> (یا <code>AT+CMGD=1</code> بسته به <code>traits_.supports_cmgd_delete_all</code>).</p>
 <h3><code>void SmsService::on_prompt()</code></h3>
 <p>دیدن پرامپت <code>&gt;</code> مودم: اگر در <code>SendHeader</code> باشیم یعنی مودم آماده دریافت payload است → گام <code>WritePayload</code>.</p>
 <h3><code>void SmsService::parse_cmgr_header(const char<em> line)</code> / <code>store_body(const char</em> line)</code></h3>
-<p>هدر <code>+CMGR:</code> (تک‌پیام) و <code>+CMGL:</code> (فهرست) با ایندکس فیلد متفاوت پارس می‌شوند (فهرست یک فیلد ایندکس اضافه دارد). شماره فرستنده اگر هگز UCS2 به‌نظر برسد (<code>looks_like_ucs2_hex</code>) رمزگشایی می‌شود. بدنه پیام در خط بعدی با <code>store_body</code> ذخیره و رمزنگاری واقعی (UCS2 یا GSM7) با بو کردن محتوا تشخیص داده می‌شود.</p>
+<p>هدر <code>+CMGR:</code> (تک پیام) و <code>+CMGL:</code> (فهرست) با ایندکس فیلد متفاوت پارس می شوند (فهرست یک فیلد ایندکس اضافه دارد). شماره فرستنده اگر هگز UCS2 به نظر برسد (<code>looks_like_ucs2_hex</code>) رمزگشایی می شود. بدنه پیام در خط بعدی با <code>store_body</code> ذخیره و رمزنگاری واقعی (UCS2 یا GSM7) با بو کردن محتوا تشخیص داده می شود.</p>
 <h3><code>void SmsService::on_line(const char* line, uint16_t len)</code></h3>
 <ul>
 <li><code>+CMGS: &lt;mr&gt;</code> → شماره مرجع ارسال در <code>report_.reference</code>.</li>
 <li><code>+CMGR:</code> / <code>+CMGL:</code> → <code>parse_cmgr_header</code>.</li>
-<li><code>+CPMS:</code> نادیده گرفته می‌شود (وضعیت مخزن را <code>StatusService</code> مدیریت می‌کند).</li>
-<li>خط بدنه (وقتی <code>expect_body_</code>) → <code>store_body</code>؛ در حالت <code>ListUnread</code> هر پیام بلافاصله با <code>queue_index</code> + <code>on_received_(last_)</code> تحویل داده می‌شود.</li>
+<li><code>+CPMS:</code> نادیده گرفته می شود (وضعیت مخزن را <code>StatusService</code> مدیریت می کند).</li>
+<li>خط بدنه (وقتی <code>expect_body_</code>) → <code>store_body</code>؛ در حالت <code>ListUnread</code> هر پیام بلافاصله با <code>queue_index</code> + <code>on_received_(last_)</code> تحویل داده می شود.</li>
 </ul>
 <h3><code>void SmsService::on_final(const AtResult&amp; res)</code></h3>
-<p>در هر نتیجه غیرموفق اگر در فاز payload باشیم (<code>WritePayload</code>/<code>WaitAck</code>) ابتدا <code>at_.write_escape()</code> ارسال می‌شود تا مودم از حالت ورود داده درنیاید، سپس <code>fail</code>. در موفقیت، پرچم‌های جلسه (<code>text_mode</code>، <code>charset</code>، <code>csmp_ucs2</code>، <code>storage_ready</code>) ثبت و زنجیره ادامه می‌یابد؛ پس از <code>SetStorage</code> دوباره به همان گام برمی‌گردد تا انشعاب نهایی (ارسال/خواندن/فهرست) انتخاب شود. <code>SendHeader</code> بدون دریافت پرامپت → <code>fail</code>. <code>WaitAck</code> موفق → <code>complete()</code> با لاگ <code>sent, ref=%d</code>. در <code>ReadMessage</code> اگر <code>delete_after_</code> تنظیم باشد، به‌طور خودکار به <code>DeleteIndex</code> زنجیر می‌شود.</p>
+<p>در هر نتیجه غیرموفق اگر در فاز payload باشیم (<code>WritePayload</code>/<code>WaitAck</code>) ابتدا <code>at_.write_escape()</code> ارسال می شود تا مودم از حالت ورود داده درنیاید، سپس <code>fail</code>. در موفقیت، پرچم های جلسه (<code>text_mode</code>، <code>charset</code>، <code>csmp_ucs2</code>، <code>storage_ready</code>) ثبت و زنجیره ادامه می یابد؛ پس از <code>SetStorage</code> دوباره به همان گام برمی گردد تا انشعاب نهایی (ارسال/خواندن/فهرست) انتخاب شود. <code>SendHeader</code> بدون دریافت پرامپت → <code>fail</code>. <code>WaitAck</code> موفق → <code>complete()</code> با لاگ <code>sent, ref=%d</code>. در <code>ReadMessage</code> اگر <code>delete_after_</code> تنظیم باشد، به طور خودکار به <code>DeleteIndex</code> زنجیر می شود.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">start_send(num, text)
    │  guard: count_chars(text) &gt; max_chars ? → kErrSmsTooLong (رد فوری)
@@ -126,22 +126,22 @@ start_scan_unread: … ─► ListUnread (CMGL) ─► هر پیام: store_body
 start_read(idx):   … ─► ReadMessage (CMGR) ─► [delete_after?] ─► DeleteIndex</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong><code>max_chars</code> دو لایه اجرا می‌شود:</strong> هم در <code>Modem::send_sms</code> (رد قبل از ورود به صف) و هم در <code>SmsService::start_send</code> (رد هنگام اجرا). مقدار پیش‌فرض <code>GSM_SMS_MAX_CHARS = 60</code> با هدف حاشیه امن زیر سقف ۷۰ نویسه یک SMS UCS2 تک‌بخشی انتخاب شده؛ با <code>set_max_chars</code> (دستور کنسولی <code>smsmax</code>) یا مقدار ۰ (غیرفعال) قابل تنظیم است.</li>
-<li><strong>شمارش «نویسه» نه «بایت»:</strong> متن فارسی ۶۰ نویسه‌ای ممکن است ۱۲۰ بایت باشد؛ <code>count_chars</code> بر مبنای نقاط کد UTF-8 تصمیم می‌گیرد.</li>
-<li><strong>رفتار <code>fail</code>:</strong> چون ممکن است مودم در وضعیت نیمه‌کاره (مثلاً پرامپت CMGS) رها شده باشد، جلسه کاملاً باطل می‌شود تا گام‌های تنظیمی دوباره و بدون اتکا به کش ارسال شوند.</li>
-<li><strong><code>pump</code> زنجیره‌ای:</strong> گام‌های skip‌شونده حداکثر ۸ پله در یک نوبت جلو می‌روند؛ این تأخیر tick را حذف می‌کند ولی جلوی حلقه بی‌نهایت را هم می‌گیرد.</li>
-<li><strong><code>await_final</code> به‌جای <code>execute</code>:</strong> در فاز payload هیچ فرمان جدیدی ارسال نمی‌شود؛ فقط نتیجه نهایی (OK/+CMGS) انتظار کشیده می‌شود. این از تداخل با guard-time موتور AT هم جلوگیری می‌کند.</li>
-<li><strong>بدون heap:</strong> بافرهای موقت (<code>dest</code>، <code>hex</code>) همگی آرایه‌های ثابت با اندازه‌های <code>GSM_SMS_TEXT_BYTES</code> / <code>GSM_SMS_NUMBER_BYTES</code> هستند.</li>
-<li><strong><code>kErrSmsTooLong = -100</code>:</strong> کد خطای داخلی کتابخانه (نه کد CME/CMS) و در <code>JobResult</code> قابل تشخیص است؛ <code>Modem::finish_job</code> چنین خطاهای سیاستی را retry نمی‌کند.</li>
+<li><strong><code>max_chars</code> دو لایه اجرا می شود:</strong> هم در <code>Modem::send_sms</code> (رد قبل از ورود به صف) و هم در <code>SmsService::start_send</code> (رد هنگام اجرا). مقدار پیش فرض <code>GSM_SMS_MAX_CHARS = 60</code> با هدف حاشیه امن زیر سقف ۷۰ نویسه یک SMS UCS2 تک بخشی انتخاب شده؛ با <code>set_max_chars</code> (دستور کنسولی <code>smsmax</code>) یا مقدار ۰ (غیرفعال) قابل تنظیم است.</li>
+<li><strong>شمارش «نویسه» نه «بایت»:</strong> متن فارسی ۶۰ نویسه ای ممکن است ۱۲۰ بایت باشد؛ <code>count_chars</code> بر مبنای نقاط کد UTF-8 تصمیم می گیرد.</li>
+<li><strong>رفتار <code>fail</code>:</strong> چون ممکن است مودم در وضعیت نیمه کاره (مثلاً پرامپت CMGS) رها شده باشد، جلسه کاملاً باطل می شود تا گام های تنظیمی دوباره و بدون اتکا به کش ارسال شوند.</li>
+<li><strong><code>pump</code> زنجیره ای:</strong> گام های skip شونده حداکثر ۸ پله در یک نوبت جلو می روند؛ این تأخیر tick را حذف می کند ولی جلوی حلقه بی نهایت را هم می گیرد.</li>
+<li><strong><code>await_final</code> به جای <code>execute</code>:</strong> در فاز payload هیچ فرمان جدیدی ارسال نمی شود؛ فقط نتیجه نهایی (OK/+CMGS) انتظار کشیده می شود. این از تداخل با guard-time موتور AT هم جلوگیری می کند.</li>
+<li><strong>بدون heap:</strong> بافرهای موقت (<code>dest</code>، <code>hex</code>) همگی آرایه های ثابت با اندازه های <code>GSM_SMS_TEXT_BYTES</code> / <code>GSM_SMS_NUMBER_BYTES</code> هستند.</li>
+<li><strong><code>kErrSmsTooLong = -100</code>:</strong> کد خطای داخلی کتابخانه (نه کد CME/CMS) و در <code>JobResult</code> قابل تشخیص است؛ <code>Modem::finish_job</code> چنین خطاهای سیاستی را retry نمی کند.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>gsm/sms/sms_service.hpp</code> + <code>gsm/sms/sms_types.hpp</code> — <code>SmsStep</code>، <code>SmsEncoding</code>، <code>SmsMessage</code>، <code>SmsSendReport</code>، <code>max_chars_</code>.</li>
 <li><code>gsm/core/at_engine.hpp</code> — <code>execute</code>، <code>await_final</code>، <code>write_raw</code>، <code>write_ctrl_z</code>، <code>write_escape</code>، <code>abort</code>.</li>
 <li><code>gsm/core/at_types.hpp</code> — <code>AtResult</code> و <code>kErrSmsTooLong</code>.</li>
-<li><code>gsm/codec/ucs2.hpp</code> + <code>src/ucs2.cpp</code> — تبدیل‌های UTF-8 ↔ هگز UCS2 و تشخیص <code>looks_like_ucs2_hex</code>.</li>
+<li><code>gsm/codec/ucs2.hpp</code> + <code>src/ucs2.cpp</code> — تبدیل های UTF-8 ↔ هگز UCS2 و تشخیص <code>looks_like_ucs2_hex</code>.</li>
 <li><code>gsm/codec/phone_number.hpp</code> — اعتبارسنجی شماره گیرنده.</li>
-<li><code>gsm/core/service.hpp</code> — رابط <code>IService</code> (پیاده‌سازی <code>pump/cancel/on_line/on_final</code>).</li>
-<li><code>src/modem.cpp</code> — صف‌بندی jobهای <code>SmsSend/SmsRead/SmsScan/SmsDelete<em></code> و فراخوانی <code>start_</em></code>.</li>
+<li><code>gsm/core/service.hpp</code> — رابط <code>IService</code> (پیاده سازی <code>pump/cancel/on_line/on_final</code>).</li>
+<li><code>src/modem.cpp</code> — صف بندی jobهای <code>SmsSend/SmsRead/SmsScan/SmsDelete<em></code> و فراخوانی <code>start_</em></code>.</li>
 <li><code>include/gsm/gsm_config.hpp</code> — <code>GSM_SMS_MAX_CHARS</code>، <code>GSM_SMS_TEXT_BYTES</code>، <code>GSM_SMS_NUMBER_BYTES</code>، <code>GSM_SMS_INBOX_SLOTS</code>.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

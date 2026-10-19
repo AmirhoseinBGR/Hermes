@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/voice/call_service.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/voice/call_service.hpp</h1>
 <h2>نقش فایل</h2>
-<p>سرویس مدیریت تماس صوتی: شماره‌گیری، پاسخ، قطع تماس و مهم‌تر از همه <strong>نظارت خودران بر تماس (supervision)</strong> در نسخهٔ v0.4 — تایمرهای قطع/رد خودکار، polling متناوب <code>+CLCC</code> به‌عنوان تور ایمنی (و مرجع اصلی در ماژول‌های M08R) و ثبت دلیل پایان تماس. هدف این است که تماس‌های نیمه‌کاره هرگز صف Jobها را قفل نکنند و مودم در وضعیت تماس معلق نماند.</p>
+<p>سرویس مدیریت تماس صوتی: شماره گیری، پاسخ، قطع تماس و مهم تر از همه <strong>نظارت خودران بر تماس (supervision)</strong> در نسخهٔ v0.4 — تایمرهای قطع/رد خودکار، polling متناوب <code>+CLCC</code> به عنوان تور ایمنی (و مرجع اصلی در ماژول های M08R) و ثبت دلیل پایان تماس. هدف این است که تماس های نیمه کاره هرگز صف Jobها را قفل نکنند و مودم در وضعیت تماس معلق نماند.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3>enumهای وضعیت</h3>
 <pre><code class="lang-cpp">enum class CallState : uint8_t
@@ -119,7 +119,7 @@ void set_on_ended(Ended cb);
 void set_auto_clip(bool on);           // enable +CLIP for caller ID (default true)
 CallPolicy&amp;       policy();
 const CallPolicy&amp; policy() const;</code></pre>
-<p>فیلدهای نظارتی داخلی: <code>dial_since_ms_</code>، <code>ring_since_ms_</code>، <code>active_since_ms_</code>، <code>state_since_ms_</code>، <code>last_clcc_ms_</code>، <code>clcc_misses_</code>، <code>clcc_seen_</code>، <code>clcc_seen_before_</code> — تایمرها و شمارندهٔ پروب‌های <code>+CLCC</code>.</p>
+<p>فیلدهای نظارتی داخلی: <code>dial_since_ms_</code>، <code>ring_since_ms_</code>، <code>active_since_ms_</code>، <code>state_since_ms_</code>، <code>last_clcc_ms_</code>، <code>clcc_misses_</code>، <code>clcc_seen_</code>، <code>clcc_seen_before_</code> — تایمرها و شمارندهٔ پروب های <code>+CLCC</code>.</p>
 <h2>جریان کاری</h2>
 <pre><code class="lang-text">                       Modem::tick() -&gt; CallService::monitor(now, engine_idle)
                                        (even with no call job in the queue)
@@ -144,22 +144,22 @@ modem.dial(&quot;+98912xxxxxxx&quot;, cb);</code></pre>
 <h2>نکات فنی</h2>
 <ul>
 <li><strong>بدون تخصیص حافظه</strong>: <code>PhoneNumber peer_</code> از نوع <code>StaticString</code>؛ همهٔ تایمرها <code>uint32_t</code> با الگوی <code>hal::elapsed</code>.</li>
-<li><strong><code>clcc_authoritative</code></strong> (از <code>DeviceTraits</code>): برای M08R اعتماد اصلی به <code>+CLCC</code> است نه URCهای <code>NO CARRIER</code>/<code>BUSY</code> — این URCها در این ماژول نامطمئن‌اند و ماژول ممکن است بعد از payload پیامکی قطع‌شده گیر کند.</li>
-<li><code>monitor</code> عمداً <strong>جدا از Job</strong> کار می‌کند: تماس ورودی بین دو Job پیامک هم دیده می‌شود؛ <code>Modem::call_gate()</code> بر اساس <code>engaged()</code> جلوی Jobهای غیرتماسی را می‌گیرد تا صف خراب نشود.</li>
-<li><code>clcc_misses_</code> با آستانهٔ <code>GSM_CALL_CLCC_MISSES</code> (پیش‌فرض ۲) مرگ تماس را اعلام می‌کند — پاسخ به URCهای از‌دست‌رفته.</li>
-<li><code>fallback_</code> تضمین می‌کند برای هر قطع فقط یک بار fallback انجام شود؛ <code>HangupFallback</code> از حلقهٔ بی‌نهایت جلوگیری می‌کند.</li>
-<li>پایان با <code>kErrCallTimeout</code> (خطای سطح کتابخانه) به‌همراه <code>CallEndReason::Timeout</code> گزارش می‌شود.</li>
-<li><code>CallPolicy</code> در زمان اجرا قابل تنظیم است؛ همهٔ مقادیر پیش‌فرض از <code>gsm_config.hpp</code> می‌آیند.</li>
-<li><code>enable_clip</code> (خودکار با <code>set_auto_clip</code>) شمارهٔ تماس‌گیرنده را از <code>+CLIP</code> می‌گیرد؛ <code>peer()</code> فقط بعد از دریافت CLIP یا شماره‌گیری معتبر است.</li>
+<li><strong><code>clcc_authoritative</code></strong> (از <code>DeviceTraits</code>): برای M08R اعتماد اصلی به <code>+CLCC</code> است نه URCهای <code>NO CARRIER</code>/<code>BUSY</code> — این URCها در این ماژول نامطمئن اند و ماژول ممکن است بعد از payload پیامکی قطع شده گیر کند.</li>
+<li><code>monitor</code> عمداً <strong>جدا از Job</strong> کار می کند: تماس ورودی بین دو Job پیامک هم دیده می شود؛ <code>Modem::call_gate()</code> بر اساس <code>engaged()</code> جلوی Jobهای غیرتماسی را می گیرد تا صف خراب نشود.</li>
+<li><code>clcc_misses_</code> با آستانهٔ <code>GSM_CALL_CLCC_MISSES</code> (پیش فرض ۲) مرگ تماس را اعلام می کند — پاسخ به URCهای از دست رفته.</li>
+<li><code>fallback_</code> تضمین می کند برای هر قطع فقط یک بار fallback انجام شود؛ <code>HangupFallback</code> از حلقهٔ بی نهایت جلوگیری می کند.</li>
+<li>پایان با <code>kErrCallTimeout</code> (خطای سطح کتابخانه) به همراه <code>CallEndReason::Timeout</code> گزارش می شود.</li>
+<li><code>CallPolicy</code> در زمان اجرا قابل تنظیم است؛ همهٔ مقادیر پیش فرض از <code>gsm_config.hpp</code> می آیند.</li>
+<li><code>enable_clip</code> (خودکار با <code>set_auto_clip</code>) شمارهٔ تماس گیرنده را از <code>+CLIP</code> می گیرد؛ <code>peer()</code> فقط بعد از دریافت CLIP یا شماره گیری معتبر است.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>core/service.hpp</code> — پایهٔ <code>IService</code></li>
 <li><code>core/at_engine.hpp</code> — اجرای <code>ATD</code>/<code>ATA</code>/<code>AT+CHUP</code>/<code>ATH</code>/<code>AT+CLCC</code></li>
 <li><code>core/urc_router.hpp</code> — <code>Ring</code>/<code>CallerId</code>/<code>CallEnded</code>/<code>CallBusy</code> به <code>notify_*</code></li>
 <li><code>device/device_traits.hpp</code> — <code>hangup_cmd</code>، <code>supports_clcc</code>، <code>clcc_authoritative</code></li>
 <li><code>codec/phone_number.hpp</code> — <code>PhoneNumber peer_</code></li>
-<li><code>gsm_config.hpp</code> — <code>GSM_CALL_*</code> (پیش‌فرض‌های <code>CallPolicy</code>)، <code>kErrCallTimeout</code> در <code>at_types.hpp</code></li>
+<li><code>gsm_config.hpp</code> — <code>GSM_CALL_*</code> (پیش فرض های <code>CallPolicy</code>)، <code>kErrCallTimeout</code> در <code>at_types.hpp</code></li>
 <li><code>modem/modem.hpp</code> — Jobهای <code>CallDial/CallAnswer/CallHangup</code>، <code>call_gate()</code> و <code>preempt_for_call</code></li>
 <li><code>cli/cli.hpp</code> — نمایش وضعیت تماس و <code>CallEndReason</code></li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

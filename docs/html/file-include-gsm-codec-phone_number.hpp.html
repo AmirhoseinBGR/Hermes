@@ -41,9 +41,9 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/include/gsm/codec/phone_number.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/include/gsm/codec/phone_number.hpp</h1>
 <h2>نقش فایل</h2>
-<p>کلاس کوچک و متمرکز برای نرمال‌سازی شماره تلفن به قالب <strong>E.164</strong> (مثلاً <code>+989123456789</code>). با توجه به کاربرد ایرانی کتابخانه، کد کشور پیش‌فرض <code>+98</code> است؛ ورودی‌هایی مثل <code>0912...</code> یا <code>912...</code> به شکل استاندارد بین‌المللی درمی‌آیند. این کلاس مبنای شماره‌های <code>SmsService</code> و <code>CallService</code> است.</p>
+<p>کلاس کوچک و متمرکز برای نرمال سازی شماره تلفن به قالب <strong>E.164</strong> (مثلاً <code>+989123456789</code>). با توجه به کاربرد ایرانی کتابخانه، کد کشور پیش فرض <code>+98</code> است؛ ورودی هایی مثل <code>0912...</code> یا <code>912...</code> به شکل استاندارد بین المللی درمی آیند. این کلاس مبنای شماره های <code>SmsService</code> و <code>CallService</code> است.</p>
 <h2>ساختارهای کلیدی</h2>
 <h3><code>class PhoneNumber</code></h3>
 <pre><code class="lang-cpp">class PhoneNumber
@@ -62,9 +62,9 @@ footer { text-align:center; color:var(--dim); font-size:.85rem;
     StaticString&lt;GSM_SMS_NUMBER_BYTES&gt; value_;   // 24 bytes by default
 };</code></pre>
 <ul>
-<li><code>assign(raw, country_code)</code>: نرمال‌سازی ورودی خام (با/بدون صفر اولیه، با/بدون <code>+</code>) به E.164؛ مقدار بازگشتی موفقیت عملیات را نشان می‌دهد.</li>
+<li><code>assign(raw, country_code)</code>: نرمال سازی ورودی خام (با/بدون صفر اولیه، با/بدون <code>+</code>) به E.164؛ مقدار بازگشتی موفقیت عملیات را نشان می دهد.</li>
 <li><code>e164()</code>: رشتهٔ نهایی با پیشوند <code>+</code> (برای <code>AT+CMGS</code>، <code>ATD</code> و …).</li>
-<li><code>valid()</code>: حداقل ۸ رقم — فیلتر سادهٔ شماره‌های آشکارا ناقص (شمارهٔ ایرانی کامل ۱۲ رقم با کد کشور است).</li>
+<li><code>valid()</code>: حداقل ۸ رقم — فیلتر سادهٔ شماره های آشکارا ناقص (شمارهٔ ایرانی کامل ۱۲ رقم با کد کشور است).</li>
 <li><code>clear()</code>: بازنشانی.</li>
 </ul>
 <h2>جریان کاری</h2>
@@ -86,19 +86,19 @@ if (p.valid()) {
 }</code></pre>
 <h2>نکات فنی</h2>
 <ul>
-<li><strong>بدون heap / بدون STL</strong>: ذخیره در <code>StaticString&lt;GSM_SMS_NUMBER_BYTES&gt;</code> (پیش‌فرض ۲۴ بایت؛ برای E.164 کافی است).</li>
+<li><strong>بدون heap / بدون STL</strong>: ذخیره در <code>StaticString&lt;GSM_SMS_NUMBER_BYTES&gt;</code> (پیش فرض ۲۴ بایت؛ برای E.164 کافی است).</li>
 <li>سازنده <code>explicit</code> است تا تبدیل ضمنی رشته به شماره رخ ندهد.</li>
-<li>نرمال‌سازی در <code>assign</code> پیاده‌سازی شده (در .cpp)؛ هدر فقط قرارداد را نشان می‌دهد.</li>
+<li>نرمال سازی در <code>assign</code> پیاده سازی شده (در .cpp)؛ هدر فقط قرارداد را نشان می دهد.</li>
 <li><code>valid()</code> یک اعتبارسنجی حداقلی است (طول)؛ اعتبارسنجی الگوی کشور/اپراتور بر عهدهٔ کاربر است.</li>
-<li>شماره‌های USSD یا کدهای کوتاه ممکن است از <code>valid()</code> رد نشوند — از این کلاس برای شماره‌های مکالمه/پیامک استفاده کنید.</li>
+<li>شماره های USSD یا کدهای کوتاه ممکن است از <code>valid()</code> رد نشوند — از این کلاس برای شماره های مکالمه/پیامک استفاده کنید.</li>
 <li><code>value_</code> همیشه null-terminated است (تضمین <code>StaticString</code>).</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
 <li><code>util/static_string.hpp</code> — بافر زیرساختی</li>
 <li><code>gsm_config.hpp</code> — <code>GSM_SMS_NUMBER_BYTES</code></li>
 <li><code>sms/sms_service.hpp</code> — <code>PhoneNumber recipient_</code></li>
 <li><code>voice/call_service.hpp</code> — <code>PhoneNumber peer_</code></li>
-<li><code>sms/sms_types.hpp</code> — شامل‌کنندهٔ این هدر برای انواع SMS</li>
-<li><code>queue/job.hpp</code> — شماره در Job (به‌صورت <code>StaticString</code>؛ نرمال‌سازی پیش از enqueue انجام می‌شود)</li>
+<li><code>sms/sms_types.hpp</code> — شامل کنندهٔ این هدر برای انواع SMS</li>
+<li><code>queue/job.hpp</code> — شماره در Job (به صورت <code>StaticString</code>؛ نرمال سازی پیش از enqueue انجام می شود)</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>

@@ -41,60 +41,60 @@ nav.top a:hover { color: var(--accent); }
          margin-left:.4rem; }
 footer { text-align:center; color:var(--dim); font-size:.85rem;
          padding:2rem 0 3rem; }
-</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ‌داگ‌ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل‌به‌فایل</a></nav><main><h1>gsm/ports/host/gsm_port_host.hpp</h1>
+</style></head><body><nav class="top"><a href="index.html">🏠 صفحه اصلی</a><a href="guide-architecture.html">معماری</a><a href="guide-call_management.html">مدیریت تماس</a><a href="guide-sms_policy.html">سیاست پیامک</a><a href="guide-watchdog.html">واچ داگ ها</a><a href="guide-cli.html">کنسول CLI</a><a href="files-index.html">فایل به فایل</a></nav><main><h1>gsm/ports/host/gsm_port_host.hpp</h1>
 <h2>نقش فایل</h2>
-<p>این فایل «پُرت میزبان» (Host Port) برای اجرای کتابخانه‌ی GSM روی کامپیوتر (بدون سخت‌افزار واقعی مودم) است. هدف اصلی‌اش تست و شبیه‌سازی است: به‌جای UART واقعی، بافرهای نرم‌افزاری می‌سازد که تست می‌تواند داده «تزریق» (inject) کند و فرستاده‌شده‌ها را بازرسی کند. زمان‌سنج و کنترل تغذیه هم به‌صورت مصنوعی/شمارنده‌ای پیاده شده‌اند تا تست‌ها قطعی (deterministic) باشند.</p>
+<p>این فایل «پُرت میزبان» (Host Port) برای اجرای کتابخانه ی GSM روی کامپیوتر (بدون سخت افزار واقعی مودم) است. هدف اصلی اش تست و شبیه سازی است: به جای UART واقعی، بافرهای نرم افزاری می سازد که تست می تواند داده «تزریق» (inject) کند و فرستاده شده ها را بازرسی کند. زمان سنج و کنترل تغذیه هم به صورت مصنوعی/شمارنده ای پیاده شده اند تا تست ها قطعی (deterministic) باشند.</p>
 <h2>ساختارها/توابع کلیدی</h2>
 <ul>
 <li><code>template &lt;uint16_t Size = 2048&gt; class HostUart final : public hal::IUart</code></li>
 </ul>
-<p>UART شبیه‌سازی‌شده با بافر حلقه‌ای (<code>RingBuffer&lt;Size&gt;</code>) برای RX و یک آرایه‌ی <code>char</code> برای TX.</p>
+<p>UART شبیه سازی شده با بافر حلقه ای (<code>RingBuffer&lt;Size&gt;</code>) برای RX و یک آرایه ی <code>char</code> برای TX.</p>
 <ul>
-<li><code>uint16_t write(const uint8_t* data, uint16_t len)</code> — بایت‌ها را در بافر <code>tx_</code> می‌ریزد (به‌صورت رشته‌ی null-terminated) و <code>len</code> را برمی‌گرداند.</li>
-<li><code>uint16_t read(uint8_t* out, uint16_t max)</code> — تا <code>max</code> بایت از بافر RX (<code>rx_.pop</code>) برمی‌دارد.</li>
-<li><code>uint16_t available()</code> — تعداد بایت‌های موجود در بافر RX (<code>rx_.size()</code>).</li>
-<li><code>void drain_rx()</code> — بافر RX را خالی می‌کند (<code>rx_.clear()</code>).</li>
-<li><code>void inject(const char* text)</code> — رشته‌ای را به‌عنوان داده‌ی «دریافتی از مودم» وارد بافر RX می‌کند (برای شبیه‌سازی پاسخ مودم).</li>
+<li><code>uint16_t write(const uint8_t* data, uint16_t len)</code> — بایت ها را در بافر <code>tx_</code> می ریزد (به صورت رشته ی null-terminated) و <code>len</code> را برمی گرداند.</li>
+<li><code>uint16_t read(uint8_t* out, uint16_t max)</code> — تا <code>max</code> بایت از بافر RX (<code>rx_.pop</code>) برمی دارد.</li>
+<li><code>uint16_t available()</code> — تعداد بایت های موجود در بافر RX (<code>rx_.size()</code>).</li>
+<li><code>void drain_rx()</code> — بافر RX را خالی می کند (<code>rx_.clear()</code>).</li>
+<li><code>void inject(const char* text)</code> — رشته ای را به عنوان داده ی «دریافتی از مودم» وارد بافر RX می کند (برای شبیه سازی پاسخ مودم).</li>
 <li><code>const char* tx() const</code> — دسترسی به بافر ارسالی (برای بازرسی دستورات صادرشده توسط موتور).</li>
-<li><code>void clear_tx()</code> — بافر ارسالی را پاک می‌کند.</li>
+<li><code>void clear_tx()</code> — بافر ارسالی را پاک می کند.</li>
 </ul>
 <ul>
 <li><code>class HostClock final : public hal::IClock</code></li>
 </ul>
-<p>زمان‌سنج مصنوعی با عضو عمومی <code>uint32_t now</code>.</p>
+<p>زمان سنج مصنوعی با عضو عمومی <code>uint32_t now</code>.</p>
 <ul>
-<li><code>uint32_t millis()</code> — مقدار <code>now</code> را برمی‌گرداند؛ تست مقدار <code>now</code> را جلو می‌برد تا زمان را کنترل کند.</li>
+<li><code>uint32_t millis()</code> — مقدار <code>now</code> را برمی گرداند؛ تست مقدار <code>now</code> را جلو می برد تا زمان را کنترل کند.</li>
 </ul>
 <ul>
 <li><code>class HostPowerControl final : public hal::IPowerControl</code></li>
 </ul>
-<p>شمارنده‌ی پالس تغذیه برای تشخیص ریست/پاورسایکل سخت‌افزاری در تست.</p>
+<p>شمارنده ی پالس تغذیه برای تشخیص ریست/پاورسایکل سخت افزاری در تست.</p>
 <ul>
-<li><code>void power_key(bool asserted)</code> — اگر <code>asserted</code> باشد <code>pulse_count</code> را یکی زیاد می‌کند.</li>
-<li><code>uint32_t pulse_count</code> — تعداد دفعات فشردن کلید تغذیه (برای اثبات اینکه watchdog سخت‌افزار را ریست کرده).</li>
+<li><code>void power_key(bool asserted)</code> — اگر <code>asserted</code> باشد <code>pulse_count</code> را یکی زیاد می کند.</li>
+<li><code>uint32_t pulse_count</code> — تعداد دفعات فشردن کلید تغذیه (برای اثبات اینکه watchdog سخت افزار را ریست کرده).</li>
 </ul>
 <h2>جریان کاری</h2>
 <ol>
-<li>تست (<code>tests/host_smoke.cpp</code>) نمونه‌های <code>HostUart</code>، <code>HostClock</code> و <code>HostPowerControl</code> می‌سازد و به <code>Modem</code> می‌دهد.</li>
-<li>تست با <code>advance(ms)</code> مقدار <code>clock_.now</code> را جلو می‌برد و <code>modem.tick()</code> را صدا می‌زند تا موتور AT پیش برود.</li>
-<li>تست با <code>uart.inject("OK\r\n")</code> پاسخ‌های ساختگی مودم را وارد می‌کند و با <code>uart.tx()</code> / <code>tx_has(needle)</code> بررسی می‌کند که موتور چه دستوراتی فرستاده است.</li>
-<li><code>HostPowerControl.pulse_count</code> نشان می‌دهد که آیا watchdog در شرایط خطای متوالی، پاورسایکل سخت‌افزاری انجام داده است.</li>
+<li>تست (<code>tests/host_smoke.cpp</code>) نمونه های <code>HostUart</code>، <code>HostClock</code> و <code>HostPowerControl</code> می سازد و به <code>Modem</code> می دهد.</li>
+<li>تست با <code>advance(ms)</code> مقدار <code>clock_.now</code> را جلو می برد و <code>modem.tick()</code> را صدا می زند تا موتور AT پیش برود.</li>
+<li>تست با <code>uart.inject("OK\r\n")</code> پاسخ های ساختگی مودم را وارد می کند و با <code>uart.tx()</code> / <code>tx_has(needle)</code> بررسی می کند که موتور چه دستوراتی فرستاده است.</li>
+<li><code>HostPowerControl.pulse_count</code> نشان می دهد که آیا watchdog در شرایط خطای متوالی، پاورسایکل سخت افزاری انجام داده است.</li>
 </ol>
 <h2>نکات فنی</h2>
 <ul>
-<li><code>HostUart</code> یک قالب (template) با اندازه‌ی پیش‌فرض <code>2048</code> است؛ اندازه‌ی بافر RX و TX یکسان است.</li>
-<li><code>write</code> همیشه <code>len</code> را برمی‌گرداند (حتی اگر بافر TX پر شود)؛ این برای سادگی تست است و بازگشت واقعی خروجی سریال را تضمین نمی‌کند.</li>
-<li>بافر TX به‌صورت رشته‌ی <code>'\0'</code>-terminated نگه داشته می‌شود تا بتوان با <code>strstr</code> (در <code>tx_has</code>) جست‌وجو کرد.</li>
-<li><code>HostClock.now</code> عمومی است تا تست بتواند مستقیماً زمان را دستکاری کند (بدون وقفه‌ی واقعی).</li>
-<li><code>HostPowerControl</code> فقط <code>power_key</code> را پیاده می‌کند؛ <code>reset</code> از پیش‌فرض رابط (<code>IPowerControl</code>) استفاده می‌کند.</li>
+<li><code>HostUart</code> یک قالب (template) با اندازه ی پیش فرض <code>2048</code> است؛ اندازه ی بافر RX و TX یکسان است.</li>
+<li><code>write</code> همیشه <code>len</code> را برمی گرداند (حتی اگر بافر TX پر شود)؛ این برای سادگی تست است و بازگشت واقعی خروجی سریال را تضمین نمی کند.</li>
+<li>بافر TX به صورت رشته ی <code>'\0'</code>-terminated نگه داشته می شود تا بتوان با <code>strstr</code> (در <code>tx_has</code>) جست وجو کرد.</li>
+<li><code>HostClock.now</code> عمومی است تا تست بتواند مستقیماً زمان را دستکاری کند (بدون وقفه ی واقعی).</li>
+<li><code>HostPowerControl</code> فقط <code>power_key</code> را پیاده می کند؛ <code>reset</code> از پیش فرض رابط (<code>IPowerControl</code>) استفاده می کند.</li>
 <li>هیچ تخصیص پویا (dynamic allocation) یا استثنایی به کار نرفته؛ با <code>-fno-exceptions -fno-rtti</code> سازگار است.</li>
-<li><code>std::strlen</code>/<code>std::memcpy</code> از <code>&lt;cstring&gt;</code> استفاده شده؛ برخلاف پُرت‌های embedded، اینجا STL مجاز است چون هدف تست میزبان است.</li>
+<li><code>std::strlen</code>/<code>std::memcpy</code> از <code>&lt;cstring&gt;</code> استفاده شده؛ برخلاف پُرت های embedded، اینجا STL مجاز است چون هدف تست میزبان است.</li>
 </ul>
-<h2>ارتباط با سایر فایل‌ها</h2>
+<h2>ارتباط با سایر فایل ها</h2>
 <ul>
-<li><code>gsm/hal/hal.hpp</code> — رابط‌های <code>IUart</code>/<code>IClock</code>/<code>IPowerControl</code> که اینجا پیاده‌سازی می‌شوند.</li>
+<li><code>gsm/hal/hal.hpp</code> — رابط های <code>IUart</code>/<code>IClock</code>/<code>IPowerControl</code> که اینجا پیاده سازی می شوند.</li>
 <li><code>gsm/util/ring_buffer.hpp</code> — <code>RingBuffer</code> که بافر RX از آن ساخته شده.</li>
-<li><code>gsm/tests/host_smoke.cpp</code> — تنها مصرف‌کننده‌ی این پُرت؛ تمام سناریوهای تست (طول پیامک، نظارت تماس، watchdog، بازیابی SIM و…) از طریق همین شبیه‌ساز اجرا می‌شوند.</li>
-<li><code>gsm/CMakeLists.txt</code> — با گزینه‌ی <code>GSM_BUILD_TESTS</code> پوشه‌ی <code>ports/host</code> را به include path اضافه می‌کند.</li>
-<li>در کنار <code>ports/arduino/</code> و <code>ports/stm32/</code> قرار می‌گیرد؛ هر سه یک رابط HAL را برای محیط متفاوت فراهم می‌کنند.</li>
+<li><code>gsm/tests/host_smoke.cpp</code> — تنها مصرف کننده ی این پُرت؛ تمام سناریوهای تست (طول پیامک، نظارت تماس، watchdog، بازیابی SIM و…) از طریق همین شبیه ساز اجرا می شوند.</li>
+<li><code>gsm/CMakeLists.txt</code> — با گزینه ی <code>GSM_BUILD_TESTS</code> پوشه ی <code>ports/host</code> را به include path اضافه می کند.</li>
+<li>در کنار <code>ports/arduino/</code> و <code>ports/stm32/</code> قرار می گیرد؛ هر سه یک رابط HAL را برای محیط متفاوت فراهم می کنند.</li>
 </ul></main><footer>مستندات کتابخانه GSM — نسخه ۰.۴ · تولیدشده با build_html.py</footer></body></html>
