@@ -109,10 +109,10 @@
 
 // --- maintenance resetters (dual watchdog) -----------------------------------
 #ifndef GSM_PERIODIC_RESET_MS
-#define GSM_PERIODIC_RESET_MS 3600000 // resetter #1: full module reset every 60 min (0=off)
+#define GSM_PERIODIC_RESET_MS 1800000// 3600000 // resetter #1: full module reset every 60 min (0=off)
 #endif
 #ifndef GSM_OPS_RESET_COUNT
-#define GSM_OPS_RESET_COUNT 50 // resetter #2: full reset after N operations (0=off)
+#define GSM_OPS_RESET_COUNT 10 // resetter #2: full reset after N operations (0=off)
 #endif
 #ifndef GSM_WATCHDOG_GRACE_MS
 #define GSM_WATCHDOG_GRACE_MS 10000 // force the reset if no safe window appears within this
